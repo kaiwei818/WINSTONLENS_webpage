@@ -599,9 +599,15 @@ html[data-pointer] :focus-visible:not(input, textarea, select) { outline: none; 
 /* The light pill is for photos; beside the text it is the solid one. */
 .hero-link.pill-on-photo { background: var(--color-accent); color: var(--color-accent-ink); }
 .hero-link.pill-on-photo:hover { background: var(--color-ink-2); }
-/* The whole hero opens the featured set, not just the button. */
-.hero-link::after { content: ""; position: absolute; inset: 0; }
-.hero:has(.hero-link:hover) .hero-title { text-decoration: underline; text-decoration-thickness: 3px; text-underline-offset: 0.08em; }
+/* The name and the cover are links to the set too (lib/render.js), each a
+   real link of its own: no layer stretched over the hero, which a pressed
+   button (it shrinks a little) would pull out from under the pointer. */
+.hero-title-link { color: inherit; text-decoration: none; text-decoration-thickness: 3px; text-underline-offset: 0.08em; }
+.hero-title-link:hover,
+.hero:has(.hero-frame:hover) .hero-title-link { text-decoration: underline; }
+.hero-title-link:focus-visible { outline-offset: 4px; }
+.hero-frame { cursor: pointer; }
+.hero-frame:focus-visible { outline-offset: 4px; }
 
 @media (max-width: 899px) {
   .hero { height: auto; min-height: 0; row-gap: var(--space-lg); padding-block: var(--space-md) var(--space-xl); }
