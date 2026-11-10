@@ -1,3 +1,12 @@
+/* Hallmark · shape: Contact Sheet (/), Plate (/sets), Sitter (/about), Notice (404), app screen (/admin) · genre: editorial · theme: brand · redesign: full
+ * paper: oklch(98.8% 0.003 85) · accent: oklch(21% 0.008 85) · display: Bebas Neue · body: Inter · hero: Stage (/) · nav: edge-aligned bar, a wordmark and three links, named · footer: a colophon, "Get in touch" set large over the contact rows · signature: the featured set's title set as tall as its own cover, beside it
+ * axes: light/display-condensed/neutral · posture: ink as the only accent, the photographs carry the colour · contrast: pass · fold: pass · v2.0.0 */
+/* Hallmark · pre-emit critique: P4 H5 E4 S4 R5 V4 · weakest: P, a gallery that stays out of the photos' way is a familiar argument; sharpened it by letting the condensed display meet each cover at its own height instead of printing over it */
+/* Hallmark · waive 44c · /sets and /about open on their title and the photos or the bio, with no hero · these pages are a set and a sitter, the set's photos start inside the first screen */
+/* Hallmark · waive 77 · the Photo sets head, the set heading and the About text each sit over their own photos or rows · a portfolio of photos, where the sets and photos are the mass, not extra sections */
+/* Hallmark · answered F15 · the admin screens use a narrower 1200px measure; no public page mixes widths */
+/* Hallmark · answered F7 · chips, the menu rows and the viewer's Download are controls in this brand's pill shape; photos and panels stay square */
+
 /* ---------- Fonts ----------
    Bebas Neue (big titles) and Inter (everything else), stored on this site so
    no outside server is asked (the security headers only allow this site).
@@ -19,128 +28,209 @@
   src: url("/fonts/inter-latin.woff2") format("woff2");
 }
 
-/* ---------- Colors ----------
-   Every color lives in a variable, so light and dark mode only swap these.
-   Dark mode applies when the device is set to dark (unless the visitor picked
-   light with the header button), or when the visitor picked dark.
+/* ---------- Tokens ----------
+   Every color, size and font lives here, so light and dark mode only swap the
+   colors. Dark mode applies when the device is set to dark (unless the visitor
+   picked light with the header button), or when the visitor picked dark;
    js/theme.js sets data-theme on <html> when they pick.
 
-   The look follows the Kinetic design system: black, white and one studio
-   gray carry almost everything, so the photos supply the color. */
+   The look: warm off-white paper, near-black ink and two grays carry almost
+   everything, so the photos supply the color. The photo viewer and anything
+   printed over a photo use the fixed "night" colors in both modes. */
 :root {
   color-scheme: light;
-  --bg: #ffffff;        /* page */
-  --surface: #f5f5f5;   /* behind photos while they load, gray panels, round buttons */
-  --surface-hover: #e5e5e5;
-  --card: #ffffff;      /* admin panels and forms */
-  --text: #111111;
-  --text-soft: #39393b; /* longer text, a little lighter than titles */
-  --muted: #707072;     /* secondary text: dates, counts, labels */
-  --border: #e5e5e5;    /* quiet dividing lines */
-  --hairline: #cacacb;  /* edges of chips and text boxes */
-  --focus: #111111;
-  --danger: #d30005;
-  --success: #007d48;
-  --highlight: var(--highlight); /* admin: the chosen cover */
-  /* Small colored notes and badges (drafts, activity log), text on its own background. */
-  --note-bg: #fef3c7;   --note-text: #92400e;
-  --info-bg: #dbeafe;   --info-text: #1e40af;
-  --good-bg: #dcfce7;   --good-text: #14532d;
-  --bad-bg: #fee2e2;    --bad-text: #991b1b;
-  --violet-bg: #ede9fe; --violet-text: #5b21b6;
-  /* Corners and widths, shared by every page. Containers (photos, cards,
-     panels) are square; buttons and chips are pills. */
-  --radius-photo: 0;
-  --radius-s: 6px;      /* admin form controls */
-  --radius-m: 0;
-  --radius-l: 0;
-  --radius-pill: 30px;
-  --page-width: 1440px;
-  --gutter: clamp(16px, 3.4vw, 48px);
-  --header-height: 64px;
+
+  /* Paper and ink */
+  --color-paper: oklch(98.8% 0.003 85);    /* the page */
+  --color-paper-2: oklch(96% 0.004 85);    /* behind loading photos, quiet panels, round buttons */
+  --color-paper-3: oklch(92.5% 0.005 85);  /* hover on those */
+  --color-ink: oklch(19% 0.006 85);        /* titles and main text */
+  --color-ink-2: oklch(33% 0.006 85);      /* longer text, a little lighter */
+  --color-muted: oklch(48% 0.006 85);      /* dates, counts, labels, field edges */
+  --color-rule: oklch(90.5% 0.004 85);     /* quiet dividing lines */
+  --color-rule-strong: oklch(80% 0.005 85);/* chip edges, the active row */
+  --color-accent: oklch(21% 0.008 85);     /* the one accent: an ink just off the text, on buttons and the chosen chip */
+  --color-accent-ink: var(--color-paper);  /* text on the accent */
+  --color-focus: var(--color-ink);
+
+  /* State (admin badges and messages): text on its own background */
+  --color-error: oklch(51% 0.19 27);
+  --color-success: oklch(48% 0.12 150);
+  --color-highlight: oklch(76% 0.15 80);   /* admin: the chosen cover */
+  --color-highlight-ink: oklch(22% 0.03 80);
+  --color-note-bg: oklch(95% 0.06 90);     --color-note-ink: oklch(42% 0.1 60);
+  --color-info-bg: oklch(93% 0.04 250);    --color-info-ink: oklch(40% 0.14 260);
+  --color-good-bg: oklch(94% 0.05 150);    --color-good-ink: oklch(36% 0.09 150);
+  --color-bad-bg: oklch(93% 0.04 25);      --color-bad-ink: oklch(42% 0.15 27);
+  --color-violet-bg: oklch(93% 0.04 300);  --color-violet-ink: oklch(40% 0.16 295);
+
+  /* Night: the photo viewer and text over photos, the same in both modes */
+  --color-night: oklch(16% 0.004 85);
+  --color-night-2: oklch(31% 0.005 85);
+  --color-night-3: oklch(39% 0.005 85);
+  --color-night-ink: oklch(97.5% 0.003 85);
+  --color-night-ink-2: oklch(90% 0.004 85);
+  --color-night-muted: oklch(70% 0.004 85);
+  --color-scrim: oklch(16% 0.004 85 / 0.62);
+  --color-scrim-soft: oklch(16% 0.004 85 / 0.4);
+  --color-scrim-none: oklch(16% 0.004 85 / 0);
+  --color-shadow: oklch(10% 0.004 85 / 0.22);
+  --color-loading: oklch(97.5% 0.003 85 / 0.7);
+
   /* Type */
-  --font-sans: Inter, "Helvetica Neue", Helvetica, Arial, "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
   --font-display: "Bebas Neue", "Helvetica Neue", Helvetica, Arial, "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+  --font-body: Inter, "Helvetica Neue", Helvetica, Arial, "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+  --text-xs: 0.8125rem; --text-sm: 0.875rem; --text-md: 1rem; --text-lg: 1.25rem; --text-xl: 1.5625rem; --text-2xl: 1.953rem; --text-3xl: 2.441rem;
+  --text-title: clamp(1.625rem, 0.9vw + 1.2rem, 2.125rem);       /* a set's name on its card */
+  --text-section: clamp(2.75rem, 3.4vw + 1.4rem, 4.75rem);       /* section heads */
+  --text-display: clamp(3.5rem, 6.4vw + 1rem, 8.5rem);           /* page titles */
+  --text-hero: clamp(4rem, 8.4vw + 0.5rem, 11rem);               /* the featured set's name */
+  --text-lead: clamp(1.0625rem, 0.3vw + 1rem, 1.25rem);
+
+  /* Space */
+  --space-3xs: 2px; --space-2xs: 4px; --space-xs: 8px; --space-sm: 12px; --space-md: 16px; --space-lg: 24px; --space-xl: 40px; --space-2xl: 64px; --space-3xl: 96px; --space-4xl: 144px;
+  --container: 1440px;
+  --gutter: clamp(16px, 3.4vw, 48px);
+  --gap-columns: var(--space-md);
+  --header-height: 64px;
+  --control: 48px;        /* public buttons */
+  --control-app: 40px;    /* admin buttons and fields */
+
+  /* Shape: photos and panels are square; buttons and chips are pills */
+  --radius-photo: 0;
+  --radius-field: 4px;
+  --radius-pill: 999px;
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-slide: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --dur-micro: 120ms; --dur-short: 220ms; --dur-long: 420ms;
+
+  --z-raised: 10; --z-sticky-nav: 20; --z-dropdown: 50; --z-modal: 100; --z-ghost: 1000;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     color-scheme: dark;
-    --bg: #111111;
-    --surface: #1f1f20;
-    --surface-hover: #2c2c2e;
-    --card: #1a1a1b;
-    --text: #ffffff;
-    --text-soft: #e5e5e5;
-    --muted: #9e9ea0;
-    --border: #2b2b2d;
-    --hairline: #4b4b4d;
-    --focus: #ffffff;
-    --danger: #ff6b6b;
-    --success: #1eaa52;
-    --highlight: #eab308;
-    --note-bg: #3a2a05;   --note-text: #fcd34d;
-    --info-bg: #172554;   --info-text: #bfdbfe;
-    --good-bg: #052e16;   --good-text: #bbf7d0;
-    --bad-bg: #450a0a;    --bad-text: #fecaca;
-    --violet-bg: #2e1065; --violet-text: #ddd6fe;
+    --color-paper: oklch(17% 0.004 85);
+    --color-paper-2: oklch(22% 0.004 85);
+    --color-paper-3: oklch(27% 0.005 85);
+    --color-ink: oklch(96.5% 0.003 85);
+    --color-ink-2: oklch(87% 0.004 85);
+    --color-muted: oklch(70% 0.005 85);
+    --color-rule: oklch(28% 0.005 85);
+    --color-rule-strong: oklch(42% 0.005 85);
+    --color-accent: oklch(94% 0.004 85);
+    --color-error: oklch(70% 0.16 25);
+    --color-success: oklch(70% 0.14 150);
+    --color-highlight: oklch(80% 0.15 85);
+    --color-note-bg: oklch(30% 0.06 70);     --color-note-ink: oklch(88% 0.1 90);
+    --color-info-bg: oklch(28% 0.07 262);    --color-info-ink: oklch(87% 0.06 250);
+    --color-good-bg: oklch(27% 0.05 150);    --color-good-ink: oklch(89% 0.08 150);
+    --color-bad-bg: oklch(28% 0.07 25);      --color-bad-ink: oklch(88% 0.06 25);
+    --color-violet-bg: oklch(28% 0.08 298);  --color-violet-ink: oklch(88% 0.06 298);
   }
 }
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --bg: #111111;
-  --surface: #1f1f20;
-  --surface-hover: #2c2c2e;
-  --card: #1a1a1b;
-  --text: #ffffff;
-  --text-soft: #e5e5e5;
-  --muted: #9e9ea0;
-  --border: #2b2b2d;
-  --hairline: #4b4b4d;
-  --focus: #ffffff;
-  --danger: #ff6b6b;
-  --success: #1eaa52;
-  --highlight: #eab308;
-  --note-bg: #3a2a05;   --note-text: #fcd34d;
-  --info-bg: #172554;   --info-text: #bfdbfe;
-  --good-bg: #052e16;   --good-text: #bbf7d0;
-  --bad-bg: #450a0a;    --bad-text: #fecaca;
-  --violet-bg: #2e1065; --violet-text: #ddd6fe;
+  --color-paper: oklch(17% 0.004 85);
+  --color-paper-2: oklch(22% 0.004 85);
+  --color-paper-3: oklch(27% 0.005 85);
+  --color-ink: oklch(96.5% 0.003 85);
+  --color-ink-2: oklch(87% 0.004 85);
+  --color-muted: oklch(70% 0.005 85);
+  --color-rule: oklch(28% 0.005 85);
+  --color-rule-strong: oklch(42% 0.005 85);
+  --color-accent: oklch(94% 0.004 85);
+  --color-error: oklch(70% 0.16 25);
+  --color-success: oklch(70% 0.14 150);
+  --color-highlight: oklch(80% 0.15 85);
+  --color-note-bg: oklch(30% 0.06 70);     --color-note-ink: oklch(88% 0.1 90);
+  --color-info-bg: oklch(28% 0.07 262);    --color-info-ink: oklch(87% 0.06 250);
+  --color-good-bg: oklch(27% 0.05 150);    --color-good-ink: oklch(89% 0.08 150);
+  --color-bad-bg: oklch(28% 0.07 25);      --color-bad-ink: oklch(88% 0.06 25);
+  --color-violet-bg: oklch(28% 0.08 298);  --color-violet-ink: oklch(88% 0.06 298);
 }
 
 /* ---------- Base ---------- */
-* { box-sizing: border-box; }
+*, *::before, *::after { box-sizing: border-box; }
 /* "hidden" always wins, even over layout rules like display: flex below. */
 [hidden] { display: none !important; }
 
-/* The hero photo reaches the edges of the window (see "Home: hero"); this
-   keeps that from ever making the page scroll sideways. */
+/* Nothing may ever make the page scroll sideways. */
 html, body { overflow-x: clip; }
 
 body {
   margin: 0;
-  background: var(--bg);
-  color: var(--text);
-  font-family: var(--font-sans);
-  font-size: 16px;
-  line-height: 1.5;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  font-size: var(--text-md);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-kerning: normal;
 }
 
-main {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 16px 48px;
+/* The same page edges everywhere: capped and centred, so on a wide screen the
+   margins grow and the grids keep their columns. */
+main,
+.site-header,
+.site-footer {
+  width: 100%;
+  max-width: var(--container);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+main { padding-block: 0 var(--space-3xl); }
+
+h1, h2, h3 {
+  margin: 0;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: 0;
+  overflow-wrap: break-word;
+  min-width: 0;
+  text-wrap: balance;
+}
+p { text-wrap: pretty; }
+a { color: inherit; text-underline-offset: 0.2em; text-decoration-thickness: 1px; }
+::selection { background: var(--color-paper-3); color: var(--color-ink); }
+html { scrollbar-color: var(--color-rule-strong) var(--color-paper); }
+img { max-width: 100%; }
+button, input, select, textarea { font: inherit; }
+
+/* The tall display letters: page titles, section heads, a set's name. Bebas
+   Neue is capitals only, so it is never set in small sizes or on controls. */
+.display,
+.hero-title,
+.section-head h1,
+.section-head h2,
+.set-heading h1,
+.about h1,
+.not-found h1,
+.related-sets h2,
+.footer-heading,
+.set-card h2,
+.set-card h3,
+.menu-main a,
+main > h1 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: 0.005em;
+  line-height: 1;
+  overflow-wrap: break-word;
+  min-width: 0;
 }
 
-a { color: inherit; }
-
-/* A clear outline for keyboard users, so they always see where they are. */
+/* A clear outline for keyboard users, so they always see where they are. It
+   appears at once, never fades in. */
 :focus-visible {
-  outline: 2px solid var(--focus);
+  outline: 2px solid var(--color-focus);
   outline-offset: 2px;
 }
-/* On photos and other dark grounds the outline is white. */
-.hero :focus-visible,
-.lightbox :focus-visible { outline-color: #ffffff; }
+/* On photos and the dark viewer the outline is light. */
+.lightbox :focus-visible { outline-color: var(--color-night-ink); }
 /* After a click or tap, no outline (data-pointer is set by theme.js; a key
    press removes it). Text boxes keep theirs, to show where typing goes. */
 html[data-pointer] :focus-visible:not(input, textarea, select) { outline: none; }
@@ -151,39 +241,43 @@ html[data-pointer] :focus-visible:not(input, textarea, select) { outline: none; 
   width: 1px;
   height: 1px;
   overflow: hidden;
-  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
   white-space: nowrap;
 }
 
-.status { color: var(--muted); }
+.status { color: var(--color-muted); }
+.muted { color: var(--color-muted); }
 
 /* ---------- Pills: the one button shape on public pages ---------- */
-/* Solid (the main action), gray (a quieter one), and white on photos. Each is
-   48 px tall, a comfortable size for fingers. A press shrinks it for a moment. */
+/* Solid (the main action), gray (a quieter one), and light on photos. Each is
+   48 px tall, a comfortable size for fingers. A press shrinks it a little. */
 .pill {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  min-height: 48px;
-  padding: 0 24px;
+  gap: var(--space-xs);
+  min-height: var(--control);
+  padding: 0 var(--space-lg);
   border: 0;
   border-radius: var(--radius-pill);
-  background: var(--text);
-  color: var(--bg);
+  background: var(--color-accent);
+  color: var(--color-accent-ink);
   font: inherit;
   font-weight: 500;
   line-height: 1.2;
+  white-space: nowrap;
   text-decoration: none;
   cursor: pointer;
-  transition: transform 0.15s ease, opacity 0.15s ease, background-color 0.15s ease;
+  transition: transform var(--dur-micro) var(--ease-out), background-color var(--dur-micro) var(--ease-out);
 }
-.pill:hover { background: var(--text-soft); }
-.pill:active { transform: scale(0.94); opacity: 0.6; }
-.pill-gray { background: var(--surface); color: var(--text); }
-.pill-gray:hover { background: var(--surface-hover); }
-.pill-on-photo { background: #ffffff; color: #111111; }
-.pill-on-photo:hover { background: #e5e5e5; }
+.pill:hover { background: var(--color-ink-2); }
+.pill:active { transform: scale(0.96); }
+.pill:disabled,
+.pill[aria-disabled="true"] { background: var(--color-paper-3); color: var(--color-muted); cursor: not-allowed; transform: none; }
+.pill-gray { background: var(--color-paper-2); color: var(--color-ink); }
+.pill-gray:hover { background: var(--color-paper-3); }
+.pill-on-photo { background: var(--color-night-ink); color: var(--color-night); }
+.pill-on-photo:hover { background: var(--color-night-ink-2); }
 .pill svg {
   width: 20px;
   height: 20px;
@@ -194,13 +288,10 @@ html[data-pointer] :focus-visible:not(input, textarea, select) { outline: none; 
   stroke-linejoin: round;
   flex-shrink: 0;
 }
-@media (prefers-reduced-motion: reduce) {
-  .pill { transition: none; }
-  .pill:active { transform: none; }
-}
 
-/* Round icon buttons: 40 px, gray, used in the header. */
+/* Round icon buttons: 40 px, in the header. */
 .round-button {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -209,17 +300,18 @@ html[data-pointer] :focus-visible:not(input, textarea, select) { outline: none; 
   padding: 0;
   border: 0;
   border-radius: 50%;
-  background: var(--surface);
-  color: var(--text);
+  background: transparent;
+  color: var(--color-ink);
   cursor: pointer;
-  /* The tap area reaches 48 px without making the circle bigger. */
-  position: relative;
+  transition: background-color var(--dur-micro) var(--ease-out), transform var(--dur-micro) var(--ease-out);
 }
-.round-button::after { content: ""; position: absolute; inset: -4px; }
-.round-button:hover { background: var(--surface-hover); }
+/* The tap area reaches 48 px without making the circle bigger. */
+.round-button::after { content: ""; position: absolute; inset: calc(-1 * var(--space-2xs)); }
+.round-button:hover { background: var(--color-paper-2); }
+.round-button:active { transform: scale(0.94); }
 .round-button svg {
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
   fill: none;
   stroke: currentColor;
   stroke-width: 1.5;
@@ -228,10 +320,26 @@ html[data-pointer] :focus-visible:not(input, textarea, select) { outline: none; 
 }
 
 /* ---------- Header ---------- */
+/* An edge-aligned bar: the wordmark at the left; Work, About, Contact and the
+   two round buttons at the right. It stays in view while scrolling, so the
+   menu is always one tap away. The shadow trick paints its background and a
+   hairline the full width of the window, though the bar itself is capped. */
 .site-header {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 24px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+}
+.site-header:not(.admin-header) {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky-nav);
+  height: var(--header-height);
+  background: var(--color-paper);
+  box-shadow: 0 0 0 100vmax var(--color-paper), 0 1px 0 100vmax var(--color-rule);
+  clip-path: inset(0 -100vmax -1px);
+  /* Stays in place while the rest of the page fades (see "Smooth page changes"). */
+  view-transition-name: site-header;
 }
 /* The site's name, set in the tall display letters. */
 .site-name {
@@ -239,1211 +347,46 @@ html[data-pointer] :focus-visible:not(input, textarea, select) { outline: none; 
   font-size: 2rem;
   font-weight: 400;
   line-height: 1;
-  padding-top: 0.12em; /* the letters sit high in their box; this centers them */
+  padding-top: 0.12em; /* the letters sit high in their box; this centres them */
   text-decoration: none;
   white-space: nowrap;
 }
-
-/* ---------- Home: grid of set cards ---------- */
-/* Three across on computers, two on tablets, one on phones. */
-.set-grid {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  column-gap: 8px;
-  row-gap: 40px;
-}
-@media (max-width: 1023px) { .set-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (max-width: 639px) { .set-grid { grid-template-columns: minmax(0, 1fr); row-gap: 32px; } }
-
-/* Each card: the cover photo, square-cornered, with the title, place, date,
-   and photo count in plain text under it. */
-.set-card {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+.header-tools { display: flex; align-items: center; gap: var(--space-xl); }
+.site-nav { display: flex; align-items: center; gap: var(--space-lg); font-weight: 500; }
+.site-nav a {
+  padding: var(--space-xs) 0;
   text-decoration: none;
-  color: var(--text);
-}
-.set-card-image {
-  position: relative;
-  display: block;
-  aspect-ratio: 4 / 3;
-  overflow: hidden;
-  background: var(--surface);
-}
-.set-card img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover; /* crop to fill the box instead of stretching */
-  transition: transform 0.6s ease;
-}
-.set-card:hover img { transform: scale(1.03); }
-.set-card-text { display: flex; flex-direction: column; gap: 2px; }
-.set-card h2,
-.set-card h3 {
-  margin: 0;
-  font-size: 1rem;
-  font-weight: 500;
-  line-height: 1.5;
-  text-wrap: balance; /* even lines, not one word alone at the end */
-}
-.set-card:hover h2,
-.set-card:hover h3 { text-decoration: underline; text-underline-offset: 4px; }
-.set-card-meta {
-  display: flex;
-  flex-direction: column;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--muted);
-  font-variant-numeric: tabular-nums;
-}
-
-/* ---------- Home: hero ---------- */
-/* The featured set's cover across the whole width of the window, with the
-   set's name in big display letters at the lower left and a View set button. */
-.hero {
-  position: relative;
-  height: min(78vh, 720px);
-  min-height: 420px;
-  /* Out to both edges of the window, past the page's side margins. */
-  margin: 0 calc(50% - 50vw) 48px;
-  overflow: hidden;
-  background: var(--surface);
-  color: #ffffff;
-}
-.hero-image {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-.hero-text {
-  position: absolute;
-  inset: auto 0 0 0;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 16px;
-  /* Lined up with the page's content below. */
-  padding: 160px max(var(--gutter), calc((100vw - var(--page-width)) / 2 + var(--gutter))) 56px;
-  /* A shade under the words only, so white text reads on a bright photo (sky,
-     snow) while the rest of the photo stays as it is. */
-  background: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.45) 55%, rgba(0, 0, 0, 0.6));
-}
-.hero-label {
-  margin: 0;
-  font-size: 0.875rem;
-  font-weight: 500;
-}
-.hero-title {
-  margin: 0;
-  max-width: 14ch;
-  font-family: var(--font-display);
-  font-size: 96px;
-  font-weight: 400;
-  line-height: 0.9;
-  letter-spacing: 0;
-  text-transform: uppercase;
-  overflow-wrap: anywhere;
-}
-.hero-tagline {
-  margin: 0;
-  max-width: 46ch;
-  font-size: 1rem;
-  /* A long description shows its first two lines here. */
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-.hero-link { margin-top: 8px; }
-/* The whole photo opens the featured set, not just the button. The layer
-   reaches up over the photo and .hero (overflow: hidden) trims it. */
-.hero-link::after { content: ""; position: absolute; inset: -100vh -100vw 0; }
-@media (max-width: 1023px) {
-  .hero-title { font-size: 64px; }
-}
-@media (max-width: 599px) {
-  .hero { height: auto; aspect-ratio: 4 / 5; min-height: 0; max-height: 80vh; margin-bottom: 24px; }
-  .hero-text { gap: 12px; padding-top: 120px; padding-bottom: 32px; }
-  .hero-title { font-size: 48px; }
-}
-
-/* ---------- Home: title, tagline, and category buttons ---------- */
-.section-head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 16px 24px;
-  margin: 0 0 32px;
-}
-.section-head h1 {
-  margin: 0;
-  font-size: 2rem;
-  font-weight: 500;
-  line-height: 1.2;
-}
-/* No hero (a category page, or no photos yet): the title gets some air. */
-.section-head:first-child { margin-top: 40px; }
-
-/* ---------- Set page ---------- */
-.back-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  min-height: 44px; /* a tall enough tap area for fingers */
-  margin-top: 16px;
-  color: var(--muted);
-  font-size: 0.875rem;
-  font-weight: 500;
-  text-decoration: none;
-}
-.back-link svg {
-  width: 20px;
-  height: 20px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.5;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-.back-link:hover { color: var(--text); }
-.set-description {
-  color: var(--text-soft);
-  max-width: 65ch;
-  white-space: pre-line; /* keep the line breaks you typed */
-}
-
-/* Justified rows: every photo in a row gets the same height, and each keeps
-   its own shape (portrait stays tall, landscape stays wide).
-
-   The shape comes from --ratio (width / height), which set.js copies from the
-   database. Because the space for each photo is decided by that number alone,
-   nothing moves when the images finish loading. (The previous CSS "columns"
-   layout let the browser rebalance the columns as images arrived, which made
-   photos jump between columns while scrolling.)
-
-   How the trick works: each photo starts at a width proportional to its ratio
-   (flex-basis) and grows by the same proportion (flex-grow). Growing every photo
-   in a row by the same factor keeps their heights equal. */
-.photo-grid {
-  list-style: none;
-  margin: 32px 0 0;
-  padding: 0;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  --row-height: 260px;
-}
-/* An invisible last item that soaks up the leftover space in the final row,
-   so the last few photos are not stretched to fill the whole width. */
-.photo-grid::after {
-  content: "";
-  flex-grow: 1000;
-}
-.photo-grid li {
-  flex-grow: var(--ratio);
-  flex-basis: calc(var(--ratio) * var(--row-height));
-}
-.photo-grid img {
-  display: block;
-  width: 100%;
-  height: auto;
-  aspect-ratio: var(--ratio);
-  object-fit: cover;
-  border-radius: var(--radius-photo);
-  background: var(--surface);
-}
-@media (min-width: 1400px) { .photo-grid { --row-height: 300px; } }
-@media (max-width: 600px) {
-  .photo-grid { --row-height: 160px; gap: 4px; }
-}
-
-/* ---------- Admin ---------- */
-.muted { color: var(--muted); }
-
-button {
-  font: inherit;
-  padding: 10px 16px;
-  border: 0;
-  border-radius: var(--radius-s);
-  background: var(--text);
-  color: var(--bg);
-  cursor: pointer;
-}
-button:disabled { opacity: 0.6; cursor: wait; }
-.button-secondary {
-  background: transparent;
-  color: var(--text);
-  border: 1px solid var(--border);
-}
-
-input {
-  font: inherit;
-  padding: 10px 12px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-s);
-  background: var(--card);
-  color: var(--text);
-}
-
-.login {
-  max-width: 360px;
-  padding-top: 15vh;
-}
-.card-form {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding: 24px;
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-}
-.form-error {
-  margin: 0;
-  min-height: 1.5em;
-  color: var(--danger);
-}
-
-.admin-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-}
-.admin-header nav {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.stat-card {
-  max-width: 480px;
-  padding: 20px 24px;
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-}
-.stat-card h2 { margin: 0 0 4px; font-size: 1rem; }
-.meter {
-  height: 8px;
-  border-radius: 4px;
-  background: var(--border);
-  overflow: hidden;
-}
-.meter-fill {
-  width: 0;
-  height: 100%;
-  background: var(--focus);
-}
-
-.inline-form {
-  display: flex;
-  gap: 8px;
-  max-width: 480px;
-}
-.inline-form input { flex: 1; min-width: 0; }
-
-.admin-set-list {
-  list-style: none;
-  margin: 8px 0 0;
-  padding: 0;
-  max-width: 480px;
-}
-.admin-set-list li {
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 12px 0;
-  border-bottom: 1px solid var(--border);
-}
-
-/* ---------- Upload page ---------- */
-.panel {
-  margin: 0 0 24px;
-  padding: 20px 24px;
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-}
-.panel h2 { margin: 0 0 12px; font-size: 1rem; }
-.panel > label:not(.drop-zone) { display: block; margin-bottom: 6px; }
-.panel input[type="text"] { width: 100%; max-width: 360px; }
-.panel > label.checkbox { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
-input:disabled { opacity: 0.6; }
-
-.drop-zone {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  padding: 40px 16px;
-  border: 2px dashed var(--border);
-  border-radius: 8px;
-  text-align: center;
-  cursor: pointer;
-}
-.drop-zone:hover,
-.drop-zone.dragging { border-color: var(--focus); }
-/* The file input itself is hidden, so show its focus ring on the box instead. */
-.drop-zone:has(+ #file-input:focus-visible) {
-  outline: 3px solid var(--focus);
-  outline-offset: 2px;
-}
-
-progress { width: 100%; height: 8px; }
-
-.wm-preview { margin: 16px 0; }
-.wm-preview img {
-  display: block;
-  max-width: 100%;
-  max-height: 60vh;
-  border-radius: 4px;
-}
-
-.actions { display: flex; gap: 8px; margin: 16px 0; }
-
-.queue {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: 12px;
-}
-.queue li { font-size: 0.85rem; }
-.queue img {
-  display: block;
-  width: 100%;
-  aspect-ratio: 1;
-  object-fit: cover;
-  border-radius: 4px;
-  background: var(--border);
-}
-.queue p { margin: 4px 0 0; overflow-wrap: anywhere; }
-.queue-name { font-weight: 600; }
-.queue li[data-status="error"] .queue-status { color: var(--danger); }
-.queue li[data-status="done"] .queue-status { color: var(--success); }
-
-
-/* ---------- Deleting ---------- */
-.button-danger {
-  background: transparent;
-  color: var(--danger);
-  border: 1px solid currentColor;
-  padding: 4px 10px;
-  font-size: 0.85rem;
-}
-.button-danger:hover { background: var(--danger); color: var(--bg); }
-
-.admin-set-list li { align-items: center; }
-.admin-set-list a { flex: 1; }
-
-
-.danger-zone {
-  margin-top: 48px;
-  padding: 20px 24px;
-  border: 1px solid var(--danger);
-  border-radius: 8px;
-}
-.danger-zone h2 { margin: 0 0 4px; font-size: 1rem; color: var(--danger); }
-
-/* ---------- Tappable photos ---------- */
-.thumb-button {
-  display: block;
-  width: 100%;
-  padding: 0;
-  border: 0;
-  border-radius: var(--radius-photo);
-  background: none;
-  cursor: zoom-in;
-}
-.thumb-button img { transition: opacity 0.15s; }
-.thumb-button:hover img { opacity: 0.9; }
-
-/* ---------- Full-screen viewer ---------- */
-.no-scroll { overflow: hidden; }
-/* The spoken "Photo 2 of 5" (set.html) stays inside the viewer, so the viewer
-   never gets a few pixels to scroll. */
-#lightbox-status { top: 0; left: 0; margin: 0; }
-
-.lightbox {
-  /* <dialog> has a default box; make it cover the whole screen instead. */
-  width: 100vw;
-  height: 100vh;
-  height: 100dvh; /* "dynamic" height: correct on phones, where the address bar comes and goes */
-  max-width: none;
-  max-height: none;
-  margin: 0;
-  padding: 0;
-  border: 0;
-  background: #111111;
-  color: #fff;
-  /* Let our code see horizontal swipes, but keep two-finger pinch zoom working. */
-  touch-action: pinch-zoom;
-  user-select: none;
-  -webkit-user-select: none;
-}
-.lightbox::backdrop { background: #111111; }
-
-.lightbox-stage {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  /* Room for the counter at the top, without covering the photo. */
-  padding: 48px 0;
-}
-/* "contain" = as big as possible while showing the whole photo. A portrait
-   photo on a phone held upright fills the height; a landscape one fills the width. */
-.lightbox-stage img {
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
-  -webkit-touch-callout: none; /* no "Save Image" pop-up on long press in iOS Safari */
-  /* Its final size from the start (lightbox.js sets --ratio and --w from the
-     photo), so it does not grow when the sharper file arrives. */
-  aspect-ratio: var(--ratio);
-  width: min(100%, var(--w), calc((100dvh - 96px) * var(--ratio)));
-  height: auto;
-  /* Springs back after a swipe that was too short (see lightbox.js). */
-  transition: transform 0.15s ease;
-}
-
-.lightbox-counter {
-  position: absolute;
-  top: 0;
-  left: 0;
-  margin: 0;
-  padding: 14px 16px;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: #9e9ea0;
-}
-.lightbox-info {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
-  text-align: center;
-  background: linear-gradient(transparent, rgba(0, 0, 0, 0.6));
-}
-.lightbox-info p { margin: 0; }
-.lightbox-camera {
-  margin-top: 2px !important;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: #9e9ea0;
-}
-
-.lightbox-button {
-  position: absolute;
-  width: 48px;
-  height: 48px;
-  padding: 0;
-  border-radius: 50%;
-  background: #39393b;
-  color: #fff;
-  font-size: 2rem;
-  line-height: 1;
-}
-.lightbox-button:hover { background: #4b4b4d; }
-.lightbox-button svg {
-  display: block;
-  margin: auto;
-  width: 24px;
-  height: 24px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.5;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-.lightbox-close { top: 4px; right: 8px; }
-.lightbox-prev,
-.lightbox-next { top: 50%; transform: translateY(-50%); }
-.lightbox-prev { left: 12px; }
-.lightbox-next { right: 12px; }
-
-/* On phones, swiping replaces the arrows, so they stop covering the photo.
-   They are only hidden from sight: screen readers (which use one-finger swipes
-   for themselves) still find them. */
-@media (hover: none) and (pointer: coarse) {
-  .lightbox-prev,
-  .lightbox-next {
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    overflow: hidden;
-    clip-path: inset(50%);
-    white-space: nowrap;
-  }
-}
-
-/* ---------- Managing sets and photos ---------- */
-.small { font-size: 0.85rem; margin: 4px 0 12px; }
-
-textarea {
-  font: inherit;
-  width: 100%;
-  max-width: 560px;
-  padding: 10px 12px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-s);
-  background: var(--card);
-  color: var(--text);
-}
-.panel input[type="text"],
-.panel textarea { margin-bottom: 12px; }
-.slug-field { display: flex; align-items: baseline; gap: 4px; max-width: 360px; }
-.slug-field input { flex: 1; min-width: 0; margin-bottom: 0 !important; }
-
-.save-status { font-size: 0.85rem; color: var(--success); }
-.save-status[data-state="error"] { color: var(--danger); }
-.actions .save-status { align-self: center; }
-
-.icon-button {
-  width: 36px;
-  height: 36px;
-  padding: 0;
-  background: transparent;
-  color: var(--text);
-  border: 1px solid var(--border);
-  font-size: 1rem;
-  line-height: 1;
-}
-.icon-button:hover { border-color: var(--text); }
-.icon-button.active { color: var(--highlight); border-color: var(--highlight); }
-.icon-button.danger { color: var(--danger); }
-.icon-button.danger:hover { background: var(--danger); border-color: var(--danger); color: var(--bg); }
-
-/* ---------- Drag to reorder (see js/sortable.js) ---------- */
-.drag-handle,
-.drag-surface {
-  cursor: grab;
-  -webkit-user-drag: none;
-  user-select: none;
-  -webkit-user-select: none;
-}
-/* "none": a finger on the handle drags the item instead of scrolling the page. */
-.drag-handle { touch-action: none; color: var(--muted); font-size: 1.2rem; padding: 4px; }
-
-/* Lets sortable.js read item positions relative to the list. */
-.admin-set-list,
-.photo-editor { position: relative; }
-
-/* The empty slot that shows where the item will land. */
-.drag-slot {
-  outline: 2px dashed var(--focus);
-  outline-offset: -2px;
-  border-radius: 8px;
-}
-.drag-slot > * { visibility: hidden; }
-
-/* The floating copy that follows the pointer. */
-.drag-ghost {
-  position: fixed;
-  top: 0;
-  left: 0;
-  z-index: 1000;
-  margin: 0 !important;
-  padding: 0 !important;
-  max-width: none !important;
-  display: block !important;
-  list-style: none;
-  pointer-events: none; /* so we can see what is underneath it */
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
-  border-radius: 8px;
-  background: var(--card);
-  opacity: 0.95;
-}
-.drag-ghost > li { border-bottom: 0 !important; }
-body.is-dragging,
-body.is-dragging * { cursor: grabbing !important; user-select: none; }
-
-.photo-grip {
-  position: absolute;
-  top: 6px;
-  right: 6px;
-  width: 36px;
-  height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  border-radius: 6px;
-  background: rgba(0, 0, 0, 0.55);
-  color: #fff;
-}
-.admin-set-list li { gap: 8px; }
-.admin-set-list .muted { margin-right: 8px; }
-
-.photo-editor {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 16px;
-}
-.photo-card {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 10px;
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-}
-.photo-card.is-cover { border-color: var(--highlight); }
-.photo-card-image { position: relative; }
-.photo-card-image img {
-  display: block;
-  width: 100%;
-  aspect-ratio: 3 / 2;
-  object-fit: cover;
-  border-radius: 4px;
-  cursor: grab;
-}
-.cover-badge {
-  position: absolute;
-  top: 6px;
-  left: 6px;
-  padding: 2px 8px;
-  border-radius: 4px;
-  background: var(--highlight);
-  color: #111111;
-  font-size: 0.75rem;
-  font-weight: 600;
-}
-.photo-card-field { display: flex; flex-direction: column; gap: 2px; font-size: 0.8rem; color: var(--muted); }
-.photo-card-field input { font-size: 0.9rem; padding: 6px 8px; }
-.photo-card-tools { display: flex; gap: 6px; }
-.photo-card-tools .danger { margin-left: auto; }
-
-/* ---------- Storage by set ---------- */
-.storage-details { margin-top: 12px; border-top: 1px solid var(--border); padding-top: 12px; }
-.storage-details summary { cursor: pointer; font-weight: 600; font-size: 0.9rem; }
-.storage-list { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 12px; }
-.storage-list li {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 4px 12px;
-  font-size: 0.9rem;
-}
-.storage-list a { overflow-wrap: anywhere; }
-.storage-size { color: var(--muted); white-space: nowrap; }
-.storage-list .meter { grid-column: 1 / -1; height: 6px; }
-
-/* ---------- Footer ---------- */
-.site-footer {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 32px 16px 48px;
-  color: var(--muted);
-  font-size: 0.875rem;
-  border-top: 1px solid var(--border);
-}
-
-/* ---------- Drafts ---------- */
-.draft-badge {
-  display: inline-block;
-  padding: 1px 8px;
-  border-radius: 999px;
-  background: var(--note-bg);
-  color: var(--note-text);
-  font-size: 0.75rem;
-  font-weight: 600;
-  vertical-align: middle;
-}
-.draft-banner {
-  margin: 0 0 16px;
-  padding: 10px 14px;
-  border-radius: 8px;
-  background: var(--note-bg);
-  color: var(--note-text);
-}
-.publish-panel .actions { align-items: center; margin-bottom: 0; }
-.draft-badge.scheduled { background: var(--info-bg); color: var(--info-text); }
-#set-title[data-state="scheduled"]::after {
-  content: "Scheduled";
-  margin-left: 12px;
-  padding: 2px 10px;
-  border-radius: 999px;
-  background: var(--info-bg);
-  color: var(--info-text);
-  font-size: 0.9rem;
-  vertical-align: middle;
-}
-.schedule-form { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); }
-.schedule-form label { display: block; margin-bottom: 6px; }
-.schedule-form input[type="datetime-local"] { font: inherit; }
-#set-title[data-state="draft"]::after {
-  content: "Draft";
-  margin-left: 12px;
-  padding: 2px 10px;
-  border-radius: 999px;
-  background: var(--note-bg);
-  color: var(--note-text);
-  font-size: 0.9rem;
-  vertical-align: middle;
-}
-
-/* ---------- Not found page ---------- */
-.not-found { text-align: center; padding-top: 10vh; min-height: 50vh; }
-.not-found-code { font-family: var(--font-display); font-size: 96px; font-weight: 400; line-height: 0.9; margin: 0 0 8px; color: var(--hairline); }
-/* Decoration only ("Page not found" below says it), so it is drawn here and
-   not part of the page text. The second line hides it from screen readers. */
-.not-found-code::before { content: "404"; content: "404" / ""; }
-.not-found h1 { margin-top: 0; font-size: 2rem; font-weight: 500; }
-.button-link {
-  display: inline-block;
-  padding: 10px 18px;
-  border-radius: var(--radius-s);
-  background: var(--text);
-  color: var(--bg);
-  text-decoration: none;
-}
-.not-found .button-link { display: inline-flex; align-items: center; min-height: 48px; padding: 0 24px; border-radius: var(--radius-pill); font-weight: 500; }
-
-#queue-summary[data-state="error"] { color: var(--danger); font-weight: 600; }
-
-/* ---------- Site navigation (Work / About) ---------- */
-.site-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
-
-/* ---------- About page ---------- */
-.about {
-  display: grid;
-  grid-template-columns: minmax(0, 420px) minmax(24em, 1fr); /* text never squeezed narrow */
-  gap: 48px;
-  align-items: start;
-  padding-top: 16px;
-}
-.about-portrait img {
-  display: block;
-  width: 100%;
-  height: auto;
-  background: var(--surface);
-}
-.about h1 { margin-top: 0; font-size: 2rem; font-weight: 500; line-height: 1.2; }
-.about-bio { max-width: 62ch; color: var(--text-soft); }
-.about-bio p { line-height: 1.7; }
-.about h2 { font-size: 1rem; font-weight: 500; margin-top: 32px; }
-.about-contact,
-.about-gear { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
-.about-contact li,
-.about-gear li { display: flex; gap: 12px; flex-wrap: wrap; align-items: baseline; }
-.contact-label { min-width: 90px; color: var(--muted); font-size: 0.875rem; font-weight: 500; }
-/* The text-only layout when there is no portrait yet. */
-.about:not(:has(.about-portrait)) { grid-template-columns: minmax(0, 1fr); }
-@media (max-width: 700px) {
-  .about { grid-template-columns: minmax(0, 1fr); gap: 24px; }
-}
-
-/* ---------- Admin: About page editor ---------- */
-.portrait-editor { display: flex; gap: 20px; align-items: center; flex-wrap: wrap; }
-.portrait-editor img { width: 140px; height: 140px; object-fit: cover; border-radius: 8px; }
-.portrait-editor .button-secondary { margin-left: 8px; }
-.button-like {
-  display: inline-block;
-  padding: 10px 16px;
-  border-radius: 6px;
-  background: var(--text);
-  color: var(--bg);
-  cursor: pointer;
-}
-.panel input[type="email"],
-.panel input[type="url"] { width: 100%; max-width: 360px; margin-bottom: 12px; }
-.panel h2 + label { margin-top: 0; }
-.button-like:has(+ input:focus-visible) { outline: 3px solid var(--focus); outline-offset: 2px; }
-
-/* ---------- Home page tagline ---------- */
-.site-tagline { margin: 4px 0 0; color: var(--muted); font-size: 0.875rem; font-weight: 500; }
-
-/* ---------- Categories (home page filter) ---------- */
-/* Pills, 40 px tall; the chosen one is filled in. On phones they stay in one
-   row that scrolls sideways. */
-.category-nav { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; }
-.category-nav a {
-  display: inline-flex;
-  align-items: center;
-  min-height: 40px;
-  padding: 0 20px;
-  border: 1px solid var(--hairline);
-  border-radius: var(--radius-pill);
-  text-decoration: none;
-  color: var(--text);
-  font-size: 1rem;
-  font-weight: 500;
   white-space: nowrap;
-  flex-shrink: 0;
+  text-underline-offset: 6px;
 }
-.category-nav a:hover { border-color: var(--text); }
-.category-nav a[aria-current="page"] { background: var(--text); border-color: var(--text); color: var(--bg); }
-@media (max-width: 639px) {
-  .category-nav {
-    flex-wrap: nowrap;
-    width: calc(100% + 2 * var(--gutter));
-    margin: 0 calc(-1 * var(--gutter));
-    padding: 4px var(--gutter);
-    overflow-x: auto;
-    scrollbar-width: none;
-  }
-}
+.site-nav a:hover { text-decoration: underline; }
+.site-nav a[aria-current="page"] { text-decoration: underline; text-decoration-thickness: 2px; }
+.header-buttons { display: flex; align-items: center; gap: var(--space-2xs); }
 
-/* ---------- Licensed downloads ---------- */
-/* A flat gray block: the heading and help text, then the code box and Unlock. */
-.license-panel {
-  margin: 48px 0 0;
-  padding: 30px;
-  background: var(--surface);
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 16px 32px;
-}
-.license-text { flex: 1 1 320px; max-width: 56ch; }
-.license-panel h2 { margin: 0 0 4px; font-size: 1.5rem; font-weight: 500; line-height: 1.2; }
-.license-panel .muted { margin: 0; }
-/* Unlocked: a line in the "confirmed" color, with the words saying so too. */
-.license-panel.unlocked { box-shadow: inset 4px 0 0 var(--success); }
-.license-form-area { display: flex; flex-direction: column; gap: 4px; }
-.license-panel .inline-form { max-width: none; align-items: flex-end; flex-wrap: wrap; }
-.license-panel label { font-size: 0.875rem; font-weight: 500; }
-.license-field { display: flex; flex-direction: column; gap: 4px; }
-.license-panel input {
-  width: 260px;
-  max-width: 100%;
-  min-height: 48px;
-  padding: 0 20px;
-  border: 1px solid var(--hairline);
-  border-radius: 24px;
-  background: var(--bg);
-  text-transform: uppercase;
-}
-.license-panel input:focus-visible { outline: 0; border: 2px solid var(--text); padding: 0 19px; box-shadow: 0 0 0 12px var(--surface-hover); }
-.license-panel .form-error { min-height: 0; }
-.license-panel .form-error:empty { display: none; }
-@media (max-width: 639px) {
-  .license-panel { padding: 24px 16px; margin-left: calc(-1 * var(--gutter)); margin-right: calc(-1 * var(--gutter)); }
-  .license-field { flex: 1 1 100%; }
-  .license-panel input { width: 100%; }
-}
-.lightbox-download {
-  position: absolute;
-  top: 4px;
-  right: 64px;
-  display: inline-flex;
-  align-items: center;
-  min-height: 48px;
-  padding: 0 20px;
-  border-radius: var(--radius-pill);
-  background: #fff;
-  color: #111;
-  font-weight: 500;
-  font-size: 1rem;
-  text-decoration: none;
-}
-.lightbox-download:hover { background: #e5e5e5; }
-
-/* Computers and tablets: the photo gets a frame of dark space, the counter
-   sits in the middle at the top, and the caption, camera details, and
-   Download button share a row along the bottom. Phones keep the photo as big
-   as possible, with the details over its lower edge. */
-@media (min-width: 700px) {
-  .lightbox-stage { padding: 72px 88px 104px; }
-  .lightbox-stage img { width: min(100%, var(--w), calc((100dvh - 176px) * var(--ratio))); }
-  .lightbox-counter { left: 50%; transform: translateX(-50%); padding: 26px 16px; }
-  .lightbox-close { top: 12px; right: 24px; }
-  .lightbox-prev { left: 24px; }
-  .lightbox-next { right: 24px; }
-  .lightbox-info {
-    right: 200px;
-    padding: 0 32px 32px;
-    text-align: left;
-    background: none;
-  }
-  .lightbox-download { top: auto; bottom: 28px; right: 32px; }
-}
-
-/* ---------- Admin: downloads and categories ---------- */
-.download-badge {
-  position: absolute;
-  bottom: 6px;
-  left: 6px;
-  padding: 2px 8px;
-  border-radius: 4px;
-  background: var(--success);
-  color: var(--bg);
-  font-size: 0.75rem;
-  font-weight: 600;
-}
-.category-picker { border: 0; padding: 0; margin: 0 0 12px; }
-.category-picker legend { margin-bottom: 6px; }
-.category-picker .checkbox { display: inline-flex !important; margin: 0 16px 6px 0 !important; }
-.admin-tags { display: flex; flex-wrap: wrap; gap: 8px; list-style: none; margin: 8px 0 0; padding: 0; }
-.admin-tags li {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 6px 4px 12px;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-}
-.admin-tags button { width: 24px; height: 24px; padding: 0; border-radius: 50%; }
-.license-table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 0.9rem; }
-.license-table th, .license-table td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
-.license-table code { font-size: 1rem; font-weight: 600; letter-spacing: 0.04em; }
-.license-table tr.is-off { opacity: 0.55; }
-.license-actions { display: flex; gap: 6px; flex-wrap: wrap; }
-.license-actions button { padding: 4px 10px; font-size: 0.85rem; }
-.set-checklist { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 4px 16px; margin: 0 0 12px; }
-.new-code { margin: 12px 0 0; padding: 12px 16px; border-radius: 8px; background: var(--good-bg); color: var(--good-text); }
-.new-code code { font-size: 1.2rem; font-weight: 700; letter-spacing: 0.06em; }
-@media (max-width: 700px) { .license-table .hide-small { display: none; } }
-.panel input[type="date"],
-.panel input[type="number"] { display: block; max-width: 220px; margin-bottom: 12px; }
-
-/* ---------- Light / dark switch (see js/theme.js) ---------- */
-/* Two of them: the round one in the header and the full row in the menu. */
-.theme-toggle .icon-moon { fill: none; stroke: currentColor; }
-/* Show the moon in light mode (tap for dark), the sun in dark mode. */
-.theme-toggle[data-showing="light"] .icon-sun,
-.theme-toggle[data-showing="dark"] .icon-moon { display: none; }
-
-@media (prefers-reduced-motion: reduce) {
-  .set-card img { transition: none; }
-}
-
-/* ---------- Admin: watermark style ---------- */
-.wm-style { border: 0; padding: 0; margin: 0 0 12px; }
-.wm-style legend { margin-bottom: 6px; }
-
-/* ---------- Share buttons and menu (see js/share.js) ---------- */
-/* The set page's Share button is a gray pill (see "Pills"). */
-.share-button { flex-shrink: 0; }
-.share-button svg,
-.share-item svg {
-  width: 18px;
-  height: 18px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.8;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  flex-shrink: 0;
-}
-/* The round icon-only version in the header, matching the light / dark switch. */
-.set-heading {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 12px 16px;
-  margin: 16px 0 8px;
-}
-.set-heading h1 { margin: 0 auto 0 0; }
-/* The description belongs to the title above it, so it sits close to it. */
-.set-heading + .set-description,
-.set-location + .set-description { margin-top: 0; }
-/* No location or description: the photos keep their usual distance. */
-.set-heading + .photo-grid { margin-top: 45px; }
-
-.share-menu {
-  position: absolute;
-  z-index: 50;
-  min-width: 220px;
-  padding: 8px;
-  background: var(--bg);
-  border: 1px solid var(--hairline);
-}
-.share-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  padding: 9px 12px;
-  border: 0;
-  border-radius: var(--radius-pill);
-  background: transparent;
-  color: var(--text);
-  font: inherit;
-  font-size: 1rem;
-  text-align: left;
-  text-decoration: none;
-  cursor: pointer;
-}
-.share-item:hover,
-.share-item:focus-visible { background: var(--surface); outline: none; }
-/* After a click or tap the first item gets focus too; no highlight for that
-   (see "data-pointer" near the top). Hover still highlights. */
-html[data-pointer] .share-item:focus-visible:not(:hover) { background: none; }
-
-/* ---------- Admin: watermark toolkit ---------- */
-.panel select {
-  display: block;
-  font: inherit;
-  max-width: 360px;
-  width: 100%;
-  margin-bottom: 12px;
-  padding: 9px 10px;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  background: var(--card);
-  color: var(--text);
-}
-#tk-list .button-link { margin-top: 6px; padding: 6px 14px; font-size: 0.85rem; }
-
-/* ---------- Upload page: duplicate warnings ---------- */
-.queue-warning {
-  margin-top: 6px;
-  padding: 8px 10px;
-  border-radius: 6px;
-  background: var(--note-bg);
-  color: var(--note-text);
-  font-size: 0.8rem;
-}
-.queue-warning[data-strength="weak"] { background: var(--border); color: var(--text); }
-.queue-warning ul { margin: 4px 0 6px; padding-left: 18px; }
-.queue-warning a { color: inherit; }
-.queue-warning button { padding: 4px 10px; font-size: 0.8rem; }
-
-/* ---------- Admin: activity log ---------- */
-.activity-filters { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 16px; }
-.activity-filters button { padding: 6px 14px; font-size: 0.9rem; }
-.activity-filters button[aria-pressed="false"] { background: transparent; color: var(--text); border: 1px solid var(--border); }
-.activity-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
-.activity-table th,
-.activity-table td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
-.activity-table th { color: var(--muted); font-weight: 500; }
-.activity-table td:first-child { white-space: nowrap; color: var(--muted); }
-.activity-group {
-  display: inline-block;
-  padding: 1px 8px;
-  border-radius: 999px;
-  background: var(--border);
-  font-size: 0.75rem;
-  white-space: nowrap;
-}
-.activity-group[data-group="Deletion"] { background: var(--bad-bg); color: var(--bad-text); }
-.activity-group[data-group="Download"] { background: var(--good-bg); color: var(--good-text); }
-.activity-group[data-group="License"] { background: var(--violet-bg); color: var(--violet-text); }
-.activity-group[data-group="Publishing"] { background: var(--info-bg); color: var(--info-text); }
-@media (max-width: 600px) {
-  .activity-table thead { display: none; }
-  .activity-table tr { display: block; padding: 8px 0; border-bottom: 1px solid var(--border); }
-  .activity-table td { display: block; border: 0; padding: 2px 0; }
-}
-
-/* ---------- Set page: download all ---------- */
-.license-actions-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-top: 10px; }
-
-/* ---------- Hero choices, location, related sets ---------- */
-.featured-badge { background: var(--violet-bg); color: var(--violet-text); }
-.month-boxes { display: flex; flex-wrap: wrap; gap: 4px 14px; }
-.month-boxes .checkbox { display: inline-flex !important; margin: 0 !important; }
-.set-location { margin: 0 0 8px; color: var(--muted); font-size: 0.875rem; font-weight: 500; font-variant-numeric: tabular-nums; }
-.related-sets { margin: 48px 0 0; }
-.related-sets h2 { margin: 0 0 24px; font-size: 2rem; font-weight: 500; line-height: 1.2; }
-/* Four across on computers, two below that. */
-.related-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); column-gap: 8px; row-gap: 32px; }
-@media (max-width: 1023px) { .related-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (max-width: 479px) { .related-grid { grid-template-columns: minmax(0, 1fr); } }
-#hero-mode .checkbox,
-#hero-rotate-field .checkbox { display: flex; margin-bottom: 6px; }
-section.panel[aria-labelledby="hero-heading"] { max-width: 720px; }
-
-/* ---------- Photo protection (see js/protect.js) ----------
-   iPhones and iPads ignore the script for long presses, so this does it:
-   -webkit-touch-callout: none   no "Save to Photos / Copy / Share" pop-up
-   user-select: none             a long press does not select the picture
-   -webkit-user-drag: none       the picture cannot be dragged out (Safari)
-   For pictures inside a link or button (grid thumbnails, cards), the picture
-   also ignores touches entirely (pointer-events: none): a long press then
-   lands on the button or link around it, which has no "Save Image" option.
-   Tapping still works, because the tap reaches the button or link instead. */
-main img,
-.lightbox img {
-  -webkit-touch-callout: none;
-  -webkit-user-select: none;
-  user-select: none;
-  -webkit-user-drag: none;
-}
-.thumb-button img,
-.set-card img,
-.hero img {
-  pointer-events: none;
-}
-.thumb-button,
-.set-card,
-.hero {
-  -webkit-touch-callout: none;
-  -webkit-user-select: none;
-  user-select: none;
-}
-
-/* ---------- Header that stays at the top ---------- */
-/* Public pages: the header stays in view while scrolling, so the menu is
-   always one tap away. The shadow trick paints its background the full width
-   of the window, even though the header itself is at most 1200 px wide. */
-.site-header:not(.admin-header) {
-  position: sticky;
-  top: 0;
-  z-index: 20;
-  height: var(--header-height);
-  padding-top: 0;
-  padding-bottom: 0;
-  background: var(--bg);
-  /* The second shadow reaches 1 px lower than the first: a thin line along
-     the bottom edge, the width of the window. Shadows never widen the page. */
-  box-shadow: 0 0 0 100vmax var(--bg), 0 1px 0 100vmax var(--border);
-  clip-path: inset(0 -100vmax -1px);
-  /* Stays in place while the rest of the page fades (see "Smooth page changes"). */
-  view-transition-name: site-header;
-}
-
-/* Work, About, and Contact beside the name, and the light / dark and Menu
-   buttons at the right. Phones and tablets: Menu at the left, the name in the
-   middle, light / dark at the right (the links are in the menu). */
-.header-tools { display: flex; align-items: center; gap: 32px; }
-.site-nav { display: flex; align-items: center; gap: 28px; font-weight: 500; }
-.site-nav a { text-decoration: none; padding: 10px 0; }
-.site-nav a:hover { text-decoration: underline; text-underline-offset: 6px; }
-.site-nav a[aria-current="page"] { text-decoration: underline; text-underline-offset: 6px; text-decoration-thickness: 2px; }
-.header-buttons { display: flex; align-items: center; gap: 8px; }
+/* Phones and tablets: Menu at the left, the name in the middle, light / dark
+   at the right (the links are in the menu). */
 @media (max-width: 960px) {
   .site-header:not(.admin-header) {
     display: grid;
-    grid-template-columns: 48px 1fr 48px;
-    padding-left: 8px;
-    padding-right: 8px;
+    grid-template-columns: 48px minmax(0, 1fr) 48px;
+    padding-inline: var(--space-xs);
   }
   .site-header .site-name { grid-column: 2; grid-row: 1; justify-self: center; font-size: 1.75rem; }
-  .site-header .menu-button { grid-column: 1; grid-row: 1; justify-self: center; background: transparent; }
+  .site-header .menu-button { grid-column: 1; grid-row: 1; justify-self: center; }
   .header-tools { display: contents; }
   .site-nav { display: none; }
   .header-buttons { display: contents; }
   .header-buttons .theme-toggle { grid-column: 3; grid-row: 1; justify-self: center; }
-  .header-buttons .round-button { background: transparent; }
 }
 
-/* ---------- The menu button (top right) ---------- */
-/* A round icon button (see "Round icon buttons"); the word "Menu" is still
-   read by screen readers. */
+/* ---------- The menu button ---------- */
+/* A round icon button; the word "Menu" is still read by screen readers. */
 .menu-button-label {
   position: absolute;
   width: 1px;
   height: 1px;
   overflow: hidden;
-  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
   white-space: nowrap;
 }
 .menu-close svg,
@@ -1465,34 +408,45 @@ main img,
   /* <dialog> starts as a box in the middle; make it a full-height side panel. */
   position: fixed;
   inset: 0 0 0 auto;
-  width: min(380px, 88vw);
+  width: min(400px, 88vw);
   max-width: none;
   height: 100%;
   max-height: none;
   margin: 0;
   padding: 0;
   border: 0;
-  border-left: 1px solid var(--border);
-  background: var(--bg);
-  color: var(--text);
+  border-left: 1px solid var(--color-rule);
+  background: var(--color-paper);
+  color: var(--color-ink);
   /* Stays above the header while it slides out (Safari lets go of a closing
      dialog's "always on top" place at once; Chrome keeps it until the end). */
-  z-index: 100;
-  /* Sliding: from off-screen to its place, and back when closing. */
+  z-index: var(--z-modal);
   transform: translateX(100%);
-  transition: transform 0.32s cubic-bezier(0.2, 0.8, 0.2, 1), overlay 0.32s allow-discrete, display 0.32s allow-discrete;
+  transition: transform 0.32s var(--ease-slide), overlay 0.32s allow-discrete, display 0.32s allow-discrete;
 }
 .site-menu[open] { transform: translateX(0); }
 @starting-style { .site-menu[open] { transform: translateX(100%); } }
 .site-menu::backdrop {
-  background: rgba(0, 0, 0, 0);
+  background: var(--color-scrim-none);
   transition: background-color 0.32s, overlay 0.32s allow-discrete, display 0.32s allow-discrete;
 }
-.site-menu[open]::backdrop { background: rgba(0, 0, 0, 0.4); }
-@starting-style { .site-menu[open]::backdrop { background: rgba(0, 0, 0, 0); } }
+.site-menu[open]::backdrop { background: var(--color-scrim-soft); }
+@starting-style { .site-menu[open]::backdrop { background: var(--color-scrim-none); } }
 
-.menu-panel { display: flex; flex-direction: column; height: 100%; padding: 8px 24px 24px; overflow-y: auto; }
-.menu-top { display: flex; align-items: center; justify-content: space-between; min-height: 56px; margin-bottom: 16px; }
+.menu-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: var(--space-xs) var(--space-lg) var(--space-lg);
+  overflow-y: auto;
+}
+.menu-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 56px;
+  margin-bottom: var(--space-lg);
+}
 .menu-title { font-family: var(--font-display); font-size: 1.75rem; line-height: 1; padding-top: 0.12em; }
 .menu-close {
   display: inline-flex;
@@ -1501,164 +455,807 @@ main img,
   width: 44px;
   height: 44px;
   padding: 0;
+  border: 0;
   border-radius: 50%;
-  background: var(--surface);
-  color: var(--text);
+  background: var(--color-paper-2);
+  color: var(--color-ink);
+  cursor: pointer;
 }
-.menu-close:hover { background: var(--surface-hover); }
+.menu-close:hover { background: var(--color-paper-3); }
+.menu-close:active { transform: scale(0.94); }
 .menu-nav ul { list-style: none; margin: 0; padding: 0; }
+/* Work, About, Contact: the display letters, large, one under another. */
 .menu-main a {
   display: block;
-  padding: 6px 0;
-  font-size: 1.5rem;
-  font-weight: 500;
+  padding: var(--space-2xs) 0;
+  font-size: 3rem;
   text-decoration: none;
+  text-underline-offset: 6px;
+  text-decoration-thickness: 2px;
 }
 .menu-main a:hover,
-.menu-list a:hover { text-decoration: underline; text-underline-offset: 5px; }
-.menu-nav a[aria-current="page"] { text-decoration: underline; text-underline-offset: 5px; text-decoration-thickness: 2px; }
+.menu-list a:hover { text-decoration: underline; }
+.menu-nav a[aria-current="page"] { text-decoration: underline; text-decoration-thickness: 2px; }
 .menu-heading {
-  margin: 24px 0 6px;
-  padding-top: 24px;
-  border-top: 1px solid var(--border);
-  color: var(--muted);
-  font-size: 0.875rem;
+  margin: var(--space-lg) 0 var(--space-xs);
+  padding-top: var(--space-lg);
+  border-top: 1px solid var(--color-rule);
+  color: var(--color-muted);
+  font-size: var(--text-sm);
   font-weight: 500;
 }
-.menu-list a { display: block; padding: 7px 0; text-decoration: none; color: var(--text); }
-.menu-chips { display: flex; flex-wrap: wrap; gap: 8px; }
-.menu-chips a { display: inline-flex; align-items: center; min-height: 40px; padding: 0 18px; border: 1px solid var(--hairline); border-radius: var(--radius-pill); font-weight: 500; }
+.menu-list a {
+  display: block;
+  padding: var(--space-xs) 0;
+  color: var(--color-ink);
+  text-decoration: none;
+  text-underline-offset: 5px;
+}
+.menu-chips { display: flex; flex-wrap: wrap; gap: var(--space-xs); }
+.menu-chips a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 0 var(--space-md);
+  border: 1px solid var(--color-rule-strong);
+  border-radius: var(--radius-pill);
+  font-weight: 500;
+}
 /* Same look as the category buttons on the home page. */
-.menu-chips a:hover { text-decoration: none; border-color: var(--text); }
-.menu-chips a[aria-current="page"] { text-decoration: none; background: var(--text); border-color: var(--text); color: var(--bg); }
-.menu-actions { display: grid; gap: 8px; margin-top: auto; padding-top: 24px; }
+.menu-chips a:hover { text-decoration: none; border-color: var(--color-ink); }
+.menu-chips a[aria-current="page"] { text-decoration: none; background: var(--color-accent); border-color: var(--color-accent); color: var(--color-accent-ink); }
+.menu-actions { display: grid; gap: var(--space-xs); margin-top: auto; padding-top: var(--space-lg); }
 .menu-action {
   display: flex;
   align-items: center;
-  gap: 12px;
+  justify-content: flex-start;
+  gap: var(--space-sm);
   width: 100%;
-  min-height: 48px;
-  padding: 0 20px;
+  min-height: var(--control);
+  padding: 0 var(--space-lg);
   border: 0;
   border-radius: var(--radius-pill);
-  background: var(--surface);
-  color: var(--text);
+  background: var(--color-paper-2);
+  color: var(--color-ink);
   font-weight: 500;
   text-align: left;
+  cursor: pointer;
 }
-.menu-action:hover { background: var(--surface-hover); }
+.menu-action:hover { background: var(--color-paper-3); }
+.menu-action:active { transform: scale(0.98); }
 
-/* ---------- Footer: contact details on every page ---------- */
-.site-footer:not(:empty) { display: grid; gap: 24px; padding-top: 32px; }
-.footer-heading { margin: 0 0 10px; color: var(--text); font-size: 1rem; font-weight: 500; }
-.footer-links { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 10px 32px; font-size: 0.875rem; font-weight: 500; }
-.footer-links li { display: flex; gap: 10px; }
-.footer-links a { color: var(--text); padding: 5px 0; margin: -5px 0; } /* taller tap area, same layout */
-.footer-bottom { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 24px; }
-.footer-copy { margin: 0; font-weight: 500; }
-.footer-top { text-decoration: none; display: inline-block; padding: 11px 0; margin: -11px 0; }
-.footer-top:hover { color: var(--text); text-decoration: underline; text-underline-offset: 4px; }
+/* ---------- Home: the first screen ---------- */
+/* The featured set's name in the display letters on the left, as tall as the
+   screen allows, with the start of its description and View set; its cover on
+   the right, captioned with why it is shown. The whole hero opens the set. */
+.hero {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: var(--gap-columns);
+  align-items: center;
+  height: min(calc(100svh - var(--header-height)), 760px);
+  min-height: 560px;
+  padding-block: var(--space-xl);
+}
+.hero-text {
+  grid-column: 1 / span 5;
+  grid-row: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-lg);
+}
+.hero-figure {
+  grid-column: 6 / -1;
+  grid-row: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  height: 100%;
+  margin: 0;
+  min-height: 0;
+}
+.hero-frame {
+  position: relative;
+  display: block;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--color-paper-2);
+}
+.hero-image {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+/* "Featured" or "Latest work", a quiet caption under the cover. */
+.hero-label {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: var(--text-sm);
+  font-weight: 500;
+}
+.hero-title {
+  margin: 0;
+  font-size: var(--text-hero);
+  line-height: 0.92;
+  max-width: 100%;
+}
+.hero-tagline {
+  margin: 0;
+  max-width: 36ch;
+  color: var(--color-ink-2);
+  font-size: var(--text-lead);
+  line-height: 1.45;
+  /* A long description shows its first two lines here. */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+/* The light pill is for photos; beside the text it is the solid one. */
+.hero-link.pill-on-photo { background: var(--color-accent); color: var(--color-accent-ink); }
+.hero-link.pill-on-photo:hover { background: var(--color-ink-2); }
+/* The whole hero opens the featured set, not just the button. */
+.hero-link::after { content: ""; position: absolute; inset: 0; }
+.hero:has(.hero-link:hover) .hero-title { text-decoration: underline; text-decoration-thickness: 3px; text-underline-offset: 0.08em; }
 
-/* ---------- Smooth page changes ---------- */
-/* Browsers that support it (Chrome, Edge, Safari 18) fade from one page to the
-   next instead of flashing white, while the header stays still. Others just
-   change pages as before. Together with the Speculation-Rules header (pages
-   load early when you point at a link), moving around feels instant. */
-@view-transition { navigation: auto; }
-::view-transition-old(root) { animation: page-out 0.18s ease both; }
-::view-transition-new(root) { animation: page-in 0.28s ease both; }
-@keyframes page-out { to { opacity: 0; } }
-@keyframes page-in { from { opacity: 0; transform: translateY(8px); } }
+@media (max-width: 899px) {
+  .hero { height: auto; min-height: 0; row-gap: var(--space-lg); padding-block: var(--space-md) var(--space-xl); }
+  .hero-figure { grid-column: 1 / -1; grid-row: 1; height: auto; }
+  .hero-frame { flex: none; aspect-ratio: 4 / 3; max-height: 70svh; }
+  .hero-text { grid-column: 1 / -1; grid-row: 2; gap: var(--space-md); }
+  .hero-title { font-size: clamp(3.5rem, 15vw, 6rem); }
+}
+@media (max-width: 599px) {
+  .hero-frame { aspect-ratio: 4 / 5; }
+}
 
-/* Links to a place on the same page ("Contact", "Back to top") glide there. */
-html { scroll-behavior: smooth; scroll-padding-top: 80px; }
+/* ---------- Home: title, tagline, and category buttons ---------- */
+.section-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-md) var(--space-lg);
+  margin: var(--space-2xl) 0 var(--space-xl);
+  padding-top: var(--space-lg);
+  border-top: 1px solid var(--color-ink);
+}
+.section-head h1,
+.section-head h2 { font-size: var(--text-section); }
+/* No hero (a category page, or no photos yet): the title is the page's. */
+.section-head:first-child { margin-top: var(--space-xl); border-top: 0; padding-top: 0; }
+.section-head:first-child h1 { font-size: var(--text-display); }
+.site-tagline { margin: var(--space-xs) 0 0; color: var(--color-muted); font-size: var(--text-md); }
 
-/* Photos show a soft color while they load, instead of a white gap. */
-.thumb-button,
-.set-card-image,
-.hero { background-color: var(--surface); }
+/* Pills, 44 px tall; the chosen one is filled in. On phones they stay in one
+   row that scrolls sideways. */
+.category-nav { display: flex; flex-wrap: wrap; gap: var(--space-xs); margin: 0; }
+.category-nav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 var(--space-md);
+  border: 1px solid var(--color-rule-strong);
+  border-radius: var(--radius-pill);
+  color: var(--color-ink);
+  font-weight: 500;
+  text-decoration: none;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.category-nav a:hover { border-color: var(--color-ink); }
+.category-nav a:active { background: var(--color-paper-2); }
+.category-nav a[aria-current="page"] { background: var(--color-accent); border-color: var(--color-accent); color: var(--color-accent-ink); }
+@media (max-width: 639px) {
+  .category-nav {
+    flex-wrap: nowrap;
+    width: calc(100% + 2 * var(--gutter));
+    margin: 0 calc(-1 * var(--gutter));
+    padding: var(--space-2xs) var(--gutter);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+}
 
-/* The photo viewer fades in and out instead of appearing at once. While it
-   fades out, it keeps covering the screen, in Safari too (see .site-menu). */
+/* ---------- Home: the sets, as a contact sheet ---------- */
+/* Twelve columns in a repeating run of five: one wide and one narrow, then
+   three across. Each card in a row is cropped to the same height, so the run
+   reads as a magazine spread rather than a row of equal tiles. */
+.set-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: var(--gap-columns);
+  row-gap: var(--space-2xl);
+}
+.set-grid > li { grid-column: span 4; min-width: 0; }
+.set-grid > li:nth-child(5n + 1) { grid-column: span 7; }
+.set-grid > li:nth-child(5n + 2) { grid-column: span 5; }
+.set-grid > li:nth-child(5n + 1) .set-card-image { aspect-ratio: 3 / 2; }
+.set-grid > li:nth-child(5n + 2) .set-card-image { aspect-ratio: 1.063; } /* the same height as the wide card beside it */
+/* A run that ends early: a lone wide card takes the full width; two left over
+   in the three-across row share it. */
+.set-grid > li:nth-child(5n + 1):last-child { grid-column: 1 / -1; }
+.set-grid > li:nth-child(5n + 1):last-child .set-card-image { aspect-ratio: 21 / 9; }
+.set-grid > li:nth-child(5n + 3):last-child { grid-column: 1 / -1; }
+.set-grid > li:nth-child(5n + 3):last-child .set-card-image { aspect-ratio: 21 / 9; }
+.set-grid > li:nth-child(5n + 3):nth-last-child(2),
+.set-grid > li:nth-child(5n + 4):last-child { grid-column: span 6; }
+.set-grid > li:nth-child(5n + 3):nth-last-child(2) .set-card-image,
+.set-grid > li:nth-child(5n + 4):last-child .set-card-image { aspect-ratio: 4 / 3; }
+@media (max-width: 1023px) {
+  .set-grid > li,
+  .set-grid > li:nth-child(n) { grid-column: span 6; }
+  .set-grid > li:nth-child(n) .set-card-image { aspect-ratio: 4 / 3; }
+  .set-grid > li:nth-child(odd):last-child { grid-column: 1 / -1; }
+  .set-grid > li:nth-child(odd):last-child .set-card-image { aspect-ratio: 16 / 9; }
+}
+@media (max-width: 639px) {
+  .set-grid { row-gap: var(--space-xl); }
+  .set-grid > li:nth-child(n) { grid-column: 1 / -1; }
+  .set-grid > li:nth-child(n) .set-card-image { aspect-ratio: 4 / 3; }
+}
+
+/* Each card: the cover, square-cornered, then the name in the display letters
+   and the facts in a quiet row under it. */
+.set-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  color: var(--color-ink);
+  text-decoration: none;
+}
+.set-card-image {
+  position: relative;
+  display: block;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  background: var(--color-paper-2);
+}
+.set-card img {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* crop to fill the box instead of stretching */
+}
+.set-card-text { display: flex; flex-direction: column; gap: var(--space-xs); }
+.set-card h2,
+.set-card h3 {
+  margin: 0;
+  font-size: var(--text-title);
+  text-underline-offset: 0.1em;
+  text-decoration-thickness: 2px;
+}
+.set-card:hover h2,
+.set-card:hover h3 { text-decoration: underline; }
+.set-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2xs) var(--space-md);
+  color: var(--color-muted);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Set page ---------- */
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2xs);
+  min-height: 44px; /* a tall enough tap area for fingers */
+  margin-top: var(--space-md);
+  color: var(--color-muted);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  text-decoration: none;
+}
+.back-link svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.back-link:hover { color: var(--color-ink); }
+
+/* The heading block, on twelve columns: the name across the first eight,
+   Share at the right; the facts and the description below, the facts in a
+   narrow column of their own beside the description. */
+.set-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-md) var(--space-lg);
+  margin: var(--space-md) 0 var(--space-lg);
+  padding-bottom: var(--space-lg);
+  border-bottom: 1px solid var(--color-ink);
+}
+.set-heading h1 {
+  margin: 0;
+  max-width: 14ch;
+  font-size: var(--text-display);
+}
+.share-button { flex-shrink: 0; }
+.set-location {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2xs) var(--space-lg);
+  margin: 0 0 var(--space-md);
+  color: var(--color-muted);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+.set-description {
+  max-width: 60ch;
+  margin: 0;
+  color: var(--color-ink-2);
+  font-size: var(--text-lead);
+  line-height: 1.5;
+  white-space: pre-line; /* keep the line breaks you typed */
+}
+@media (min-width: 900px) {
+  /* The facts sit in the first three columns, the description beside them. */
+  main:has(> .set-location) { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--gap-columns); align-content: start; }
+  main:has(> .set-location) > * { grid-column: 1 / -1; min-width: 0; }
+  main:has(> .set-location) > .set-location { grid-column: 1 / span 3; flex-direction: column; margin: 0; }
+  main:has(> .set-location) > .set-description { grid-column: 4 / span 7; grid-row: auto; }
+  main:has(> .set-location) > .set-location + .set-description { margin-top: 0; }
+  main:has(> .set-location) > .back-link { justify-self: start; }
+}
+
+/* Justified rows: every photo in a row gets the same height, and each keeps
+   its own shape (portrait stays tall, landscape stays wide).
+
+   The shape comes from --ratio (width / height), which the server writes from
+   the database. Because the space for each photo is decided by that number
+   alone, nothing moves when the images finish loading.
+
+   How the trick works: each photo starts at a width proportional to its ratio
+   (flex-basis) and grows by the same proportion (flex-grow). Growing every photo
+   in a row by the same factor keeps their heights equal. */
+.photo-grid {
+  list-style: none;
+  margin: var(--space-2xl) 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+  --row-height: 300px;
+}
+/* An invisible last item that soaks up the leftover space in the final row,
+   so the last few photos are not stretched to fill the whole width. */
+.photo-grid::after {
+  content: "";
+  flex-grow: 1000;
+}
+.photo-grid li {
+  flex-grow: var(--ratio);
+  flex-basis: calc(var(--ratio) * var(--row-height));
+}
+.photo-grid img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: var(--ratio);
+  object-fit: cover;
+  border-radius: var(--radius-photo);
+  background: var(--color-paper-2);
+}
+@media (min-width: 1400px) { .photo-grid { --row-height: 340px; } }
+@media (max-width: 600px) {
+  .photo-grid { --row-height: 160px; gap: var(--space-2xs); margin-top: var(--space-xl); }
+}
+
+/* ---------- Tappable photos ---------- */
+.thumb-button {
+  position: relative;
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-photo);
+  overflow: hidden;
+  background: var(--color-paper-2);
+  cursor: zoom-in;
+}
+.thumb-button img { transition: opacity var(--dur-micro) var(--ease-out); }
+.thumb-button:hover img { opacity: 0.88; }
+.thumb-button:focus-visible { outline-offset: 3px; }
+
+/* ---------- Licensed downloads ---------- */
+/* A ruled band across the page: the heading and help text at the left, the
+   code box and Unlock at the right. */
+.license-panel {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-lg) var(--space-xl);
+  margin: var(--space-3xl) 0 0;
+  padding: var(--space-xl) 0;
+  border-top: 1px solid var(--color-ink);
+  border-bottom: 1px solid var(--color-rule);
+}
+.license-text { flex: 1 1 320px; max-width: 56ch; }
+.license-panel h2 {
+  margin: 0 0 var(--space-xs);
+  font-family: var(--font-display);
+  font-size: var(--text-3xl);
+  font-weight: 400;
+  line-height: 1;
+}
+.license-panel .muted { margin: 0; }
+/* Unlocked: the heading says so, and a check sits before it. */
+.license-panel.unlocked h2::before { content: "\2713\00a0"; color: var(--color-success); }
+.license-form-area { display: flex; flex-direction: column; gap: var(--space-2xs); }
+.license-panel .inline-form { max-width: none; align-items: flex-end; flex-wrap: wrap; }
+.license-panel label { font-size: var(--text-sm); font-weight: 500; }
+.license-field { display: flex; flex-direction: column; gap: var(--space-2xs); }
+.license-panel input {
+  width: 280px;
+  max-width: 100%;
+  height: var(--control);
+  min-height: var(--control);
+  padding: 0 var(--space-md);
+  border: 1px solid var(--color-muted);
+  border-radius: var(--radius-pill);
+  background: var(--color-paper);
+  font-variant-numeric: tabular-nums;
+  text-transform: uppercase;
+}
+.license-panel input:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+.license-panel .form-error { min-height: 0; }
+.license-panel .form-error:empty { display: none; }
+@media (max-width: 639px) {
+  .license-field { flex: 1 1 100%; }
+  .license-panel input { width: 100%; }
+}
+.license-actions-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-xs) var(--space-sm); margin-top: var(--space-sm); }
+
+/* ---------- Related sets ---------- */
+.related-sets { margin: var(--space-4xl) 0 0; }
+.related-sets h2 { margin: 0 0 var(--space-xl); font-size: var(--text-section); }
+/* Four across on computers, two below that, one on small phones. */
+.set-grid.related-grid { row-gap: var(--space-xl); }
+.set-grid.related-grid > li:nth-child(n) { grid-column: span 3; }
+.set-grid.related-grid > li:nth-child(n) .set-card-image { aspect-ratio: 4 / 5; }
+.related-grid .set-card h3 { font-size: var(--text-xl); }
+@media (max-width: 1023px) { .set-grid.related-grid > li:nth-child(n) { grid-column: span 6; } }
+@media (max-width: 479px) { .set-grid.related-grid > li:nth-child(n) { grid-column: 1 / -1; } }
+
+/* ---------- About page ---------- */
+/* The sitter: the portrait in the first five columns, staying in view; the
+   name set large, the bio, then gear and contact as ruled rows. */
+.about {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: var(--gap-columns);
+  align-items: start;
+  padding-top: var(--space-xl);
+}
+.about-portrait {
+  grid-column: 1 / span 5;
+  position: sticky;
+  top: calc(var(--header-height) + var(--space-lg));
+}
+.about-portrait img {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: var(--color-paper-2);
+}
+.about-text { grid-column: 7 / -1; min-width: 0; }
+/* The text-only layout when there is no portrait yet. */
+.about:not(:has(.about-portrait)) .about-text { grid-column: 1 / span 9; }
+.about h1 { margin: 0 0 var(--space-xl); font-size: var(--text-display); max-width: none; }
+.about-bio { max-width: 60ch; color: var(--color-ink-2); font-size: var(--text-lead); }
+.about-bio p { margin: 0 0 var(--space-md); line-height: 1.65; }
+.about h2 {
+  margin: var(--space-2xl) 0 0;
+  padding-bottom: var(--space-sm);
+  border-bottom: 1px solid var(--color-ink);
+  font-size: var(--text-md);
+  font-weight: 600;
+}
+.about-contact,
+.about-gear { list-style: none; margin: 0; padding: 0; }
+.about-contact li,
+.about-gear li {
+  display: grid;
+  grid-template-columns: minmax(96px, 30%) minmax(0, 1fr);
+  gap: var(--space-md);
+  align-items: baseline;
+  padding: var(--space-sm) 0;
+  border-bottom: 1px solid var(--color-rule);
+  overflow-wrap: anywhere;
+}
+.about-gear li > span:only-child { grid-column: 1 / -1; }
+.contact-label { color: var(--color-muted); font-size: var(--text-sm); font-weight: 500; }
+@media (max-width: 899px) {
+  .about { padding-top: var(--space-md); row-gap: var(--space-xl); }
+  .about-portrait { grid-column: 1 / -1; position: static; }
+  .about-text,
+  .about:not(:has(.about-portrait)) .about-text { grid-column: 1 / -1; }
+}
+
+/* ---------- Not found page ---------- */
+.not-found {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-md);
+  min-height: 60svh;
+  padding-top: var(--space-2xl);
+}
+/* Decoration only ("Page not found" says it), so it is drawn here and not
+   part of the page text. The second line hides it from screen readers. */
+.not-found-code {
+  margin: 0;
+  color: var(--color-rule-strong);
+  font-family: var(--font-display);
+  font-size: clamp(8rem, 20vw, 18rem);
+  font-weight: 400;
+  line-height: 0.85;
+}
+.not-found-code::before { content: "404"; content: "404" / ""; }
+.not-found h1 { font-size: var(--text-section); }
+.not-found p { margin: 0; }
+.button-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--control);
+  padding: 0 var(--space-lg);
+  border-radius: var(--radius-pill);
+  background: var(--color-accent);
+  color: var(--color-accent-ink);
+  font-weight: 500;
+  white-space: nowrap;
+  text-decoration: none;
+  transition: background-color var(--dur-micro) var(--ease-out), transform var(--dur-micro) var(--ease-out);
+}
+.button-link:hover { background: var(--color-ink-2); }
+.button-link:active { transform: scale(0.96); }
+
+/* ---------- Footer: a colophon on every page ---------- */
+/* "Get in touch" set large over the contact rows, then the © line. */
+.site-footer {
+  margin-top: var(--space-3xl);
+  padding-block: var(--space-xl) var(--space-xl);
+  border-top: 1px solid var(--color-ink);
+  color: var(--color-muted);
+  font-size: var(--text-sm);
+}
+.site-footer:not(:empty) { display: grid; gap: var(--space-2xl); }
+.footer-contact {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: var(--gap-columns);
+  row-gap: var(--space-lg);
+  align-items: start;
+}
+.footer-heading {
+  grid-column: 1 / span 5;
+  margin: 0;
+  color: var(--color-ink);
+  font-size: var(--text-section);
+}
+.footer-links {
+  grid-column: 7 / -1;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: var(--text-md);
+}
+.footer-links li {
+  display: grid;
+  grid-template-columns: minmax(96px, 30%) minmax(0, 1fr);
+  gap: var(--space-md);
+  align-items: baseline;
+  padding: var(--space-sm) 0;
+  border-bottom: 1px solid var(--color-rule);
+}
+.footer-links li:first-child { padding-top: 0; }
+.footer-links a { color: var(--color-ink); font-weight: 500; overflow-wrap: anywhere; text-decoration: none; }
+.footer-links a:hover { text-decoration: underline; }
+.footer-links .contact-label { min-width: 0; }
+@media (max-width: 899px) {
+  .footer-heading,
+  .footer-links { grid-column: 1 / -1; }
+}
+.footer-bottom { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--space-xs) var(--space-lg); }
+.footer-copy { display: flex; flex-wrap: wrap; gap: var(--space-2xs) var(--space-md); margin: 0; font-weight: 500; }
+.footer-name { font-family: var(--font-display); font-size: var(--text-lg); font-weight: 400; line-height: 1; color: var(--color-ink); }
+.footer-top {
+  display: inline-block;
+  padding: var(--space-sm) 0;
+  margin: calc(-1 * var(--space-sm)) 0;
+  font-weight: 500;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.footer-top:hover { color: var(--color-ink); text-decoration: underline; }
+
+/* ---------- Full-screen viewer ---------- */
+.no-scroll { overflow: hidden; }
+/* The spoken "Photo 2 of 5" (set.html) stays inside the viewer, so the viewer
+   never gets a few pixels to scroll. */
+#lightbox-status { top: 0; left: 0; margin: 0; }
+
 .lightbox {
+  /* <dialog> has a default box; make it cover the whole screen instead. */
   position: fixed;
   inset: 0;
-  z-index: 100;
+  z-index: var(--z-modal);
+  width: 100%;
+  height: 100%;
+  height: 100dvh; /* correct on phones, where the address bar comes and goes */
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: var(--color-night);
+  color: var(--color-night-ink);
+  /* Let our code see horizontal swipes, but keep two-finger pinch zoom working. */
+  touch-action: pinch-zoom;
+  user-select: none;
+  -webkit-user-select: none;
+  /* Fades in and out instead of appearing at once. While it fades out, it
+     keeps covering the screen, in Safari too (see .site-menu). */
   opacity: 0;
   transition: opacity 0.25s ease, overlay 0.25s allow-discrete, display 0.25s allow-discrete;
 }
 .lightbox[open] { opacity: 1; }
 @starting-style { .lightbox[open] { opacity: 0; } }
-/* The dark background behind it fades along with it. */
 .lightbox::backdrop {
+  background: var(--color-night);
   opacity: 0;
   transition: opacity 0.25s ease, overlay 0.25s allow-discrete, display 0.25s allow-discrete;
 }
 .lightbox[open]::backdrop { opacity: 1; }
 @starting-style { .lightbox[open]::backdrop { opacity: 0; } }
 
-/* Visitors who ask their device for less motion get none of this movement. */
-@media (prefers-reduced-motion: reduce) {
-  html { scroll-behavior: auto; }
-  ::view-transition-old(root), ::view-transition-new(root) { animation: none; }
-  .site-menu, .site-menu::backdrop, .lightbox, .lightbox::backdrop, .lightbox-stage img { transition: none; }
+.lightbox-stage {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Room for the counter at the top, without covering the photo. */
+  padding: var(--space-xl) 0;
 }
-/* The light / dark button inside the menu: a full row, not the small round icon. */
-.menu-action.theme-toggle { justify-content: flex-start; width: 100%; height: auto; min-height: 48px; border: 0; border-radius: var(--radius-pill); color: var(--text); }
-.menu-action.theme-toggle svg { width: 20px; height: 20px; }
-.footer-links .contact-label { min-width: 0; color: var(--muted); }
+/* "contain" = as big as possible while showing the whole photo. */
+.lightbox-stage img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  -webkit-touch-callout: none; /* no "Save Image" pop-up on long press in iOS Safari */
+  /* Its final size from the start (lightbox.js sets --ratio and --w from the
+     photo), so it does not grow when the sharper file arrives. */
+  aspect-ratio: var(--ratio);
+  width: min(100%, var(--w), calc((100dvh - 96px) * var(--ratio)));
+  height: auto;
+  /* Under the photo, its tiny blurry preview, until the picture is drawn. */
+  background: var(--ph, none) center / cover no-repeat;
+  /* Springs back after a swipe that was too short (see lightbox.js). */
+  transition: transform 0.15s ease;
+}
+.lightbox-counter {
+  position: absolute;
+  top: 0;
+  left: 0;
+  margin: 0;
+  padding: var(--space-md);
+  color: var(--color-night-muted);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+.lightbox-info {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  padding: var(--space-sm) var(--space-md) calc(var(--space-sm) + env(safe-area-inset-bottom));
+  text-align: center;
+  background: linear-gradient(var(--color-scrim-none), var(--color-scrim));
+}
+.lightbox-info p { margin: 0; }
+.lightbox-camera {
+  margin-top: var(--space-3xs) !important;
+  color: var(--color-night-muted);
+  font-size: var(--text-sm);
+  font-weight: 500;
+}
+.lightbox-button {
+  position: absolute;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--color-night-2);
+  color: var(--color-night-ink);
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color var(--dur-micro) var(--ease-out);
+}
+.lightbox-button:hover { background: var(--color-night-3); }
+.lightbox-button:active { background: var(--color-night-3); }
+.lightbox-button svg {
+  display: block;
+  margin: auto;
+  width: 24px;
+  height: 24px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.lightbox-close { top: var(--space-2xs); right: var(--space-xs); }
+.lightbox-prev,
+.lightbox-next { top: 50%; transform: translateY(-50%); }
+.lightbox-prev { left: var(--space-sm); }
+.lightbox-next { right: var(--space-sm); }
+.lightbox-download {
+  position: absolute;
+  top: var(--space-2xs);
+  right: var(--space-2xl);
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--control);
+  padding: 0 var(--space-lg);
+  border-radius: var(--radius-pill);
+  background: var(--color-night-ink);
+  color: var(--color-night);
+  font-weight: 500;
+  white-space: nowrap;
+  text-decoration: none;
+  transition: background-color var(--dur-micro) var(--ease-out);
+}
+.lightbox-download:hover { background: var(--color-night-ink-2); }
 
-/* ---------- Gentle hover ---------- */
-/* Buttons and chips fade to their hover color instead of switching at once,
-   like the photos do. Only where there is a mouse. */
-@media (hover: hover) {
-  .round-button, .category-nav a, .menu-chips a, .menu-close,
-  .menu-action, .lightbox-button, .lightbox-download, .site-nav a {
-    transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease;
+/* On phones, swiping replaces the arrows, so they stop covering the photo.
+   They are only hidden from sight: screen readers still find them. */
+@media (hover: none) and (pointer: coarse) {
+  .lightbox-prev,
+  .lightbox-next {
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
   }
 }
-/* Switching light and dark mode changes every color at once (theme.js). */
-.theme-switching * { transition: none !important; }
-
-/* The Share button shows before the page is first drawn, so the photos below
-   it never jump down. Without scripts it stays hidden (theme.js sets data-js). */
-html:not([data-js]) [data-share] { display: none; }
-
-/* ---------- Blurry previews ---------- */
-/* While a photo loads, a tiny version of it (an 8 px color grid, written into
-   the page) is shown blurred in its place, so the page fills with soft color at
-   once. The real photo then fades in on top (theme.js marks it "is-loaded").
-   Without JavaScript, photos simply appear as they load. Photos uploaded before
-   previews existed show the plain card color until they get one. */
-.thumb-button { position: relative; overflow: hidden; }
-.placeholder {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  border-radius: inherit;
-  pointer-events: none;
+/* Computers and tablets: the photo gets a frame of dark space, the counter
+   sits in the middle at the top, and the caption, camera details, and
+   Download button share a row along the bottom. */
+@media (min-width: 700px) {
+  .lightbox-stage { padding: 72px 88px 104px; }
+  .lightbox-stage img { width: min(100%, var(--w), calc((100dvh - 176px) * var(--ratio))); }
+  .lightbox-counter { left: 50%; transform: translateX(-50%); padding: var(--space-lg) var(--space-md); }
+  .lightbox-close { top: var(--space-sm); right: var(--space-lg); }
+  .lightbox-prev { left: var(--space-lg); }
+  .lightbox-next { right: var(--space-lg); }
+  .lightbox-info { right: 200px; padding: 0 var(--space-xl) var(--space-xl); text-align: left; background: none; }
+  .lightbox-download { top: auto; bottom: calc(var(--space-lg) + var(--space-2xs)); right: var(--space-xl); }
 }
-.placeholder::before {
-  content: "";
-  position: absolute;
-  inset: -16px; /* the blur fades at the edges; keep that outside the box */
-  background: var(--ph) center / cover no-repeat;
-  filter: blur(14px) saturate(1.15);
-}
-/* The photo sits above its preview. */
-.thumb-button img, .set-card img, .hero-image { position: relative; }
-.set-card-image .placeholder { z-index: 0; }
-html[data-js] img.fade:not(.is-loaded) { opacity: 0; }
-.thumb-button img.fade { transition: opacity 0.45s ease; }
-.set-card img.fade { transition: opacity 0.45s ease, transform 0.6s ease; }
 
-/* A photo that could not load: keep its preview, not a broken-image icon. */
-html[data-js] img.fade.is-broken { visibility: hidden; }
-
-/* ---------- Viewer: preview, loading, problems ---------- */
-/* Under the photo, its tiny blurry preview, until the picture is drawn. */
-.lightbox-stage img { background: var(--ph, none) center / cover no-repeat; }
-.lightbox-counter { font-variant-numeric: tabular-nums; }
 /* A thin line along the top while the full-size photo downloads. It only
    appears after half a second, so quick loads show nothing at all. */
 .lightbox::after {
@@ -1668,13 +1265,11 @@ html[data-js] img.fade.is-broken { visibility: hidden; }
   left: 0;
   width: 30%;
   height: 2px;
-  background: rgba(255, 255, 255, 0.7);
+  background: var(--color-loading);
   opacity: 0;
   pointer-events: none;
 }
-.lightbox[data-state="loading"]::after {
-  animation: viewer-loading 1.1s ease-in-out 0.5s infinite;
-}
+.lightbox[data-state="loading"]::after { animation: viewer-loading 1.1s ease-in-out 0.5s infinite; }
 @keyframes viewer-loading {
   0% { opacity: 1; transform: translateX(-100%); }
   100% { opacity: 1; transform: translateX(340%); }
@@ -1685,21 +1280,153 @@ html[data-js] img.fade.is-broken { visibility: hidden; }
   bottom: calc(72px + env(safe-area-inset-bottom));
   transform: translateX(-50%);
   margin: 0;
-  padding: 10px 16px;
+  padding: var(--space-xs) var(--space-md);
   border-radius: var(--radius-pill);
-  background: rgba(0, 0, 0, 0.75);
-  color: #fff;
-  font-size: 0.9rem;
+  background: var(--color-scrim);
+  color: var(--color-night-ink);
+  font-size: var(--text-sm);
   white-space: nowrap;
 }
 .lightbox-problem button {
-  margin-left: 8px;
-  padding: 4px 12px;
-  border-radius: 999px;
-  background: #fff;
-  color: #000;
-  font-size: 0.85rem;
+  margin-left: var(--space-xs);
+  padding: var(--space-2xs) var(--space-sm);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--color-night-ink);
+  color: var(--color-night);
+  font-size: var(--text-sm);
+  cursor: pointer;
 }
+
+/* ---------- Share buttons and menu (see js/share.js) ---------- */
+.share-button svg,
+.share-item svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  flex-shrink: 0;
+}
+.share-menu {
+  position: absolute;
+  z-index: var(--z-dropdown);
+  min-width: 220px;
+  padding: var(--space-xs);
+  background: var(--color-paper);
+  border: 1px solid var(--color-rule-strong);
+}
+.share-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  width: 100%;
+  min-height: 44px;
+  padding: 0 var(--space-sm);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--color-ink);
+  font: inherit;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+.share-item:hover,
+.share-item:focus-visible { background: var(--color-paper-2); outline: none; }
+.share-item:focus-visible { box-shadow: inset 0 0 0 2px var(--color-focus); }
+.share-item:active { background: var(--color-paper-3); }
+/* After a click or tap the first item gets focus too; no highlight for that. */
+html[data-pointer] .share-item:focus-visible:not(:hover) { background: none; box-shadow: none; }
+
+/* The Share button shows before the page is first drawn, so the photos below
+   it never jump down. Without scripts it stays hidden (theme.js sets data-js). */
+html:not([data-js]) [data-share] { display: none; }
+
+/* ---------- Light / dark switch (see js/theme.js) ---------- */
+/* Two of them: the round one in the header and the full row in the menu. */
+.theme-toggle .icon-moon { fill: none; stroke: currentColor; }
+/* Show the moon in light mode (tap for dark), the sun in dark mode. */
+.theme-toggle[data-showing="light"] .icon-sun,
+.theme-toggle[data-showing="dark"] .icon-moon { display: none; }
+/* Switching light and dark mode changes every color at once (theme.js). */
+.theme-switching * { transition: none !important; }
+
+/* ---------- Draft preview banner (public set page) ---------- */
+.draft-banner {
+  margin: var(--space-md) 0 0;
+  padding: var(--space-sm) var(--space-md);
+  background: var(--color-note-bg);
+  color: var(--color-note-ink);
+}
+
+/* ---------- Photo protection (see js/protect.js) ----------
+   iPhones and iPads ignore the script for long presses, so this does it:
+   -webkit-touch-callout: none   no "Save to Photos / Copy / Share" pop-up
+   user-select: none             a long press does not select the picture
+   -webkit-user-drag: none       the picture cannot be dragged out (Safari)
+   For pictures inside a link or button (grid thumbnails, cards), the picture
+   also ignores touches entirely (pointer-events: none): a long press then
+   lands on the button or link around it, which has no "Save Image" option. */
+main img,
+.lightbox img {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+.thumb-button img,
+.set-card img,
+.hero img { pointer-events: none; }
+.thumb-button,
+.set-card,
+.hero {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* ---------- Blurry previews ---------- */
+/* While a photo loads, a tiny version of it (an 8 px color grid, written into
+   the page) is shown blurred in its place, so the page fills with soft color at
+   once. The real photo then fades in on top (theme.js marks it "is-loaded").
+   Without JavaScript, photos simply appear as they load. */
+.placeholder {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  pointer-events: none;
+}
+.placeholder::before {
+  content: "";
+  position: absolute;
+  inset: calc(-1 * var(--space-md)); /* the blur fades at the edges; keep that outside the box */
+  background: var(--ph) center / cover no-repeat;
+  filter: blur(14px) saturate(1.15);
+}
+/* The photo sits above its preview. */
+.thumb-button img { position: relative; }
+.set-card-image .placeholder { z-index: 0; }
+html[data-js] img.fade:not(.is-loaded) { opacity: 0; }
+.thumb-button img.fade,
+.set-card img.fade { transition: opacity 0.45s ease; }
+/* A photo that could not load: keep its preview, not a broken-image icon. */
+html[data-js] img.fade.is-broken { visibility: hidden; }
+
+/* ---------- Smooth page changes ---------- */
+/* Browsers that support it fade from one page to the next instead of flashing
+   white, while the header stays still. */
+@view-transition { navigation: auto; }
+::view-transition-old(root) { animation: page-out 0.18s ease both; }
+::view-transition-new(root) { animation: page-in 0.28s ease both; }
+@keyframes page-out { to { opacity: 0; } }
+@keyframes page-in { from { opacity: 0; transform: translateY(8px); } }
+
+/* Links to a place on the same page ("Contact", "Back to top") glide there. */
+html { scroll-behavior: smooth; scroll-padding-top: 80px; }
 
 /* ---------- Grow and shrink between grid and viewer ---------- */
 /* js/lightbox.js names the two pictures "photo" for a moment; the browser
@@ -1707,7 +1434,7 @@ html[data-js] img.fade.is-broken { visibility: hidden; }
    simply cross-fade, and the viewer's own fade is switched off. */
 ::view-transition-group(photo) {
   animation-duration: 0.36s;
-  animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+  animation-timing-function: var(--ease-slide);
 }
 ::view-transition-old(photo),
 ::view-transition-new(photo) {
@@ -1722,51 +1449,554 @@ html.photo-transition .lightbox,
 html.photo-transition .lightbox::backdrop { transition: none; }
 /* The header keeps its own name for page changes; not during this one. */
 html.photo-transition .site-header { view-transition-name: none; }
-@media (prefers-reduced-motion: reduce) {
-  .lightbox[data-state="loading"]::after { animation: none; }
-}
-
-/* ---------- Page edges and type ---------- */
-/* The same page edges everywhere, and even, quiet type. The photos stay the
-   loudest thing. */
-body {
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-rendering: optimizeLegibility;
-  font-kerning: normal;
-}
-h1, h2, h3 { letter-spacing: 0; text-wrap: balance; }
-p { text-wrap: pretty; }
-main, .site-header, .site-footer {
-  max-width: var(--page-width);
-  padding-left: var(--gutter);
-  padding-right: var(--gutter);
-}
-/* The narrow login box keeps its own small edges. */
-main.login { padding-left: 16px; padding-right: 16px; }
-
-/* Set page: the title in the section-heading size. */
-.set-heading h1 {
-  font-size: clamp(1.75rem, 1.5rem + 0.6vw, 2rem);
-  line-height: 1.2;
-  font-weight: 500;
-}
 
 /* "Skip to content": the first thing a keyboard user reaches; hidden until then. */
 .skip-link {
   position: absolute;
   left: var(--gutter);
-  top: 8px;
-  z-index: 100;
-  padding: 12px 20px;
+  top: var(--space-xs);
+  z-index: var(--z-modal);
+  padding: var(--space-sm) var(--space-lg);
   border-radius: var(--radius-pill);
-  background: var(--text);
-  color: var(--bg);
+  background: var(--color-accent);
+  color: var(--color-accent-ink);
   font-weight: 500;
   text-decoration: none;
   transform: translateY(-200%);
 }
 .skip-link:focus-visible { transform: none; }
 
-/* ---------- Admin: shuffle the photo order ---------- */
-.order-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin: 0 0 16px; }
+/* Visitors who ask their device for less motion get none of this movement. */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  ::view-transition-old(root), ::view-transition-new(root),
+  ::view-transition-group(photo), ::view-transition-old(photo), ::view-transition-new(photo) { animation: none; }
+  .site-menu, .site-menu::backdrop, .lightbox, .lightbox::backdrop, .lightbox-stage img,
+  .pill, .round-button, .button-link, .thumb-button img, .set-card img.fade, .thumb-button img.fade,
+  .lightbox-button, .lightbox-download, button, .icon-button { transition: none; }
+  .pill:active, .round-button:active, .button-link:active, .menu-close:active, .menu-action:active, button:active { transform: none; }
+  .lightbox[data-state="loading"]::after { animation: none; }
+}
+
+
+/* ==========================================================================
+   Admin
+   A tool, not a page: one family (Inter) for everything but the page title,
+   controls 40 px tall, ruled panels, tables before cards. The ink marks the
+   main action; the state colors mark drafts, schedules and the chosen cover.
+   ========================================================================== */
+
+/* The bar at the top of every admin screen: the name at the left, the
+   screens and Log out at the right, wrapping under it on a phone. */
+.admin-header {
+  flex-wrap: wrap;
+  max-width: 1200px;
+  padding-block: var(--space-md);
+}
+.admin-header .site-name { font-size: 1.75rem; }
+.admin-header nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2xs) var(--space-lg);
+  font-size: var(--text-sm);
+  font-weight: 500;
+}
+.admin-header nav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--control-app);
+  text-decoration: none;
+  white-space: nowrap;
+  text-underline-offset: 6px;
+}
+.admin-header nav a:hover { text-decoration: underline; }
+.admin-header nav a[aria-current="page"] { text-decoration: underline; text-decoration-thickness: 2px; }
+.admin-header .round-button { background: var(--color-paper-2); }
+.admin-header .round-button:hover { background: var(--color-paper-3); }
+
+/* Admin screens share one narrower measure than the public pages. */
+.admin-header + main,
+.admin-header ~ main { max-width: 1200px; padding-top: var(--space-xl); }
+.admin-header ~ main > h1,
+main.login > h1 { margin: 0 0 var(--space-xl); font-size: var(--text-3xl); line-height: 1; }
+.admin-header ~ main h1#set-title { font-size: var(--text-3xl); }
+.admin-header ~ main > section,
+.admin-header ~ main > form { margin: 0 0 var(--space-xl); }
+.admin-header ~ main h2 { margin: 0 0 var(--space-sm); font-size: var(--text-lg); font-weight: 600; line-height: 1.3; }
+.admin-header ~ main p { max-width: 70ch; }
+
+/* ---------- Admin controls ---------- */
+/* Buttons: solid ink by default, 40 px tall, pill-shaped like the public
+   ones. Secondary is an outline; danger is red text that fills on hover. */
+button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+  min-height: var(--control-app);
+  padding: 0 var(--space-md);
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+  background: var(--color-accent);
+  color: var(--color-accent-ink);
+  font: inherit;
+  font-weight: 500;
+  line-height: 1.2;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color var(--dur-micro) var(--ease-out), border-color var(--dur-micro) var(--ease-out), transform var(--dur-micro) var(--ease-out);
+}
+button:hover { background: var(--color-ink-2); }
+button:active { transform: scale(0.97); }
+/* Three channels: a gray fill, gray text, and the "not allowed" pointer, on
+   top of the disabled attribute itself. */
+button:disabled,
+button:disabled:hover {
+  background: var(--color-paper-3);
+  border-color: transparent;
+  color: var(--color-muted);
+  cursor: not-allowed;
+  transform: none;
+}
+.button-secondary {
+  background: transparent;
+  border-color: var(--color-rule-strong);
+  color: var(--color-ink);
+}
+.button-secondary:hover { background: var(--color-paper-2); border-color: var(--color-ink); }
+.button-danger {
+  min-height: 32px;
+  padding: 0 var(--space-sm);
+  background: transparent;
+  border-color: currentColor;
+  color: var(--color-error);
+  font-size: var(--text-sm);
+}
+.button-danger:hover { background: var(--color-error); border-color: var(--color-error); color: var(--color-paper); }
+.icon-button {
+  width: 36px;
+  min-height: 36px;
+  height: 36px;
+  padding: 0;
+  background: transparent;
+  border-color: var(--color-rule-strong);
+  color: var(--color-ink);
+  line-height: 1;
+}
+.icon-button:hover { background: var(--color-paper-2); border-color: var(--color-ink); }
+.icon-button.active { color: var(--color-highlight-ink); background: var(--color-highlight); border-color: var(--color-highlight); }
+.icon-button.danger { color: var(--color-error); }
+.icon-button.danger:hover { background: var(--color-error); border-color: var(--color-error); color: var(--color-paper); }
+/* A label that opens a file picker, styled as the main button. */
+.button-like {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--control-app);
+  padding: 0 var(--space-md);
+  border-radius: var(--radius-pill);
+  background: var(--color-accent);
+  color: var(--color-accent-ink);
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.button-like:hover { background: var(--color-ink-2); }
+.button-like:has(+ input:focus-visible) { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+
+/* Fields: 40 px, a constant 1 px edge in the muted gray (dark enough to see),
+   and the focus outline outside it, so nothing shifts between states. */
+input,
+textarea,
+select {
+  min-height: var(--control-app);
+  padding: 0 var(--space-sm);
+  border: 1px solid var(--color-muted);
+  border-radius: var(--radius-field);
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font: inherit;
+}
+textarea {
+  width: 100%;
+  max-width: 600px;
+  padding: var(--space-xs) var(--space-sm);
+  line-height: 1.5;
+}
+input:hover,
+textarea:hover,
+select:hover { border-color: var(--color-ink); }
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 1px; }
+input:disabled,
+textarea:disabled,
+select:disabled { background: var(--color-paper-2); color: var(--color-muted); border-color: var(--color-rule-strong); cursor: not-allowed; }
+input[aria-invalid="true"] { border-color: var(--color-error); }
+input[type="checkbox"],
+input[type="radio"] { min-height: 0; width: 18px; height: 18px; margin: 0; padding: 0; accent-color: var(--color-accent); flex-shrink: 0; }
+input[type="file"] { min-height: 0; padding: 0; border: 0; }
+progress { width: 100%; height: 6px; accent-color: var(--color-accent); }
+
+.form-error { margin: var(--space-2xs) 0 0; min-height: 1.5em; color: var(--color-error); font-size: var(--text-sm); }
+.save-status { font-size: var(--text-sm); color: var(--color-success); }
+.save-status[data-state="error"] { color: var(--color-error); }
+.small { margin: var(--space-2xs) 0 var(--space-sm); font-size: var(--text-sm); }
+
+/* ---------- Admin: layout pieces ---------- */
+/* A panel: a ruled box on the paper. Never one inside another. */
+.panel {
+  margin: 0 0 var(--space-lg);
+  padding: var(--space-lg);
+  background: var(--color-paper);
+  border: 1px solid var(--color-rule);
+}
+.panel > label:not(.drop-zone):not(.checkbox) { display: block; margin-bottom: var(--space-2xs); font-size: var(--text-sm); font-weight: 500; }
+.panel > label.checkbox,
+.checkbox { display: flex; align-items: center; gap: var(--space-xs); margin-bottom: var(--space-sm); }
+.panel input[type="text"],
+.panel input[type="email"],
+.panel input[type="url"],
+.panel input[type="tel"] { display: block; width: 100%; max-width: 420px; margin-bottom: var(--space-md); }
+.panel textarea { margin-bottom: var(--space-md); }
+.panel select { display: block; width: 100%; max-width: 420px; margin-bottom: var(--space-md); }
+.panel input[type="date"],
+.panel input[type="number"] { display: block; max-width: 220px; margin-bottom: var(--space-md); }
+.panel input[type="datetime-local"] { margin-bottom: var(--space-sm); }
+.panel h2 + label { margin-top: 0; }
+.actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-xs); margin: var(--space-md) 0; }
+.actions .save-status { align-self: center; }
+.inline-form { display: flex; gap: var(--space-xs); max-width: 520px; }
+.inline-form input { flex: 1; min-width: 0; }
+
+/* Radio and checkbox groups. */
+.wm-style,
+.category-picker { border: 0; padding: 0; margin: 0 0 var(--space-md); min-width: 0; }
+.wm-style legend,
+.category-picker legend { margin-bottom: var(--space-xs); font-size: var(--text-sm); font-weight: 500; }
+.wm-style .checkbox { margin-bottom: var(--space-xs); }
+.category-picker .checkbox { display: inline-flex !important; margin: 0 var(--space-md) var(--space-xs) 0 !important; }
+.month-boxes { display: flex; flex-wrap: wrap; gap: var(--space-2xs) var(--space-md); }
+.month-boxes .checkbox { display: inline-flex !important; margin: 0 !important; }
+.set-checklist { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: var(--space-2xs) var(--space-md); margin: 0 0 var(--space-sm); }
+#hero-mode .checkbox,
+#hero-rotate-field .checkbox { display: flex; margin-bottom: var(--space-xs); }
+section.panel[aria-labelledby="hero-heading"] { max-width: 720px; }
+
+/* ---------- Admin: dashboard ---------- */
+/* Storage: the figure, a thin meter, and the counts. */
+.stat-card {
+  max-width: 520px;
+  padding: var(--space-lg);
+  border: 1px solid var(--color-rule);
+}
+.stat-card h2 { margin: 0 0 var(--space-2xs); }
+#storage-text { margin: 0 0 var(--space-sm); font-size: var(--text-xl); font-weight: 600; font-variant-numeric: tabular-nums; }
+.meter { height: 6px; background: var(--color-paper-3); overflow: hidden; }
+.meter-fill { width: 0; height: 100%; background: var(--color-accent); }
+#counts { margin: var(--space-sm) 0 0; font-variant-numeric: tabular-nums; }
+.storage-details { margin-top: var(--space-md); padding-top: var(--space-md); border-top: 1px solid var(--color-rule); }
+.storage-details summary { min-height: 32px; font-weight: 600; font-size: var(--text-sm); cursor: pointer; }
+.storage-list { list-style: none; margin: var(--space-sm) 0 0; padding: 0; display: grid; gap: var(--space-sm); }
+.storage-list li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-2xs) var(--space-sm); font-size: var(--text-sm); }
+.storage-list a { overflow-wrap: anywhere; }
+.storage-size { color: var(--color-muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.storage-list .meter { grid-column: 1 / -1; height: 4px; }
+
+/* The sets, in home page order: a ledger of rows with a handle, the name,
+   its badges and count, and the row's tools. */
+.admin-set-list {
+  position: relative; /* lets sortable.js read item positions relative to the list */
+  list-style: none;
+  margin: var(--space-md) 0 0;
+  padding: 0;
+  max-width: 760px;
+  border-top: 1px solid var(--color-ink);
+}
+.admin-set-list li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  min-height: 56px;
+  padding: var(--space-xs) 0;
+  border-bottom: 1px solid var(--color-rule);
+}
+.admin-set-list a { flex: 1; min-width: 0; font-weight: 500; text-decoration: none; overflow-wrap: anywhere; }
+.admin-set-list a:hover { text-decoration: underline; }
+.admin-set-list .muted { margin-right: var(--space-xs); font-size: var(--text-sm); white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+/* Categories: removable chips. */
+.admin-tags { display: flex; flex-wrap: wrap; gap: var(--space-xs); list-style: none; margin: var(--space-xs) 0 0; padding: 0; }
+.admin-tags li {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  min-height: 36px;
+  padding: 0 var(--space-2xs) 0 var(--space-sm);
+  border: 1px solid var(--color-rule-strong);
+  border-radius: var(--radius-pill);
+}
+.admin-tags button { width: 28px; min-height: 28px; height: 28px; padding: 0; border-radius: 50%; }
+
+/* Badges: a word on its own state color. */
+.draft-badge,
+.activity-group {
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
+  padding: 0 var(--space-xs);
+  border-radius: var(--radius-pill);
+  background: var(--color-note-bg);
+  color: var(--color-note-ink);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+.draft-badge.scheduled { background: var(--color-info-bg); color: var(--color-info-ink); }
+.featured-badge { background: var(--color-violet-bg); color: var(--color-violet-ink); }
+#set-title[data-state="draft"]::after,
+#set-title[data-state="scheduled"]::after {
+  margin-left: var(--space-sm);
+  padding: var(--space-3xs) var(--space-sm);
+  border-radius: var(--radius-pill);
+  background: var(--color-note-bg);
+  color: var(--color-note-ink);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  vertical-align: middle;
+}
+#set-title[data-state="draft"]::after { content: "Draft"; }
+#set-title[data-state="scheduled"]::after { content: "Scheduled"; background: var(--color-info-bg); color: var(--color-info-ink); }
+
+/* ---------- Admin: a set's page ---------- */
+.publish-panel .actions { align-items: center; margin-bottom: 0; }
+.schedule-form { margin-top: var(--space-md); padding-top: var(--space-md); border-top: 1px solid var(--color-rule); }
+.schedule-form label { display: block; margin-bottom: var(--space-2xs); font-size: var(--text-sm); font-weight: 500; }
+.slug-field { display: flex; align-items: baseline; gap: var(--space-2xs); max-width: 420px; }
+.slug-field input { flex: 1; min-width: 0; margin-bottom: 0 !important; }
+
+/* Dropping photos in. */
+.drop-zone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2xs);
+  padding: var(--space-xl) var(--space-md);
+  border: 1px dashed var(--color-muted);
+  text-align: center;
+  cursor: pointer;
+  transition: border-color var(--dur-micro) var(--ease-out), background-color var(--dur-micro) var(--ease-out);
+}
+.drop-zone:hover,
+.drop-zone.dragging { border-color: var(--color-ink); background: var(--color-paper-2); }
+/* The file input itself is hidden, so show its focus ring on the box instead. */
+.drop-zone:has(+ #file-input:focus-visible) { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+
+.wm-preview { margin: var(--space-md) 0; }
+.wm-preview img { display: block; max-width: 100%; max-height: 60svh; }
+
+/* Waiting to upload. */
+.queue {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: var(--space-sm);
+}
+.queue li { font-size: var(--text-sm); min-width: 0; }
+.queue img { display: block; width: 100%; aspect-ratio: 1; object-fit: cover; background: var(--color-paper-2); }
+.queue p { margin: var(--space-2xs) 0 0; overflow-wrap: anywhere; }
+.queue-name { font-weight: 600; }
+.queue li[data-status="error"] .queue-status { color: var(--color-error); }
+.queue li[data-status="done"] .queue-status { color: var(--color-success); }
+#queue-summary[data-state="error"] { color: var(--color-error); font-weight: 600; }
+.queue-warning {
+  margin-top: var(--space-xs);
+  padding: var(--space-xs) var(--space-sm);
+  background: var(--color-note-bg);
+  color: var(--color-note-ink);
+  font-size: var(--text-xs);
+}
+.queue-warning[data-strength="weak"] { background: var(--color-paper-2); color: var(--color-ink); }
+.queue-warning ul { margin: var(--space-2xs) 0 var(--space-xs); padding-left: var(--space-md); }
+.queue-warning a { color: inherit; }
+.queue-warning button { min-height: 28px; padding: 0 var(--space-sm); font-size: var(--text-xs); }
+
+/* The photos already in the set: a grid of tiles, each the picture with its
+   fields and tools under it. The chosen cover is edged in the highlight. */
+.order-tools { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-xs) var(--space-sm); margin: 0 0 var(--space-md); }
+.photo-editor {
+  position: relative; /* lets sortable.js read item positions relative to the list */
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: var(--space-md);
+}
+.photo-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  min-width: 0;
+  padding-bottom: var(--space-sm);
+  border-bottom: 1px solid var(--color-rule);
+}
+.photo-card.is-cover .photo-card-image { outline: 3px solid var(--color-highlight); outline-offset: 2px; }
+.photo-card-image { position: relative; margin: 0; }
+.photo-card-image img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 3 / 2;
+  object-fit: cover;
+  background: var(--color-paper-2);
+  cursor: grab;
+}
+.cover-badge,
+.download-badge {
+  position: absolute;
+  left: var(--space-xs);
+  padding: var(--space-3xs) var(--space-xs);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-xs);
+  font-weight: 600;
+}
+.cover-badge { top: var(--space-xs); background: var(--color-highlight); color: var(--color-highlight-ink); }
+.download-badge { bottom: var(--space-xs); background: var(--color-good-bg); color: var(--color-good-ink); }
+.photo-card-field { display: flex; flex-direction: column; gap: var(--space-3xs); color: var(--color-muted); font-size: var(--text-xs); font-weight: 500; }
+.photo-card-field input { min-height: 36px; padding: 0 var(--space-xs); font-size: var(--text-sm); }
+.photo-card-tools { display: flex; gap: var(--space-xs); }
+.photo-card-tools .danger { margin-left: auto; }
+
+.danger-zone {
+  margin-top: var(--space-2xl);
+  padding: var(--space-lg);
+  border: 1px solid var(--color-error);
+}
+.danger-zone h2 { color: var(--color-error); }
+
+/* ---------- Drag to reorder (see js/sortable.js) ---------- */
+.drag-handle,
+.drag-surface {
+  cursor: grab;
+  -webkit-user-drag: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+/* "none": a finger on the handle drags the item instead of scrolling the page. */
+.drag-handle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  min-height: 40px;
+  color: var(--color-muted);
+  font-size: var(--text-lg);
+  touch-action: none;
+}
+.drag-handle:hover { color: var(--color-ink); }
+/* The empty slot that shows where the item will land. */
+.drag-slot { outline: 2px dashed var(--color-focus); outline-offset: -2px; }
+.drag-slot > * { visibility: hidden; }
+/* The floating copy that follows the pointer. */
+.drag-ghost {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: var(--z-ghost);
+  margin: 0 !important;
+  padding: 0 !important;
+  max-width: none !important;
+  display: block !important;
+  list-style: none;
+  pointer-events: none; /* so we can see what is underneath it */
+  box-shadow: 0 var(--space-sm) var(--space-xl) var(--color-shadow);
+  background: var(--color-paper);
+  opacity: 0.96;
+}
+.drag-ghost > li { border-bottom: 0 !important; }
+body.is-dragging,
+body.is-dragging * { cursor: grabbing !important; user-select: none; }
+.photo-grip {
+  position: absolute;
+  top: var(--space-xs);
+  right: var(--space-xs);
+  width: 36px;
+  min-height: 36px;
+  height: 36px;
+  border-radius: var(--radius-pill);
+  background: var(--color-scrim);
+  color: var(--color-night-ink);
+}
+
+/* ---------- Admin: tables (license codes, activity, receipts) ---------- */
+.license-table,
+.activity-table,
+.receipts-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: var(--space-sm);
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+}
+.license-table th,
+.license-table td,
+.activity-table th,
+.activity-table td {
+  padding: var(--space-sm) var(--space-xs);
+  border-bottom: 1px solid var(--color-rule);
+  text-align: left;
+  vertical-align: top;
+}
+.license-table th,
+.activity-table th { color: var(--color-muted); font-weight: 500; border-bottom-color: var(--color-ink); }
+.license-table code { font-size: var(--text-md); font-weight: 600; letter-spacing: 0.02em; }
+.license-table tr.is-off { color: var(--color-muted); }
+.license-table tr.is-off code { text-decoration: line-through; }
+.license-actions { display: flex; flex-wrap: wrap; gap: var(--space-xs); }
+.license-actions button { min-height: 32px; padding: 0 var(--space-sm); font-size: var(--text-sm); }
+.new-code { margin: var(--space-sm) 0 0; padding: var(--space-sm) var(--space-md); background: var(--color-good-bg); color: var(--color-good-ink); }
+.new-code code { font-size: var(--text-lg); font-weight: 700; letter-spacing: 0.04em; }
+@media (max-width: 700px) { .license-table .hide-small { display: none; } }
+
+.activity-filters { display: flex; flex-wrap: wrap; gap: var(--space-xs); margin: 0 0 var(--space-md); }
+.activity-filters button { min-height: 36px; padding: 0 var(--space-md); font-size: var(--text-sm); }
+.activity-filters button[aria-pressed="false"] { background: transparent; color: var(--color-ink); border-color: var(--color-rule-strong); }
+.activity-filters button[aria-pressed="false"]:hover { border-color: var(--color-ink); }
+.activity-table td:first-child { white-space: nowrap; color: var(--color-muted); }
+.activity-group { background: var(--color-paper-2); color: var(--color-ink); font-weight: 500; }
+.activity-group[data-group="Deletion"] { background: var(--color-bad-bg); color: var(--color-bad-ink); }
+.activity-group[data-group="Download"] { background: var(--color-good-bg); color: var(--color-good-ink); }
+.activity-group[data-group="License"] { background: var(--color-violet-bg); color: var(--color-violet-ink); }
+.activity-group[data-group="Publishing"] { background: var(--color-info-bg); color: var(--color-info-ink); }
+@media (max-width: 600px) {
+  .activity-table thead { display: none; }
+  .activity-table tr { display: block; padding: var(--space-xs) 0; border-bottom: 1px solid var(--color-rule); }
+  .activity-table td { display: block; border: 0; padding: var(--space-3xs) 0; }
+}
+
+/* ---------- Admin: About page editor ---------- */
+.portrait-editor { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-md); }
+.portrait-editor img { width: 140px; height: 140px; object-fit: cover; background: var(--color-paper-2); }
+.portrait-editor .button-secondary { margin-left: var(--space-xs); }
+
+/* ---------- Admin: watermark toolkit ---------- */
+#tk-list .button-link { min-height: 32px; margin-top: var(--space-xs); padding: 0 var(--space-sm); font-size: var(--text-sm); }
+
+/* ---------- Admin: log in ---------- */
+/* One narrow column, a third of the way down the screen. */
+main.login { max-width: 400px; padding-top: 18svh; }
+main.login h1 { font-family: var(--font-display); font-weight: 400; }
+.card-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  padding: var(--space-lg);
+  border: 1px solid var(--color-rule);
+}
+.card-form label { font-size: var(--text-sm); font-weight: 500; }
+.card-form input { margin-bottom: var(--space-xs); }
+.card-form button { margin-top: var(--space-xs); }

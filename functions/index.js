@@ -39,6 +39,9 @@ export async function onRequestGet({ request, env }) {
         else el.remove();
       },
     })
+    // With the hero, the featured set's name is the page's main heading, so
+    // "Photo sets" steps down to the next level.
+    .on(".section-head h1", { element(el) { if (hero) el.tagName = "h2"; } })
     .on("#set-grid", { element(el) { el.setInnerContent(sets.map(setCardHtml).join(""), { html: true }); } })
     .on("#category-nav", {
       element(el) {

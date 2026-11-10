@@ -10,7 +10,7 @@ import { withPageMeta } from "../../lib/meta.js";
 import { galleryData } from "../../lib/structured.js";
 import { decodeSlug, setWithPhotos } from "../../lib/queries.js";
 import { relatedSets } from "../../lib/related.js";
-import { jsonForPage, monthYear, photoThumbHtml, relatedCardHtml } from "../../lib/render.js";
+import { escapeHtml, jsonForPage, monthYear, photoThumbHtml, relatedCardHtml } from "../../lib/render.js";
 
 export async function onRequestGet({ request, env, params }) {
   const set = await setWithPhotos(env, decodeSlug(params.slug));
@@ -35,13 +35,13 @@ export async function onRequestGet({ request, env, params }) {
         else el.remove();
       },
     })
-    // One quiet line under the title: "Keelung, Taiwan · March 2026 · 18 photos".
+    // The facts beside the title, one per line: "Keelung, Taiwan", "March 2026", "18 photos".
     .on("#set-location", {
       element(el) {
         const count = set.photos.length;
         const facts = [set.location, monthYear(set.shot_date), count ? `${count} ${count === 1 ? "photo" : "photos"}` : ""];
-        const line = facts.filter(Boolean).join(" · ");
-        if (line) el.setInnerContent(line);
+        const lines = facts.filter(Boolean).map((fact) => `<span>${escapeHtml(fact)}</span>`).join("");
+        if (lines) el.setInnerContent(lines, { html: true });
         else el.remove();
       },
     })
