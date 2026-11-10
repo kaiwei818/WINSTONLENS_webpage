@@ -288,9 +288,21 @@ export function createLightbox(photos, { downloadUrl = () => "", thumbFor = () =
     show(to);
   });
 
-  // Tapping the dark area around the photo closes the viewer.
+  // Tapping the dark area around the photo closes the viewer. With a mouse,
+  // the dark space level with the photo, at its left and right, is where the
+  // ‹ › buttons sit, and a click that just missed one used to close the
+  // viewer: there it goes to the previous or next photo instead. The corners
+  // and the space above and below the photo still close it.
+  const mouse = window.matchMedia("(hover: hover) and (pointer: fine)");
   dialog.addEventListener("click", (event) => {
-    if (event.target === dialog || event.target.classList.contains("lightbox-stage")) close();
+    if (event.target !== dialog && !event.target.classList.contains("lightbox-stage")) return;
+    const photo = img.getBoundingClientRect();
+    const levelWithPhoto = event.clientY >= photo.top && event.clientY <= photo.bottom;
+    if (mouse.matches && photos.length > 1 && levelWithPhoto) {
+      if (event.clientX < photo.left) return show(index - 1);
+      if (event.clientX > photo.right) return show(index + 1);
+    }
+    close();
   });
 
   // ---------- Swipes ----------

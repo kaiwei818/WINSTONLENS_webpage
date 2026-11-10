@@ -269,6 +269,18 @@ function renderExisting() {
   $("existing-help").hidden = set.photos.length === 0;
   $("order-tools").hidden = set.photos.length < 2;
   addMissingPlaceholders();
+  updateAltReminder();
+}
+
+// "12 of 58 photos have no description yet": screen readers say nothing
+// useful about a photo without one, and Google cannot tell what it shows.
+function updateAltReminder() {
+  const missing = set.photos.filter((p) => !(p.alt_text || "").trim()).length;
+  const reminder = $("alt-reminder");
+  reminder.hidden = missing === 0;
+  reminder.textContent = missing === set.photos.length
+    ? `None of these ${missing} photos has a description for blind visitors yet. Add one in each photo's "Description" box.`
+    : `${missing} of ${set.photos.length} photos have no description for blind visitors yet.`;
 }
 
 // ---------- Shuffle ----------
@@ -436,6 +448,7 @@ function textField(photo, field, labelText, placeholder = "") {
       return;
     }
     photo[field] = (await response.json())[field];
+    if (field === "alt_text") updateAltReminder();
     flash(status, "Saved");
   });
 
