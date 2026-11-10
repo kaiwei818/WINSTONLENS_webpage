@@ -12,6 +12,7 @@ import { withPageMeta } from "../lib/meta.js";
 import { homeData } from "../lib/structured.js";
 import { categoriesInUse, publishedSets } from "../lib/queries.js";
 import { escapeHtml, heroHtml, setCardHtml } from "../lib/render.js";
+import { SITE } from "../lib/site.js";
 
 export async function onRequestGet({ request, env }) {
   const url = new URL(request.url);
@@ -58,8 +59,17 @@ export async function onRequestGet({ request, env }) {
     })
     .transform(page);
 
+  // "Winston Chang Photography" in the tab and in Google, and a description
+  // that names what is here ("... landscape, sports, travel and wildlife").
+  const names = categories.map((c) => c.name.toLowerCase());
+  const list = names.length > 1 ? `${names.slice(0, -1).join(", ")} and ${names.at(-1)}` : names[0] || "";
+  const description = current
+    ? `${current.name} photo sets by ${SITE.owner}.`
+    : list ? `Photo sets by ${SITE.owner}: ${list} photography.` : SITE.description;
+
   return withPageMeta(filled, {
-    title: current ? current.name : "",
+    title: current ? current.name : `${SITE.owner} Photography`,
+    description,
     url: current ? `${url.origin}/?category=${encodeURIComponent(current.slug)}` : url.origin + "/",
     image: (hero?.set || sets[0])?.cover_thumb_key ? `${url.origin}/img/${(hero?.set || sets[0]).cover_thumb_key}` : "",
     imageSize: thumbSize(hero?.set || sets[0]),

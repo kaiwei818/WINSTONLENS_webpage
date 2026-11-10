@@ -26,3 +26,18 @@ export function viewerSrcset(photo) {
   if (!photo.medium_key) return "";
   return `${img(photo.medium_key)} ${widthAt(photo, 2000)}w, ${img(photo.display_key)} ${widthAt(photo, 3000)}w`;
 }
+
+// The home page hero: every size the photo has (small 800, thumb 1200,
+// medium 2000, display 3000), so a phone gets a small file and only a large
+// Retina screen the biggest. A file is never wider than the photo itself, and
+// photos uploaded before the medium size existed simply skip it.
+export function heroSrcset(photo, keys) {
+  const longEdge = Math.max(photo.width, photo.height) || 0;
+  const seen = new Set();
+  return [[keys.small_key, 800], [keys.thumb_key, 1200], [keys.medium_key, 2000], [keys.display_key, 3000]]
+    .filter(([key]) => key)
+    .map(([key, edge]) => [key, widthAt(photo, longEdge ? Math.min(edge, longEdge) : edge)])
+    .filter(([, width]) => width && !seen.has(width) && seen.add(width))
+    .map(([key, width]) => `${img(key)} ${width}w`)
+    .join(", ");
+}
