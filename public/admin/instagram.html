@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title data-page="Instagram picks · Admin"></title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="/js/theme.js"></script>
+</head>
+<body>
+  <header class="site-header admin-header">
+    <a class="site-name" href="/admin/"><span data-site="name"></span> admin</a>
+    <nav>
+      <a href="/admin/">Dashboard</a>
+      <button type="button" class="round-button theme-toggle" id="theme-toggle" data-theme-toggle hidden>
+        <svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+        <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3M4.6 4.6l2.1 2.1M17.3 17.3l2.1 2.1M4.6 19.4l2.1-2.1M17.3 6.7l2.1-2.1"/></svg>
+      </button>
+    </nav>
+  </header>
+
+  <main>
+    <h1>Instagram picks</h1>
+    <p class="muted">
+      Every photo you picked for Instagram, from all your sets, best rated first. Tick the ones for your next post.
+      On a phone, Share opens your share sheet: choose Instagram. On a computer, download them, then upload them on Instagram.
+      The files are the watermarked versions visitors see.
+    </p>
+
+    <div class="picks-toolbar" id="picks-toolbar" hidden>
+      <label class="picks-filter">Show
+        <select id="min-rating">
+          <option value="0">All picks</option>
+          <option value="3">3 stars and up</option>
+          <option value="4">4 stars and up</option>
+          <option value="5">5 stars only</option>
+        </select>
+      </label>
+      <button type="button" class="button-secondary" id="select-all">Select all</button>
+      <button type="button" class="button-secondary" id="select-none">Select none</button>
+      <span class="picks-selected" id="selected-count" role="status"></span>
+    </div>
+
+    <ul class="picks-grid" id="picks"></ul>
+    <p class="status" id="status">Loading...</p>
+
+    <!-- What to do with the selected photos (admin-instagram.js). -->
+    <section class="panel picks-actions" id="picks-actions" hidden aria-labelledby="post-heading">
+      <h2 id="post-heading">Post the selected photos</h2>
+      <p class="muted small" id="limit-note" hidden>Instagram takes up to 20 photos in one post. Select fewer, or post them in batches.</p>
+      <div class="actions">
+        <!-- Phones: get the files ready, then hand them to the share sheet (Instagram is in it). -->
+        <button type="button" id="prepare" hidden>Get photos ready to share</button>
+        <button type="button" id="share" hidden>Share to Instagram</button>
+        <button type="button" class="button-secondary" id="download">Download selected (.zip)</button>
+        <a class="button-link button-secondary" href="https://www.instagram.com/" target="_blank" rel="noopener">Open Instagram</a>
+      </div>
+      <p class="muted small" id="share-status" role="status"></p>
+      <div class="actions">
+        <button type="button" class="button-secondary" id="mark-posted">Mark selected as posted</button>
+        <span class="muted small">Takes them off this list. Their ratings stay.</span>
+      </div>
+    </section>
+  </main>
+
+  <script src="/js/admin-instagram.js" type="module"></script>
+</body>
+</html>
