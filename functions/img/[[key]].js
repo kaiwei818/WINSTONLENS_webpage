@@ -33,7 +33,7 @@ export async function onRequestGet({ request, env, params, waitUntil }) {
     // Browsers may still keep it for a year (the edge copy says one day).
     const response = new Response(cached.body, cached);
     response.headers.set("Cache-Control", "public, max-age=31536000, immutable");
-    return response;
+    return noCdnCopy(response);
   }
 
   const object = await env.BUCKET.get(key);
@@ -59,6 +59,17 @@ export async function onRequestGet({ request, env, params, waitUntil }) {
   const edgeCopy = new Response(response.clone().body, response);
   edgeCopy.headers.set("Cache-Control", "public, max-age=86400");
   waitUntil(cache.put(cacheKey, edgeCopy));
+  return noCdnCopy(response);
+}
+
+// Cloudflare's CDN in front of the site must not keep its own copy of what we
+// send: it would then answer later requests itself, without running this code,
+// so the Referer check above would be skipped and any site could show the
+// photo. Browsers still keep it for a year (Cache-Control), and the copy in
+// caches.default above is only read after the check, so photos stay fast.
+function noCdnCopy(response) {
+  response.headers.set("Cloudflare-CDN-Cache-Control", "no-store");
+  response.headers.set("CDN-Cache-Control", "no-store");
   return response;
 }
 
