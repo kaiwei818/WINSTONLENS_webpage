@@ -13,7 +13,8 @@
 // the server adds each photo after the last one it received.
 
 import { configureQuickLook, openQuickLook } from "./quick-look.js";
-import { GROUPS, groupCountText, groupCounts, groupLimitNote } from "./picks-limit.js";
+import { GROUPS, groupCounts, groupLimitNote, groupShortText } from "./picks-limit.js";
+import { postRecordList } from "./instagram-posts.js";
 import { readCaptureKey } from "./exif.js";
 import { makePlaceholder } from "./placeholder.js";
 import { currentIds, makeSortable, moveItem } from "./sortable.js";
@@ -273,6 +274,7 @@ function renderExisting() {
   addMissingPlaceholders();
   updateAltReminder();
   updatePicksCount();
+  renderInstagramPosts();
 }
 
 // "12 of 58 photos have no description yet": screen readers say nothing
@@ -534,28 +536,41 @@ function instagramToggle(photo, number, figure) {
   return button;
 }
 
-// Picks in the other sets (their sizes), fetched once; this set's are counted
-// live, so the counts stay right as you pick here (cards or quick look).
-let picksElsewhere = null;
-const pickCounts = () => groupCounts([...(picksElsewhere ?? []), ...set.photos.filter((p) => p.instagram)]);
+// Each set is posted on its own, so counts are for this set only.
+const pickCounts = () => groupCounts(set.photos.filter((p) => p.instagram));
 
-// "3 photos in this set picked. Vertical picks: 23 of 40 (...). Horizontal
-// picks: 12 of 40 (...)", plus a note when a group nears or passes two posts.
-async function updatePicksCount() {
-  const here = set.photos.filter((p) => p.instagram).length;
-  if (picksElsewhere === null) {
-    const response = await fetch("/api/admin/instagram").catch(() => null);
-    if (response?.ok) picksElsewhere = (await response.json()).photos.filter((p) => p.set_id !== set.id);
-  }
+// "Instagram picks in this set: 14 vertical (one post, 14 of 20), 18
+// horizontal (one post, 18 of 20).", plus a note when a group nears two posts.
+function updatePicksCount() {
   const counts = pickCounts();
   $("picks-line").hidden = counts.vertical + counts.horizontal === 0;
-  $("picks-count").textContent = `${here} ${here === 1 ? "photo" : "photos"} in this set picked. ` +
-    GROUPS.map((g) => `${groupCountText(g, counts[g])}.`).join(" ");
+  $("picks-count").textContent = "Instagram picks in this set: " +
+    GROUPS.filter((g) => counts[g]).map((g) => groupShortText(g, counts[g])).join(", ") + ".";
   const notes = GROUPS.map((g) => groupLimitNote(g, counts[g])).filter(Boolean);
   const note = $("picks-note");
   note.hidden = notes.length === 0;
   note.textContent = notes.map((n) => n.text).join(" ");
   note.dataset.level = notes.some((n) => n.level !== "near") ? "full" : notes.length ? "near" : "";
+}
+
+// The posts already made from this set, with their links (instagram-posts.js).
+function renderInstagramPosts() {
+  const own = set.instagram_posts || [];
+  $("ig-posts-panel").hidden = own.length === 0;
+  $("ig-posts").replaceChildren(postRecordList(own, { onChange: reloadInstagramPosts }));
+}
+async function reloadInstagramPosts() {
+  const response = await fetch(`/api/admin/sets/${setId}`);
+  if (!response.ok) return;
+  const fresh = await response.json();
+  set.instagram_posts = fresh.instagram_posts;
+  // Undo puts photos back in the picks: take their pick state from the server.
+  for (const photo of set.photos) {
+    const now = fresh.photos.find((p) => p.id === photo.id);
+    if (now && now.instagram !== photo.instagram) { photo.instagram = now.instagram; redrawCard(photo); }
+  }
+  updatePicksCount();
+  renderInstagramPosts();
 }
 
 // The cover is the chosen photo, or the first photo when none was chosen.
