@@ -69,6 +69,7 @@ export async function onRequestDelete(context) {
   await env.DB.batch([
     // If this photo was a set's cover, go back to "first photo is the cover".
     env.DB.prepare(`UPDATE sets SET cover_photo_id = NULL WHERE cover_photo_id = ?`).bind(photo.id),
+    env.DB.prepare(`DELETE FROM instagram_post_photos WHERE photo_id = ?`).bind(photo.id),
     env.DB.prepare(`DELETE FROM photos WHERE id = ?`).bind(photo.id),
   ]);
   // Older photos have no small/medium version (null): leave those out.

@@ -3,6 +3,7 @@
 // DELETE /api/admin/sets/:id   delete the set, its photos, and their files
 
 import { logActivity, quoted } from "../../../../lib/activity.js";
+import { listPosts } from "../../../../lib/instagram.js";
 import { uniqueSlug } from "../../../../lib/slug.js";
 import { settleScheduled } from "../../../../lib/visibility.js";
 
@@ -28,7 +29,7 @@ export async function onRequestGet(context) {
     `SELECT category_id FROM set_categories WHERE set_id = ?`
   ).bind(set.id).all();
 
-  return Response.json({ ...set, photos, category_ids: categories.map((c) => c.category_id) });
+  return Response.json({ ...set, photos, category_ids: categories.map((c) => c.category_id), instagram_posts: await listPosts(env, set.id) });
 }
 
 // Body: any of {"title", "description", "shot_date" ("YYYY-MM-DD" or ""), "slug", "cover_photo_id", "published",
@@ -150,7 +151,9 @@ export async function onRequestDelete(context) {
   // Database first: once the rows are gone, nothing on the site points to the
   // files any more. Doing the files first could leave broken images on show if
   // the database step then failed.
-  const [, , , deleted] = await env.DB.batch([
+  const [, , , , , deleted] = await env.DB.batch([
+    env.DB.prepare(`DELETE FROM instagram_post_photos WHERE post_id IN (SELECT id FROM instagram_posts WHERE set_id = ?)`).bind(setId),
+    env.DB.prepare(`DELETE FROM instagram_posts WHERE set_id = ?`).bind(setId),
     env.DB.prepare(`DELETE FROM photos WHERE set_id = ?`).bind(setId),
     env.DB.prepare(`DELETE FROM set_categories WHERE set_id = ?`).bind(setId),
     env.DB.prepare(`DELETE FROM license_code_sets WHERE set_id = ?`).bind(setId),

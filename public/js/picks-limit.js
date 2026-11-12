@@ -1,7 +1,8 @@
 // How Instagram picks are split into posts.
 //
 // Instagram takes up to 20 photos in one post, and a post looks best when all
-// its photos have the same shape. So picks are sorted into two groups,
+// its photos have the same shape. Each set is posted on its own: its picks
+// are sorted into two groups,
 // vertical and horizontal (square photos count as vertical), and each group
 // fills up to two posts of 20, best rated first. That is room for 40 of each;
 // picks past that wait on the picks page for another round. Nothing here ever
@@ -32,11 +33,20 @@ export function splitIntoPosts(photos) {
   return { posts, waiting: sorted.slice(PER_GROUP) };
 }
 
-// "Vertical picks: 23 of 40 (post 1 full, post 2 has 3)"
-export function groupCountText(group, count) {
-  if (count > PER_GROUP) return `${Name(group)} picks: ${count} (two posts take ${PER_GROUP})`;
+// "Vertical picks: 23 of 40 (post 1 full, post 2 has 3)"; with inSet,
+// "Vertical picks in this set: ...".
+export function groupCountText(group, count, { inSet = false } = {}) {
+  const label = `${Name(group)} picks${inSet ? " in this set" : ""}`;
+  if (count > PER_GROUP) return `${label}: ${count} (two posts take ${PER_GROUP})`;
   const detail = count < PER_POST ? `one post, ${count} of ${PER_POST}` : count === PER_POST ? "post 1 full" : `post 1 full, post 2 has ${count - PER_POST}`;
-  return `${Name(group)} picks: ${count} of ${PER_GROUP} (${detail})`;
+  return `${label}: ${count} of ${PER_GROUP} (${detail})`;
+}
+
+// "14 vertical (one post, 14 of 20)", for a line that lists both groups.
+export function groupShortText(group, count) {
+  if (count > PER_GROUP) return `${count} ${group} (two posts take ${PER_GROUP})`;
+  const detail = count < PER_POST ? `one post, ${count} of ${PER_POST}` : count === PER_POST ? "post 1 full" : `post 1 full, post 2 has ${count - PER_POST}`;
+  return `${count} ${group} (${detail})`;
 }
 
 // null while there is room; otherwise { level, text }.

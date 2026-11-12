@@ -1,7 +1,8 @@
-// The Instagram picks page (/admin/instagram): every photo flagged with
-// "Pick for Instagram", sorted into vertical and horizontal, each split into
-// up to two posts of 20, best rated first (see picks-limit.js). Picks past
-// two posts wait at the end of their group for another round.
+// The Instagram picks page (/admin/instagram): one section per set. Each set's
+// picks are sorted into vertical and horizontal, each split into up to two
+// posts of 20, best rated first (see picks-limit.js); picks past two posts
+// wait for another round. Under them, the posts already made from that set,
+// with their links (instagram-posts.js).
 //
 // Instagram has no web address that starts a post with photos already in it,
 // so each post gets the next best thing for each device:
@@ -14,9 +15,11 @@
 
 import { makeZip } from "./zip.js";
 import { GROUPS, PER_POST, groupOf, splitIntoPosts } from "./picks-limit.js";
+import { markAsPosted, postRecordList } from "./instagram-posts.js";
 
 const $ = (id) => document.getElementById(id);
-let photos = [];          // from /api/admin/instagram
+let photos = [];          // picks, from /api/admin/instagram
+let posts = [];           // records of posts already made
 const ready = new Map();  // post key -> File[] downloaded for sharing
 
 const stars = (n) => (n ? "★".repeat(n) + "☆".repeat(5 - n) : "Not rated");
@@ -43,14 +46,39 @@ async function load() {
     $("status").textContent = "Could not load your picks. Reload the page to try again.";
     return;
   }
-  photos = (await response.json()).photos;
+  ({ photos, posts } = await response.json());
+  ready.clear();
   render();
 }
 
 function render() {
-  $("status").hidden = photos.length > 0;
-  $("status").textContent = "No photos picked yet. Open a set from the dashboard and click “Pick for Instagram” on the photos you want.";
-  $("groups").replaceChildren(...(photos.length ? GROUPS.map(groupSection) : []));
+  // Every set with picks or posts, in the order of your sets.
+  const sets = new Map();
+  for (const p of photos) if (!sets.has(p.set_id)) sets.set(p.set_id, { id: p.set_id, title: p.set_title, order: p.set_order });
+  for (const p of posts) if (!sets.has(p.set_id)) sets.set(p.set_id, { id: p.set_id, title: p.set_title, order: Infinity });
+  const ordered = [...sets.values()].sort((a, b) => a.order - b.order || a.id - b.id);
+  $("status").hidden = ordered.length > 0;
+  $("status").textContent = "No photos picked yet. Open a set from the dashboard and click \u201cPick for Instagram\u201d on the photos you want.";
+  $("sets").replaceChildren(...ordered.map(setSection));
+}
+
+function setSection(set) {
+  const section = el("section", "picks-set");
+  const heading = el("h2");
+  const link = el("a", "", set.title);
+  link.href = `/admin/set?id=${set.id}`;
+  heading.append(link);
+  section.append(heading);
+  const picks = photos.filter((p) => p.set_id === set.id);
+  if (picks.length) section.append(...GROUPS.map((group) => groupBlock(set, group, picks.filter((p) => groupOf(p) === group))).filter(Boolean));
+  else section.append(el("p", "muted", "No picks waiting in this set."));
+  const own = posts.filter((p) => p.set_id === set.id);
+  if (own.length) {
+    const history = el("div", "picks-history");
+    history.append(el("h3", "", `Posted from ${set.title}`), postRecordList(own, { onChange: load }));
+    section.append(history);
+  }
+  return section;
 }
 
 function el(tag, className, text) {
@@ -60,41 +88,37 @@ function el(tag, className, text) {
   return node;
 }
 
-function groupSection(group) {
-  const list = photos.filter((p) => groupOf(p) === group);
-  const section = el("section", "picks-group");
-  section.dataset.group = group;
-  const heading = el("h2", "", `${Name(group)} `);
+function groupBlock(set, group, list) {
+  if (!list.length) return null;
+  const block = el("div", "picks-group");
+  block.dataset.group = group;
+  const heading = el("h3", "", `${Name(group)} `);
   heading.append(el("span", "picks-group-count", plural(list.length, "photo")));
-  section.append(heading);
-  if (!list.length) {
-    section.append(el("p", "muted", `No ${group} picks yet.`));
-    return section;
-  }
-  const { posts, waiting } = splitIntoPosts(list);
-  posts.forEach((post, i) => section.append(postBlock(group, i + 1, post)));
+  block.append(heading);
+  const { posts: groupPosts, waiting } = splitIntoPosts(list);
+  groupPosts.forEach((post, i) => block.append(postBlock(set, group, i + 1, post)));
   if (waiting.length) {
-    const block = el("div", "picks-waiting");
-    block.append(
-      el("h3", "", `Waiting for another round: ${plural(waiting.length, "photo")}`),
+    const wait = el("div", "picks-waiting");
+    wait.append(
+      el("h4", "", `Waiting for another round: ${plural(waiting.length, "photo")}`),
       el("p", "muted small", `Two ${group} posts take ${PER_POST * 2}. These move up when you mark a post as posted, or unpick some above.`),
       grid(waiting),
     );
-    section.append(block);
+    block.append(wait);
   }
-  return section;
+  return block;
 }
 
-function postBlock(group, number, list) {
+function postBlock(set, group, number, list) {
   const block = el("article", "picks-post");
   const head = el("div", "picks-post-head");
-  const title = el("h3", "", `${Name(group)} post ${number} `);
+  const title = el("h4", "", `${Name(group)} post ${number} `);
   title.append(el("span", "picks-group-count", `${list.length} of ${PER_POST}`));
   const status = el("p", "muted small picks-post-status");
   status.setAttribute("role", "status");
   const actions = el("div", "actions");
   const key = keyOf(list);
-  const name = `${group}-post-${number}`;
+  const name = `${list[0].set_slug}-${group}-${number}`; // banff-vertical-1
 
   if (canShareFiles) {
     const isReady = ready.has(key);
@@ -144,10 +168,13 @@ function postBlock(group, number, list) {
     }
   });
 
+  // Asks for the link and a note, saves the record, and takes these photos
+  // off the picks (photos waiting for another round then move up).
   const posted = button("Mark as posted", "button-secondary", async () => {
-    if (!confirm(`Take these ${plural(list.length, "photo")} off your Instagram picks? Their ratings stay.`)) return;
-    posted.disabled = true;
-    await unpick(list);
+    const saved = await markAsPosted({ setId: set.id, orientation: group, photoIds: list.map((p) => p.id),
+      title: `${set.title}: ${group} post ${number}, ${plural(list.length, "photo")}` });
+    if (saved) load();
+    else posted.focus();
   });
 
   actions.append(download, posted);
@@ -168,9 +195,7 @@ function grid(list) {
     const meta = el("p", "picks-meta");
     const rating = el("span", "picks-stars", stars(photo.rating));
     rating.setAttribute("aria-label", photo.rating ? `Rated ${photo.rating} of 5` : "Not rated");
-    const link = el("a", "", photo.set_title);
-    link.href = `/admin/set?id=${photo.set_id}`;
-    meta.append(rating, link);
+    meta.append(rating); // the set is the section's heading
     // The file name on your computer ("DSC01234.JPG"), to find the original.
     // Photos uploaded before names were recorded have none.
     const file = photo.original_name ? el("p", "picks-file", photo.original_name) : null;

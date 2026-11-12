@@ -25,17 +25,36 @@
   <main>
     <h1>Instagram picks</h1>
     <p class="muted">
-      Every photo you picked for Instagram, from all your sets, sorted into vertical and horizontal
-      (square photos go with vertical). Each fills up to two posts of 20, best rated first; any more wait below for another round.
+      Your Instagram picks, set by set. In each set they are sorted into vertical and horizontal
+      (square photos go with vertical), and each fills up to two posts of 20, best rated first; any more wait for another round.
       On a phone, Share opens your share sheet: choose Instagram. On a computer, download a post, then upload it on Instagram.
-      The files are the watermarked versions visitors see.
+      When it is up, mark it as posted and paste its link, to find it again later. The files are the watermarked versions visitors see.
     </p>
     <p><a class="button-link button-secondary" href="https://www.instagram.com/" target="_blank" rel="noopener">Open Instagram</a></p>
 
-    <!-- The vertical and horizontal posts, built by js/admin-instagram.js. -->
-    <div id="groups"></div>
+    <!-- One section per set: its vertical and horizontal posts and what was
+         already posted, built by js/admin-instagram.js. -->
+    <div id="sets"></div>
     <p class="status" id="status">Loading...</p>
   </main>
+
+  <!-- "Mark as posted": the post's link and a note (js/instagram-posts.js). -->
+  <dialog class="posted-dialog" id="posted-dialog" aria-labelledby="posted-heading">
+    <form method="dialog">
+      <h2 id="posted-heading">Mark as posted</h2>
+      <p class="posted-title" id="posted-title"></p>
+      <p class="muted small" id="posted-count"></p>
+      <label for="posted-url">Link to the post (optional)</label>
+      <input id="posted-url" name="url" type="url" placeholder="https://www.instagram.com/p/..." autocomplete="off">
+      <label for="posted-note">Note (optional)</label>
+      <input id="posted-note" name="note" type="text" maxlength="200" placeholder="For example: caption idea, hashtags" autocomplete="off">
+      <p class="form-error" role="alert"></p>
+      <div class="actions">
+        <button type="submit">Save as posted</button>
+        <button type="button" class="button-secondary" id="posted-cancel">Cancel</button>
+      </div>
+    </form>
+  </dialog>
 
   <script src="/js/admin-instagram.js" type="module"></script>
 </body>

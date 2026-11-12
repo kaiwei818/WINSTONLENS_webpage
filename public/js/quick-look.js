@@ -18,7 +18,7 @@ let index = 0;
 let opener = null; // what had focus before, to return to on close
 // Saving lives in the page that opens the quick look (admin-set.js):
 // rate(photo, 0-5) and pick(photo) save and return true or false; pickCounts()
-// counts the Instagram picks in all sets, { vertical, horizontal }.
+// counts this set's Instagram picks, { vertical, horizontal }.
 let controls = { rate: async () => false, pick: async () => false, pickCounts: () => ({ vertical: 0, horizontal: 0 }) };
 export function configureQuickLook(options) { controls = { ...controls, ...options }; }
 
@@ -100,7 +100,7 @@ function paintControls() {
   // The count for this photo's own group: it goes in the vertical posts or the horizontal ones.
   const group = groupOf(p);
   const count = controls.pickCounts()[group];
-  $("ql-picks").textContent = groupCountText(group, count);
+  $("ql-picks").textContent = groupCountText(group, count, { inSet: true });
   const note = groupLimitNote(group, count);
   $("ql-picks-note").hidden = !note;
   $("ql-picks-note").textContent = note?.text || "";
