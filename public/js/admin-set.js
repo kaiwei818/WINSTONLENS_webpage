@@ -12,6 +12,7 @@
 // Uploads go one at a time, so the photos keep the order you chose them in:
 // the server adds each photo after the last one it received.
 
+import { openQuickLook } from "./quick-look.js";
 import { readCaptureKey } from "./exif.js";
 import { makePlaceholder } from "./placeholder.js";
 import { currentIds, makeSortable, moveItem } from "./sortable.js";
@@ -373,7 +374,10 @@ function createPhotoCard(photo, index) {
   img.loading = "lazy";
   img.draggable = false; // turn off the browser's own image dragging
   img.className = "drag-surface";
-  img.title = "Drag to reorder";
+  img.title = "Click for a quick look, drag to reorder";
+  // A plain click (not a drag: sortable.js stops those) opens the quick look.
+  img.addEventListener("click", () =>
+    openQuickLook(set.photos, set.photos.indexOf(photo), item.querySelector(".photo-card-tools button")));
   const grip = document.createElement("span");
   grip.className = "drag-handle photo-grip";
   grip.textContent = "⠿";
@@ -403,6 +407,7 @@ function createPhotoCard(photo, index) {
   tools.className = "photo-card-tools";
   const number = index + 1;
   tools.append(
+    toolButton("⤢", `Quick look at photo ${number}: whole picture and size`, () => openQuickLook(set.photos, set.photos.indexOf(photo))),
     toolButton("←", `Move photo ${number} earlier`, () => movePhoto(item, -1, "←")),
     toolButton("→", `Move photo ${number} later`, () => movePhoto(item, 1, "→")),
     toolButton(isCover ? "★" : "☆", isCover ? `Photo ${number} is the cover` : `Make photo ${number} the cover`,

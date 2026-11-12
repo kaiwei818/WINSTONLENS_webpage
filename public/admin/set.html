@@ -158,6 +158,22 @@
     </section>
   </main>
 
+  <!-- Quick look: the whole photo and its size (js/quick-look.js). -->
+  <dialog class="quick-look" id="quick-look" aria-labelledby="ql-heading">
+    <div class="ql-stage"><img id="ql-img" alt=""></div>
+    <div class="ql-panel">
+      <div class="ql-top">
+        <h2 id="ql-heading">Quick look <span class="ql-counter" id="ql-counter"></span></h2>
+        <button type="button" class="icon-button" id="ql-close" aria-label="Close quick look">×</button>
+      </div>
+      <dl class="ql-details" id="ql-details"></dl>
+      <div class="ql-nav">
+        <button type="button" class="button-secondary" id="ql-prev" aria-label="Previous photo">← Previous</button>
+        <button type="button" class="button-secondary" id="ql-next" aria-label="Next photo">Next →</button>
+      </div>
+    </div>
+  </dialog>
+
   <script src="/js/admin-set.js" type="module"></script>
 </body>
 </html>

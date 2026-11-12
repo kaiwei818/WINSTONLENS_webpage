@@ -1,0 +1,89 @@
+// Quick look (admin): click a photo on a set's admin page to see the whole
+// picture, uncropped, with its size, shape, and how Instagram would show it.
+// ← → (or the buttons) go through the set; Escape or × closes it.
+//
+// The size is the one on the site: the version made at upload, at most
+// 3000 px on its long edge (your original is resized to that).
+
+const $ = (id) => document.getElementById(id);
+const dialog = $("quick-look");
+const img = $("ql-img");
+let photos = [];
+let index = 0;
+let opener = null; // what had focus before, to return to on close
+
+// Common shapes, so 3000 x 1999 still reads as "3:2".
+const RATIOS = [[1, 1], [5, 4], [4, 5], [4, 3], [3, 4], [3, 2], [2, 3], [16, 10], [16, 9], [9, 16], [2, 1], [21, 9]];
+function ratioText(w, h) {
+  const r = w / h;
+  const near = RATIOS.find(([a, b]) => Math.abs(a / b - r) / r < 0.01);
+  return near ? `${near[0]}:${near[1]}` : `${r >= 1 ? r.toFixed(2) : (1 / r).toFixed(2)}:1${r < 1 ? " (tall)" : ""}`;
+}
+
+// Instagram posts take shapes from 4:5 (tall) to 1.91:1 (wide); anything
+// beyond is cropped to the nearest one.
+function instagramText(w, h) {
+  const r = w / h;
+  if (r > 1.91) return `Too wide for an Instagram post: it gets cropped to 1.91:1, losing about ${Math.round((1 - 1.91 / r) * 100)}% at the sides.`;
+  if (r < 0.8) return `Too tall for an Instagram post: it gets cropped to 4:5, losing about ${Math.round((1 - r / 0.8) * 100)}% at the top and bottom.`;
+  return "Fits an Instagram post without cropping.";
+}
+
+function row(label, value) {
+  const dt = document.createElement("dt");
+  dt.textContent = label;
+  const dd = document.createElement("dd");
+  dd.textContent = value;
+  return [dt, dd];
+}
+
+function show(newIndex) {
+  index = (newIndex + photos.length) % photos.length;
+  const p = photos[index];
+  // The small version at once, then the full one when it arrives.
+  img.src = `/img/${p.thumb_key}`;
+  img.alt = p.alt_text || `Photo ${index + 1}`;
+  img.style.setProperty("--ratio", p.width / p.height);
+  const full = new Image();
+  full.onload = () => { if (photos[index] === p) img.src = full.src; };
+  full.src = `/img/${p.display_key || p.medium_key || p.thumb_key}`;
+
+  $("ql-counter").textContent = `${index + 1} / ${photos.length}`;
+  const w = p.width, h = p.height;
+  const orientation = w === h ? "Square" : w > h ? "Landscape" : "Portrait";
+  $("ql-details").replaceChildren(
+    ...row("Size", `${w.toLocaleString()} × ${h.toLocaleString()} px`),
+    ...row("Shape", `${ratioText(w, h)}, ${orientation.toLowerCase()}`),
+    ...row("Megapixels", `${((w * h) / 1e6).toFixed(1)} MP`),
+    ...row("Instagram", instagramText(w, h)),
+    ...(p.original_name ? row("File", p.original_name) : []),
+    ...(p.camera_info ? row("Camera", p.camera_info) : []),
+    ...row("Rating", p.rating ? `${"★".repeat(p.rating)}${"☆".repeat(5 - p.rating)}` : "Not rated"),
+    ...(p.instagram ? row("Picked", "For Instagram") : []),
+  );
+  const single = photos.length < 2;
+  $("ql-prev").hidden = single;
+  $("ql-next").hidden = single;
+}
+
+// returnTo: where keyboard focus goes back to on close (a picture cannot hold
+// focus, so a click on one passes its card's quick look button).
+export function openQuickLook(list, start, returnTo = document.activeElement) {
+  photos = list;
+  opener = returnTo;
+  show(start);
+  dialog.showModal();
+  $("ql-close").focus();
+}
+
+$("ql-prev").addEventListener("click", () => show(index - 1));
+$("ql-next").addEventListener("click", () => show(index + 1));
+$("ql-close").addEventListener("click", () => dialog.close());
+dialog.addEventListener("keydown", (event) => {
+  if (event.altKey || event.ctrlKey || event.metaKey || photos.length < 2) return;
+  if (event.key === "ArrowLeft") { event.preventDefault(); show(index - 1); }
+  if (event.key === "ArrowRight") { event.preventDefault(); show(index + 1); }
+});
+// A click on the dark space around the photo closes it.
+dialog.addEventListener("click", (event) => { if (event.target === dialog) dialog.close(); });
+dialog.addEventListener("close", () => { img.removeAttribute("src"); opener?.focus?.(); });
