@@ -2,12 +2,13 @@
 // picture, uncropped, with its size, shape, and how Instagram would show it.
 // ← → (or the buttons) go through the set; Escape or × closes it.
 // It rates and picks too (keys 1 to 5 rate, 0 clears, P picks), with the
-// running count of Instagram picks and a note as one post's 20 fills up.
+// running count of Instagram picks in this photo's group (vertical or
+// horizontal, two posts of 20 each) and a note as they fill up.
 //
 // The size is the one on the site: the version made at upload, at most
 // 3000 px on its long edge (your original is resized to that).
 
-import { picksCountText, picksLimitNote } from "./picks-limit.js";
+import { groupCountText, groupLimitNote, groupOf } from "./picks-limit.js";
 
 const $ = (id) => document.getElementById(id);
 const dialog = $("quick-look");
@@ -16,9 +17,9 @@ let photos = [];
 let index = 0;
 let opener = null; // what had focus before, to return to on close
 // Saving lives in the page that opens the quick look (admin-set.js):
-// rate(photo, 0-5) and pick(photo) save and return true or false; picksTotal()
-// counts the Instagram picks in all sets.
-let controls = { rate: async () => false, pick: async () => false, picksTotal: () => 0 };
+// rate(photo, 0-5) and pick(photo) save and return true or false; pickCounts()
+// counts the Instagram picks in all sets, { vertical, horizontal }.
+let controls = { rate: async () => false, pick: async () => false, pickCounts: () => ({ vertical: 0, horizontal: 0 }) };
 export function configureQuickLook(options) { controls = { ...controls, ...options }; }
 
 // Common shapes, so 3000 x 1999 still reads as "3:2".
@@ -96,9 +97,11 @@ function paintControls() {
   });
   $("ql-pick").setAttribute("aria-pressed", String(Boolean(p.instagram)));
   $("ql-pick").textContent = p.instagram ? "Picked for Instagram" : "Pick for Instagram";
-  const total = controls.picksTotal();
-  $("ql-picks").textContent = picksCountText(total);
-  const note = picksLimitNote(total);
+  // The count for this photo's own group: it goes in the vertical posts or the horizontal ones.
+  const group = groupOf(p);
+  const count = controls.pickCounts()[group];
+  $("ql-picks").textContent = groupCountText(group, count);
+  const note = groupLimitNote(group, count);
   $("ql-picks-note").hidden = !note;
   $("ql-picks-note").textContent = note?.text || "";
   $("ql-picks-note").dataset.level = note?.level || "";

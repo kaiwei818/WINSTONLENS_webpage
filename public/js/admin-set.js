@@ -13,7 +13,7 @@
 // the server adds each photo after the last one it received.
 
 import { configureQuickLook, openQuickLook } from "./quick-look.js";
-import { picksCountText, picksLimitNote } from "./picks-limit.js";
+import { GROUPS, groupCountText, groupCounts, groupLimitNote } from "./picks-limit.js";
 import { readCaptureKey } from "./exif.js";
 import { makePlaceholder } from "./placeholder.js";
 import { currentIds, makeSortable, moveItem } from "./sortable.js";
@@ -456,7 +456,7 @@ configureQuickLook({
     updatePicksCount();
     return true;
   },
-  picksTotal: () => picksTotal(), // looked up when needed: it is defined further down
+  pickCounts: () => pickCounts(), // looked up when needed: it is defined further down
 });
 
 // Five stars: click one to rate, click the same one again to clear.
@@ -534,26 +534,28 @@ function instagramToggle(photo, number, figure) {
   return button;
 }
 
-// Picks in the other sets, fetched once; this set's are counted live, so the
-// total stays right as you pick here (on the cards or in the quick look).
+// Picks in the other sets (their sizes), fetched once; this set's are counted
+// live, so the counts stay right as you pick here (cards or quick look).
 let picksElsewhere = null;
-const picksTotal = () => (picksElsewhere ?? 0) + set.photos.filter((p) => p.instagram).length;
+const pickCounts = () => groupCounts([...(picksElsewhere ?? []), ...set.photos.filter((p) => p.instagram)]);
 
-// "3 photos in this set picked for Instagram. Instagram picks: 12 of 20 for one
-// post", plus a note when the total nears or passes one post's 20.
+// "3 photos in this set picked. Vertical picks: 23 of 40 (...). Horizontal
+// picks: 12 of 40 (...)", plus a note when a group nears or passes two posts.
 async function updatePicksCount() {
   const here = set.photos.filter((p) => p.instagram).length;
   if (picksElsewhere === null) {
     const response = await fetch("/api/admin/instagram").catch(() => null);
-    if (response?.ok) picksElsewhere = (await response.json()).photos.filter((p) => p.set_id !== set.id).length;
+    if (response?.ok) picksElsewhere = (await response.json()).photos.filter((p) => p.set_id !== set.id);
   }
-  const total = picksTotal();
-  $("picks-line").hidden = total === 0;
-  $("picks-count").textContent = `${here} ${here === 1 ? "photo" : "photos"} in this set picked. ${picksCountText(total)}.`;
-  const note = picksLimitNote(total);
-  $("picks-note").hidden = !note;
-  $("picks-note").textContent = note?.text || "";
-  $("picks-note").dataset.level = note?.level || "";
+  const counts = pickCounts();
+  $("picks-line").hidden = counts.vertical + counts.horizontal === 0;
+  $("picks-count").textContent = `${here} ${here === 1 ? "photo" : "photos"} in this set picked. ` +
+    GROUPS.map((g) => `${groupCountText(g, counts[g])}.`).join(" ");
+  const notes = GROUPS.map((g) => groupLimitNote(g, counts[g])).filter(Boolean);
+  const note = $("picks-note");
+  note.hidden = notes.length === 0;
+  note.textContent = notes.map((n) => n.text).join(" ");
+  note.dataset.level = notes.some((n) => n.level !== "near") ? "full" : notes.length ? "near" : "";
 }
 
 // The cover is the chosen photo, or the first photo when none was chosen.

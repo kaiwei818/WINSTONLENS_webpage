@@ -25,45 +25,16 @@
   <main>
     <h1>Instagram picks</h1>
     <p class="muted">
-      Every photo you picked for Instagram, from all your sets, best rated first. Tick the ones for your next post.
-      On a phone, Share opens your share sheet: choose Instagram. On a computer, download them, then upload them on Instagram.
+      Every photo you picked for Instagram, from all your sets, sorted into vertical and horizontal
+      (square photos go with vertical). Each fills up to two posts of 20, best rated first; any more wait below for another round.
+      On a phone, Share opens your share sheet: choose Instagram. On a computer, download a post, then upload it on Instagram.
       The files are the watermarked versions visitors see.
     </p>
+    <p><a class="button-link button-secondary" href="https://www.instagram.com/" target="_blank" rel="noopener">Open Instagram</a></p>
 
-    <div class="picks-toolbar" id="picks-toolbar" hidden>
-      <label class="picks-filter">Show
-        <select id="min-rating">
-          <option value="0">All picks</option>
-          <option value="3">3 stars and up</option>
-          <option value="4">4 stars and up</option>
-          <option value="5">5 stars only</option>
-        </select>
-      </label>
-      <button type="button" class="button-secondary" id="select-all">Select all</button>
-      <button type="button" class="button-secondary" id="select-none">Select none</button>
-      <span class="picks-selected" id="selected-count" role="status"></span>
-    </div>
-
-    <ul class="picks-grid" id="picks"></ul>
+    <!-- The vertical and horizontal posts, built by js/admin-instagram.js. -->
+    <div id="groups"></div>
     <p class="status" id="status">Loading...</p>
-
-    <!-- What to do with the selected photos (admin-instagram.js). -->
-    <section class="panel picks-actions" id="picks-actions" hidden aria-labelledby="post-heading">
-      <h2 id="post-heading">Post the selected photos</h2>
-      <p class="muted small" id="limit-note" hidden>Instagram takes up to 20 photos in one post. Select fewer, or post them in batches.</p>
-      <div class="actions">
-        <!-- Phones: get the files ready, then hand them to the share sheet (Instagram is in it). -->
-        <button type="button" id="prepare" hidden>Get photos ready to share</button>
-        <button type="button" id="share" hidden>Share to Instagram</button>
-        <button type="button" class="button-secondary" id="download">Download selected (.zip)</button>
-        <a class="button-link button-secondary" href="https://www.instagram.com/" target="_blank" rel="noopener">Open Instagram</a>
-      </div>
-      <p class="muted small" id="share-status" role="status"></p>
-      <div class="actions">
-        <button type="button" class="button-secondary" id="mark-posted">Mark selected as posted</button>
-        <span class="muted small">Takes them off this list. Their ratings stay.</span>
-      </div>
-    </section>
   </main>
 
   <script src="/js/admin-instagram.js" type="module"></script>
