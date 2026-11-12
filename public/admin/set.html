@@ -141,7 +141,10 @@
       <!-- How many photos still have no description for blind visitors (admin-set.js). -->
       <p class="alt-reminder" id="alt-reminder" role="status" hidden></p>
       <!-- Photos picked for Instagram (admin-set.js), and the page that posts them. -->
-      <p class="picks-line" id="picks-line" hidden><span id="picks-count"></span> <a href="/admin/instagram">Open Instagram picks</a></p>
+      <div class="picks-line" id="picks-line" hidden>
+        <p><span id="picks-count"></span> <a href="/admin/instagram">Open Instagram picks</a></p>
+        <p class="picks-note" id="picks-note" role="status" hidden></p>
+      </div>
       <!-- Shuffle: a random new order, saved at once; Undo puts the old one back. -->
       <div class="order-tools" id="order-tools" hidden>
         <button type="button" class="button-secondary" id="shuffle-photos">Shuffle order</button>
@@ -167,6 +170,14 @@
         <button type="button" class="icon-button" id="ql-close" aria-label="Close quick look">×</button>
       </div>
       <dl class="ql-details" id="ql-details"></dl>
+      <!-- Rate and pick here too: keys 1 to 5 rate, 0 clears, P picks. -->
+      <div class="ql-controls">
+        <div class="ql-rating" id="ql-rating" role="group" aria-label="Your rating"></div>
+        <button type="button" class="button-secondary instagram-toggle" id="ql-pick" aria-pressed="false">Pick for Instagram</button>
+        <p class="ql-picks" id="ql-picks" role="status"></p>
+        <p class="picks-note" id="ql-picks-note" hidden></p>
+        <p class="ql-keys">Keys: 1 to 5 rate, 0 clears, P picks, ← → next photo.</p>
+      </div>
       <div class="ql-nav">
         <button type="button" class="button-secondary" id="ql-prev" aria-label="Previous photo">← Previous</button>
         <button type="button" class="button-secondary" id="ql-next" aria-label="Next photo">Next →</button>

@@ -12,7 +12,8 @@
 // Uploads go one at a time, so the photos keep the order you chose them in:
 // the server adds each photo after the last one it received.
 
-import { openQuickLook } from "./quick-look.js";
+import { configureQuickLook, openQuickLook } from "./quick-look.js";
+import { picksCountText, picksLimitNote } from "./picks-limit.js";
 import { readCaptureKey } from "./exif.js";
 import { makePlaceholder } from "./placeholder.js";
 import { currentIds, makeSortable, moveItem } from "./sortable.js";
@@ -437,6 +438,27 @@ async function savePhoto(photo, changes) {
   return saved;
 }
 
+// The quick look rates and picks too; afterwards the photo's card is redrawn
+// so both always show the same.
+function redrawCard(photo) {
+  const old = existing.querySelector(`.photo-card[data-id="${photo.id}"]`);
+  if (old) old.replaceWith(createPhotoCard(photo, set.photos.indexOf(photo)));
+}
+configureQuickLook({
+  rate: async (photo, rating) => {
+    if (!(await savePhoto(photo, { rating }))) return false;
+    redrawCard(photo);
+    return true;
+  },
+  pick: async (photo) => {
+    if (!(await savePhoto(photo, { instagram: photo.instagram ? 0 : 1 }))) return false;
+    redrawCard(photo);
+    updatePicksCount();
+    return true;
+  },
+  picksTotal: () => picksTotal(), // looked up when needed: it is defined further down
+});
+
 // Five stars: click one to rate, click the same one again to clear.
 function ratingField(photo, number) {
   const field = document.createElement("div");
@@ -512,15 +534,26 @@ function instagramToggle(photo, number, figure) {
   return button;
 }
 
-// "3 photos picked for Instagram (all sets: 7)" beside the link to the picks page.
+// Picks in the other sets, fetched once; this set's are counted live, so the
+// total stays right as you pick here (on the cards or in the quick look).
+let picksElsewhere = null;
+const picksTotal = () => (picksElsewhere ?? 0) + set.photos.filter((p) => p.instagram).length;
+
+// "3 photos in this set picked for Instagram. Instagram picks: 12 of 20 for one
+// post", plus a note when the total nears or passes one post's 20.
 async function updatePicksCount() {
   const here = set.photos.filter((p) => p.instagram).length;
-  const response = await fetch("/api/admin/instagram").catch(() => null);
-  const all = response?.ok ? (await response.json()).photos.length : null;
-  const line = $("picks-line");
-  line.hidden = here === 0 && !all;
-  $("picks-count").textContent = `${here} ${here === 1 ? "photo" : "photos"} in this set picked for Instagram` +
-    (all !== null ? ` (${all} in all sets).` : ".");
+  if (picksElsewhere === null) {
+    const response = await fetch("/api/admin/instagram").catch(() => null);
+    if (response?.ok) picksElsewhere = (await response.json()).photos.filter((p) => p.set_id !== set.id).length;
+  }
+  const total = picksTotal();
+  $("picks-line").hidden = total === 0;
+  $("picks-count").textContent = `${here} ${here === 1 ? "photo" : "photos"} in this set picked. ${picksCountText(total)}.`;
+  const note = picksLimitNote(total);
+  $("picks-note").hidden = !note;
+  $("picks-note").textContent = note?.text || "";
+  $("picks-note").dataset.level = note?.level || "";
 }
 
 // The cover is the chosen photo, or the first photo when none was chosen.

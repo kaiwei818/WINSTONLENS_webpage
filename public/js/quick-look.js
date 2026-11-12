@@ -1,9 +1,13 @@
 // Quick look (admin): click a photo on a set's admin page to see the whole
 // picture, uncropped, with its size, shape, and how Instagram would show it.
 // ← → (or the buttons) go through the set; Escape or × closes it.
+// It rates and picks too (keys 1 to 5 rate, 0 clears, P picks), with the
+// running count of Instagram picks and a note as one post's 20 fills up.
 //
 // The size is the one on the site: the version made at upload, at most
 // 3000 px on its long edge (your original is resized to that).
+
+import { picksCountText, picksLimitNote } from "./picks-limit.js";
 
 const $ = (id) => document.getElementById(id);
 const dialog = $("quick-look");
@@ -11,6 +15,11 @@ const img = $("ql-img");
 let photos = [];
 let index = 0;
 let opener = null; // what had focus before, to return to on close
+// Saving lives in the page that opens the quick look (admin-set.js):
+// rate(photo, 0-5) and pick(photo) save and return true or false; picksTotal()
+// counts the Instagram picks in all sets.
+let controls = { rate: async () => false, pick: async () => false, picksTotal: () => 0 };
+export function configureQuickLook(options) { controls = { ...controls, ...options }; }
 
 // Common shapes, so 3000 x 1999 still reads as "3:2".
 const RATIOS = [[1, 1], [5, 4], [4, 5], [4, 3], [3, 4], [3, 2], [2, 3], [16, 10], [16, 9], [9, 16], [2, 1], [21, 9]];
@@ -58,9 +67,8 @@ function show(newIndex) {
     ...row("Instagram", instagramText(w, h)),
     ...(p.original_name ? row("File", p.original_name) : []),
     ...(p.camera_info ? row("Camera", p.camera_info) : []),
-    ...row("Rating", p.rating ? `${"★".repeat(p.rating)}${"☆".repeat(5 - p.rating)}` : "Not rated"),
-    ...(p.instagram ? row("Picked", "For Instagram") : []),
   );
+  paintControls();
   const single = photos.length < 2;
   $("ql-prev").hidden = single;
   $("ql-next").hidden = single;
@@ -68,6 +76,57 @@ function show(newIndex) {
 
 // returnTo: where keyboard focus goes back to on close (a picture cannot hold
 // focus, so a click on one passes its card's quick look button).
+// ---------- Rating and Instagram pick ----------
+const stars = [1, 2, 3, 4, 5].map((value) => {
+  const star = document.createElement("button");
+  star.type = "button";
+  star.className = "rating-star";
+  star.setAttribute("aria-label", `${value} ${value === 1 ? "star" : "stars"}`);
+  star.addEventListener("click", () => rate(photos[index].rating === value ? 0 : value));
+  return star;
+});
+$("ql-rating").append(...stars);
+
+function paintControls() {
+  const p = photos[index];
+  stars.forEach((star, i) => {
+    star.textContent = i < p.rating ? "★" : "☆";
+    star.classList.toggle("is-on", i < p.rating);
+    star.setAttribute("aria-pressed", String(i + 1 === p.rating));
+  });
+  $("ql-pick").setAttribute("aria-pressed", String(Boolean(p.instagram)));
+  $("ql-pick").textContent = p.instagram ? "Picked for Instagram" : "Pick for Instagram";
+  const total = controls.picksTotal();
+  $("ql-picks").textContent = picksCountText(total);
+  const note = picksLimitNote(total);
+  $("ql-picks-note").hidden = !note;
+  $("ql-picks-note").textContent = note?.text || "";
+  $("ql-picks-note").dataset.level = note?.level || "";
+}
+
+async function rate(value) {
+  const p = photos[index];
+  const before = p.rating;
+  p.rating = value; // show it at once; put it back if saving fails
+  paintControls();
+  if (!(await controls.rate(p, value))) {
+    p.rating = before;
+    if (photos[index] === p) paintControls();
+    $("ql-picks").textContent = "Rating not saved. Try again.";
+  }
+}
+
+async function pick() {
+  const p = photos[index];
+  const button = $("ql-pick");
+  button.disabled = true;
+  const saved = await controls.pick(p);
+  button.disabled = false;
+  if (photos[index] === p) paintControls();
+  if (!saved) $("ql-picks").textContent = "Pick not saved. Try again.";
+}
+$("ql-pick").addEventListener("click", pick);
+
 export function openQuickLook(list, start, returnTo = document.activeElement) {
   photos = list;
   opener = returnTo;
@@ -80,7 +139,10 @@ $("ql-prev").addEventListener("click", () => show(index - 1));
 $("ql-next").addEventListener("click", () => show(index + 1));
 $("ql-close").addEventListener("click", () => dialog.close());
 dialog.addEventListener("keydown", (event) => {
-  if (event.altKey || event.ctrlKey || event.metaKey || photos.length < 2) return;
+  if (event.altKey || event.ctrlKey || event.metaKey) return;
+  if (/^[0-5]$/.test(event.key)) { event.preventDefault(); rate(Number(event.key)); return; }
+  if (event.key === "p" || event.key === "P") { event.preventDefault(); if (!$("ql-pick").disabled) pick(); return; }
+  if (photos.length < 2) return;
   if (event.key === "ArrowLeft") { event.preventDefault(); show(index - 1); }
   if (event.key === "ArrowRight") { event.preventDefault(); show(index + 1); }
 });
