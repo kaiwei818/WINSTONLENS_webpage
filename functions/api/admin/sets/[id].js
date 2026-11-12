@@ -18,7 +18,7 @@ export async function onRequestGet(context) {
   if (!set) return Response.json({ error: "Set not found" }, { status: 404 });
 
   const { results: photos } = await env.DB.prepare(
-    `SELECT id, thumb_key, width, height, caption, alt_text, camera_info, size_bytes,
+    `SELECT id, thumb_key, width, height, caption, alt_text, camera_info, size_bytes, rating, instagram,
             placeholder != '' AS placeholder,
             download_key IS NOT NULL AS downloadable
      FROM photos WHERE set_id = ? ORDER BY sort_order, id`

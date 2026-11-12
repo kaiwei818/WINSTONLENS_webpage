@@ -270,6 +270,7 @@ function renderExisting() {
   $("order-tools").hidden = set.photos.length < 2;
   addMissingPlaceholders();
   updateAltReminder();
+  updatePicksCount();
 }
 
 // "12 of 58 photos have no description yet": screen readers say nothing
@@ -412,8 +413,109 @@ function createPhotoCard(photo, index) {
     toolButton("×", `Delete photo ${number}`, () => deletePhoto(photo), "danger"),
   );
 
-  item.append(figure, caption, camera, alt, tools);
+  item.append(figure, ratingField(photo, number), caption, camera, alt, instagramToggle(photo, number, figure), tools);
   return item;
+}
+
+// ---------- Rating and Instagram picks (only for you, never shown publicly) ----------
+
+// Saves one or more of a photo's fields; returns the saved photo, or null.
+async function savePhoto(photo, changes) {
+  const response = await fetch(`/api/admin/photos/${photo.id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(changes),
+  });
+  if (!response.ok) return null;
+  const saved = await response.json();
+  Object.assign(photo, changes, saved);
+  return saved;
+}
+
+// Five stars: click one to rate, click the same one again to clear.
+function ratingField(photo, number) {
+  const field = document.createElement("div");
+  field.className = "photo-rating";
+  field.setAttribute("role", "group");
+  field.setAttribute("aria-label", `Your rating for photo ${number}`);
+  const status = document.createElement("span");
+  status.className = "save-status";
+  status.setAttribute("role", "status");
+
+  const stars = [1, 2, 3, 4, 5].map((value) => {
+    const star = document.createElement("button");
+    star.type = "button";
+    star.className = "rating-star";
+    star.textContent = "★";
+    star.setAttribute("aria-label", `${value} ${value === 1 ? "star" : "stars"}`);
+    star.addEventListener("click", async () => {
+      const rating = photo.rating === value ? 0 : value;
+      if (!(await savePhoto(photo, { rating }))) {
+        status.textContent = "Not saved, try again";
+        status.dataset.state = "error";
+        return;
+      }
+      paint();
+      flash(status, rating ? "Saved" : "Cleared");
+    });
+    return star;
+  });
+  function paint() {
+    stars.forEach((star, i) => {
+      star.classList.toggle("is-on", i < photo.rating);
+      star.textContent = i < photo.rating ? "★" : "☆"; // filled or outlined: not by colour alone
+      star.setAttribute("aria-pressed", String(i + 1 === photo.rating));
+    });
+    field.title = photo.rating ? `Rated ${photo.rating} of 5` : "Not rated yet";
+  }
+  paint();
+  const label = document.createElement("span");
+  label.className = "rating-label";
+  label.textContent = "Rating";
+  label.setAttribute("aria-hidden", "true"); // the group already says "Your rating for photo 3"
+  field.append(label, ...stars, status);
+  return field;
+}
+
+// "Pick for Instagram": adds the photo to the Instagram picks page.
+function instagramToggle(photo, number, figure) {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "button-secondary instagram-toggle";
+  const paint = () => {
+    button.setAttribute("aria-pressed", String(Boolean(photo.instagram)));
+    button.textContent = photo.instagram ? "Picked for Instagram" : "Pick for Instagram";
+    button.setAttribute("aria-label", `${photo.instagram ? "Picked" : "Pick"} photo ${number} for Instagram`);
+    figure.querySelector(".instagram-badge")?.remove();
+    if (photo.instagram) {
+      const badge = document.createElement("span");
+      badge.className = "instagram-badge";
+      badge.textContent = "Instagram";
+      badge.title = "Picked to post on Instagram";
+      figure.append(badge);
+    }
+  };
+  button.addEventListener("click", async () => {
+    button.disabled = true;
+    const saved = await savePhoto(photo, { instagram: photo.instagram ? 0 : 1 });
+    button.disabled = false;
+    if (!saved) return alert("Could not save. Please try again.");
+    paint();
+    updatePicksCount();
+  });
+  paint();
+  return button;
+}
+
+// "3 photos picked for Instagram (all sets: 7)" beside the link to the picks page.
+async function updatePicksCount() {
+  const here = set.photos.filter((p) => p.instagram).length;
+  const response = await fetch("/api/admin/instagram").catch(() => null);
+  const all = response?.ok ? (await response.json()).photos.length : null;
+  const line = $("picks-line");
+  line.hidden = here === 0 && !all;
+  $("picks-count").textContent = `${here} ${here === 1 ? "photo" : "photos"} in this set picked for Instagram` +
+    (all !== null ? ` (${all} in all sets).` : ".");
 }
 
 // The cover is the chosen photo, or the first photo when none was chosen.
