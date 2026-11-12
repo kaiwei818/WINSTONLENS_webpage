@@ -1,5 +1,6 @@
 // Admin dashboard: storage used, the list of sets (create, reorder, delete), and logging out.
 
+import { MONTHS, rotationPool } from "./hero-pick.js";
 import { currentIds, makeSortable, moveItem } from "./sortable.js";
 
 async function loadStats() {
@@ -254,15 +255,24 @@ async function loadHero() {
   showHeroNote();
 }
 
+// What "Rotate" does this month, using the same rule as the home page
+// (hero-pick.js): which featured sets the hero rotates between right now.
 function showHeroNote() {
   const mode = heroRadios("hero-mode").find((r) => r.checked)?.value;
   document.getElementById("hero-rotate-field").hidden = mode !== "rotate";
-  const featured = lastSets.filter((s) => s.featured).length;
-  document.getElementById("hero-note").textContent = mode === "rotate"
-    ? featured
-      ? `${featured} featured ${featured === 1 ? "set" : "sets"}. Sets with months ticked only appear in those months, and are preferred then.`
-      : "No set is featured yet: until you feature one, the first set is shown."
-    : "";
+  const note = document.getElementById("hero-note");
+  if (mode !== "rotate") return (note.textContent = "");
+  const live = lastSets.filter((s) => s.published && s.photo_count > 0);
+  const { pool, reason, month } = rotationPool(live);
+  const name = MONTHS[month - 1];
+  const sets = (n) => `${n} ${n === 1 ? "set" : "sets"}`;
+  const titles = pool.map((s) => s.title).join(", ");
+  note.textContent = {
+    "in-season": `${name}: rotating between ${sets(pool.length)} in season (${titles}). Sets with other months ticked wait for their months.`,
+    "all-year": `${name}: no featured set has ${name} ticked, so it rotates between ${sets(pool.length)} featured all year (${titles}).`,
+    "out-of-season": `${name}: none of your featured sets has ${name} ticked and none is all-year, so it rotates between all ${sets(pool.length)} (${titles}). Tick ${name} on a set's page to prefer it this month.`,
+    none: "No public set is featured yet: until you feature one, the first set in your list is shown.",
+  }[reason];
 }
 
 for (const radio of [...heroRadios("hero-mode"), ...heroRadios("hero-rotate")]) {
