@@ -1890,6 +1890,7 @@ section.panel[aria-labelledby="hero-heading"] { max-width: 720px; }
 .picks-meta { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--space-2xs) var(--space-xs); margin: 0; font-size: var(--text-sm); }
 .picks-stars { color: var(--color-ink); letter-spacing: 0.02em; }
 .picks-meta a { min-width: 0; overflow-wrap: anywhere; }
+.picks-file { margin: 0; color: var(--color-muted); font-size: var(--text-xs); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
 .picks-unpick { align-self: flex-start; min-height: 32px; padding: 0 var(--space-sm); font-size: var(--text-xs); }
 
 /* ---------- Admin: quick look (see js/quick-look.js) ---------- */

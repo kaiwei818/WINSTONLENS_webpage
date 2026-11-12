@@ -171,9 +171,12 @@ function grid(list) {
     const link = el("a", "", photo.set_title);
     link.href = `/admin/set?id=${photo.set_id}`;
     meta.append(rating, link);
+    // The file name on your computer ("DSC01234.JPG"), to find the original.
+    // Photos uploaded before names were recorded have none.
+    const file = photo.original_name ? el("p", "picks-file", photo.original_name) : null;
     const remove = button("Unpick", "picks-unpick button-secondary", () => unpick([photo]));
-    remove.setAttribute("aria-label", `Unpick this photo from ${photo.set_title}`);
-    item.append(img, meta, remove);
+    remove.setAttribute("aria-label", `Unpick ${photo.original_name || "this photo"} from ${photo.set_title}`);
+    item.append(img, meta, ...(file ? [file] : []), remove);
     ul.append(item);
   }
   return ul;
