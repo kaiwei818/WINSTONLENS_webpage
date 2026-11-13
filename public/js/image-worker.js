@@ -16,8 +16,9 @@
 //
 // ---------- Storage limit ----------
 // Each size has a maximum file size (maxBytes). The photo is first saved at the
-// normal quality; if the file is too big (very detailed photos, or Safari, which
-// can only save JPEG), it is saved again at the next lower quality, and so on.
+// normal quality; if the file is too big (very detailed photos), it is saved
+// again at the next lower quality, and so on. All sizes are saved as JPEG (see
+// encode() at the end).
 // If even the lowest quality is too big, the display size is made a little
 // smaller (2400 px). Most photos fit at the first try.
 //
@@ -167,17 +168,11 @@ function draw(source, width, height) {
   return canvas;
 }
 
-// WebP is about 30% smaller than JPEG at the same quality. Safari cannot create
-// WebP files, and quietly hands back a large PNG instead. We find out once, with
-// a tiny test image, and then go straight to JPEG in browsers without WebP,
-// instead of wasting time and memory making a big PNG for every photo.
-let webpSupported;
-
-async function encode(canvas, quality) {
-  if (webpSupported === undefined) {
-    const test = new OffscreenCanvas(2, 2);
-    test.getContext("2d"); // a canvas must have a drawing context before it can be saved
-    webpSupported = (await test.convertToBlob({ type: "image/webp" })).type === "image/webp";
-  }
-  return canvas.convertToBlob({ type: webpSupported ? "image/webp" : "image/jpeg", quality });
+// Every browser saves JPEG. Chrome could make WebP files about 30% smaller,
+// but at the same quality setting its WebP smooths away fine detail (grain,
+// leaves, water), so photos uploaded from Chrome looked softer than the same
+// photos from Safari (which can only save JPEG). JPEG everywhere gives the same
+// result whichever browser you upload from.
+function encode(canvas, quality) {
+  return canvas.convertToBlob({ type: "image/jpeg", quality });
 }
