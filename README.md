@@ -51,8 +51,8 @@ The original plan is in [photo-portfolio-spec.md](photo-portfolio-spec.md).
 You need [Node.js](https://nodejs.org) (the LTS version). Then, in Terminal:
 
 ```
-git clone https://github.com/kaiwei818/project-0.git
-cd project-0
+git clone https://github.com/kaiwei818/WINSTONLENS_webpage.git
+cd WINSTONLENS_webpage
 npm install
 npm run db:migrate:local   # create the local database tables
 npm run hash-password      # choose your admin password (saved to .dev.vars)
