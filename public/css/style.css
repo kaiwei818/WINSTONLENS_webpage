@@ -678,7 +678,9 @@ html[data-pointer] :focus-visible:not(input, textarea, select) { outline: none; 
 /* ---------- Home: the sets, as a contact sheet ---------- */
 /* Twelve columns in a repeating run of five: one wide and one narrow, then
    three across. Each card in a row is cropped to the same height, so the run
-   reads as a magazine spread rather than a row of equal tiles. */
+   reads as a magazine spread rather than a row of equal tiles.
+   cardSizes() in lib/render.js repeats these widths, so the browser can pick
+   the right image file: change both together. */
 .set-grid {
   list-style: none;
   margin: 0;

@@ -43,6 +43,7 @@ The original plan is in [photo-portfolio-spec.md](photo-portfolio-spec.md).
 17. [Fresh styles after every deploy (the Safari problem)](docs/lessons/17-fresh-styles-after-deploy.md)
 18. [An accessibility and polish pass](docs/lessons/18-uiux-audit.md)
 19. [Blurry previews, photo links, smoother viewer, and faster photos](docs/lessons/19-polish-and-speed.md)
+20. [Renamed sets keep their old links, and other fixes from a code review](docs/lessons/20-review-fixes.md)
 
 ---
 
@@ -102,7 +103,7 @@ Do these once, in this order. Lesson 5 explains each step in detail.
    npm run deploy
    ```
 
-Your site is at the address the deploy prints, like `https://photo-portfolio.pages.dev`.
+Your site is at the address the deploy prints, like `https://winstonlens.pages.dev`.
 After any code change, run `npm run deploy` again. If a change adds a file to
 `migrations/`, run `npm run db:migrate:remote` first.
 
@@ -135,7 +136,7 @@ Secrets never go in the code or on GitHub. `.dev.vars` is listed in `.gitignore`
 | `npm run db:migrate:remote` | Apply database changes to the live site |
 | `npm run seed:local` | Replace local data with three sample sets |
 | `npm run deploy` | Publish to Cloudflare Pages |
-| `npm test` | Check that the admin login lock still holds (tests/) |
+| `npm test` | Check the admin login lock, the rate limits, and the home page image sizes (tests/) |
 
 ## How it fits together
 
@@ -174,6 +175,7 @@ Public (read only):
 - `GET /api/sets`: all published sets with cover and photo count
 - `GET /?category=:slug`: the home page filtered to one category
 - `GET /api/sets/:slug`: one set with its photos (drafts only when logged in)
+- `GET /sets/:slug`: a set's page; the old address of a renamed set redirects to the new one
 - `GET /about`: the About page
 - `GET /robots.txt`, `GET /sitemap.xml`: for search engines
 - `GET /img/:key`: an image file (refuses other websites and private clean copies)

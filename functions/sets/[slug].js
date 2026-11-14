@@ -4,24 +4,36 @@
 // see the real content), plus the link-preview tags.
 // Drafts are only shown to you (when logged in), as a preview. Everyone else,
 // and anyone asking for a set that does not exist, gets the "not found" page.
+// The old address of a renamed set leads to its new one (migrations/0013).
 
 import { isLoggedIn } from "../../lib/auth.js";
+import { notFoundPage } from "../../lib/not-found.js";
 import { withPageMeta } from "../../lib/meta.js";
 import { galleryData } from "../../lib/structured.js";
-import { decodeSlug, setWithPhotos } from "../../lib/queries.js";
+import { decodeSlug, movedSet, setWithPhotos } from "../../lib/queries.js";
 import { relatedSets } from "../../lib/related.js";
 import { escapeHtml, jsonForPage, monthYear, photoThumbHtml, relatedCardHtml } from "../../lib/render.js";
 
 export async function onRequestGet({ request, env, params }) {
-  const set = await setWithPhotos(env, decodeSlug(params.slug));
+  const slug = decodeSlug(params.slug);
+  const set = await setWithPhotos(env, slug);
+  const url = new URL(request.url);
 
-  const visible = set && (set.published || (await isLoggedIn(request, env)));
-  if (!visible) {
-    const notFound = await env.ASSETS.fetch(new URL("/404", request.url));
-    return new Response(notFound.body, { status: 404, headers: notFound.headers });
+  if (!set) {
+    // Maybe the set was renamed: its old address sends people on to the new
+    // one, "moved permanently" (301), keeping anything after the "?" (a link
+    // to one photo still opens that photo). Drafts are not given away: an old
+    // address of a set only you can see stays "not found" for everyone else.
+    const moved = await movedSet(env, slug);
+    if (moved && (moved.published || (await isLoggedIn(request, env)))) {
+      return Response.redirect(`${url.origin}/sets/${encodeURIComponent(moved.slug)}${url.search}`, 301);
+    }
+    return notFoundPage(env, request);
   }
 
-  const url = new URL(request.url);
+  const visible = set.published || (await isLoggedIn(request, env));
+  if (!visible) return notFoundPage(env, request);
+
   const [page, related] = await Promise.all([
     env.ASSETS.fetch(new URL("/set.html", url)),
     relatedSets(env, set.id),

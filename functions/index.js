@@ -9,6 +9,7 @@
 
 import { pickHero } from "../lib/hero.js";
 import { withPageMeta } from "../lib/meta.js";
+import { notFoundPage } from "../lib/not-found.js";
 import { homeData } from "../lib/structured.js";
 import { categoriesInUse, publishedSets } from "../lib/queries.js";
 import { escapeHtml, heroHtml, setCardHtml } from "../lib/render.js";
@@ -21,6 +22,9 @@ export async function onRequestGet({ request, env }) {
   const category = (url.searchParams.get("category") || "").slice(0, 60);
   const [sets, categories] = await Promise.all([publishedSets(env, category), categoriesInUse(env)]);
   const current = categories.find((c) => c.slug === category);
+  // A category that does not exist (a typo, or one you deleted), or that has
+  // no public sets: "not found", rather than an empty page that looks real.
+  if (category && !current) return notFoundPage(env, request);
   const page = await env.ASSETS.fetch(new URL("/", url));
 
   const button = (href, name, active) =>
@@ -53,7 +57,6 @@ export async function onRequestGet({ request, env }) {
     .on("#status", {
       element(el) {
         if (sets.length) el.remove();
-        else if (category) el.setInnerContent("No sets in this category yet.");
         else el.setInnerContent("No photo sets yet. Please come back soon.");
       },
     })

@@ -36,6 +36,9 @@ export async function onRequestPost(context) {
      RETURNING id, slug, title, published`
   ).bind(slug, title, description).first();
 
+  // If a renamed set used to live at this address, the new set has it now.
+  await env.DB.prepare(`DELETE FROM slug_history WHERE slug = ?`).bind(slug).run();
+
   await logActivity(context, "set_create", `Created the set ${quoted(title)}`, set.id);
   return Response.json({ ...set, publish_at: "", photo_count: 0 }, { status: 201 });
 }
