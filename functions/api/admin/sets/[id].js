@@ -41,7 +41,7 @@ export async function onRequestGet(context) {
 export async function onRequestPatch(context) {
   const { request, env, params } = context;
   const setId = Number(params.id);
-  const set = await env.DB.prepare(`SELECT id, title, published, publish_at FROM sets WHERE id = ?`).bind(setId).first();
+  const set = await env.DB.prepare(`SELECT id, slug, title, published, publish_at FROM sets WHERE id = ?`).bind(setId).first();
   if (!set) return Response.json({ error: "Set not found" }, { status: 404 });
 
   const body = await request.json().catch(() => ({}));
@@ -127,6 +127,19 @@ export async function onRequestPatch(context) {
      RETURNING ${RETURNED}`
   ).bind(...Object.values(changes), setId).first();
 
+  // A new address: remember the old one, so links to it lead here from now on
+  // (functions/sets/[slug].js). The new address is this set's own again, so
+  // any older note about it (from this set or another) goes.
+  if (updated.slug !== set.slug) {
+    await env.DB.batch([
+      env.DB.prepare(`DELETE FROM slug_history WHERE slug = ?`).bind(updated.slug),
+      env.DB.prepare(
+        `INSERT INTO slug_history (slug, set_id) VALUES (?, ?)
+         ON CONFLICT(slug) DO UPDATE SET set_id = excluded.set_id, changed_at = strftime('%Y-%m-%dT%H:%M:%SZ', 'now')`
+      ).bind(set.slug, setId),
+    ]);
+  }
+
   // Log changes to who can see the set.
   if ("published" in body && Boolean(changes.published) !== Boolean(set.published)) {
     await logActivity(context, changes.published ? "publish" : "unpublish",
@@ -151,12 +164,13 @@ export async function onRequestDelete(context) {
   // Database first: once the rows are gone, nothing on the site points to the
   // files any more. Doing the files first could leave broken images on show if
   // the database step then failed.
-  const [, , , , , deleted] = await env.DB.batch([
+  const [, , , , , , deleted] = await env.DB.batch([
     env.DB.prepare(`DELETE FROM instagram_post_photos WHERE post_id IN (SELECT id FROM instagram_posts WHERE set_id = ?)`).bind(setId),
     env.DB.prepare(`DELETE FROM instagram_posts WHERE set_id = ?`).bind(setId),
     env.DB.prepare(`DELETE FROM photos WHERE set_id = ?`).bind(setId),
     env.DB.prepare(`DELETE FROM set_categories WHERE set_id = ?`).bind(setId),
     env.DB.prepare(`DELETE FROM license_code_sets WHERE set_id = ?`).bind(setId),
+    env.DB.prepare(`DELETE FROM slug_history WHERE set_id = ?`).bind(setId), // its old addresses
     env.DB.prepare(`DELETE FROM sets WHERE id = ?`).bind(setId),
   ]);
   if (deleted.meta.changes === 0) {
