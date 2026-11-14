@@ -578,6 +578,7 @@ html[data-pointer] :focus-visible:not(input, textarea, select) { outline: none; 
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: scale var(--dur-long) var(--ease-out);
 }
 /* "Featured" or "Latest work", a quiet caption under the cover. */
 .hero-label {
@@ -740,6 +741,13 @@ html[data-pointer] :focus-visible:not(input, textarea, select) { outline: none; 
   width: 100%;
   height: 100%;
   object-fit: cover; /* crop to fill the box instead of stretching */
+  transition: scale var(--dur-long) var(--ease-out);
+}
+/* Pointing at a cover zooms it in slightly, inside its frame. Mouse only:
+   phones have no hover, and a tap would leave it stuck zoomed. */
+@media (hover: hover) {
+  .set-card:hover img,
+  .hero-frame:hover .hero-image { scale: 1.03; }
 }
 .set-card-text { display: flex; flex-direction: column; gap: var(--space-xs); }
 .set-card h2,
@@ -888,8 +896,8 @@ html[data-pointer] :focus-visible:not(input, textarea, select) { outline: none; 
   background: var(--color-paper-2);
   cursor: zoom-in;
 }
-.thumb-button img { transition: opacity var(--dur-micro) var(--ease-out); }
-@media (hover: hover) { .thumb-button:hover img { opacity: 0.88; } } /* see .hero-title-link */
+.thumb-button img { transition: opacity var(--dur-micro) var(--ease-out), scale var(--dur-long) var(--ease-out); }
+@media (hover: hover) { .thumb-button:hover img { opacity: 0.88; scale: 1.015; } } /* see .hero-title-link */
 .thumb-button:focus-visible { outline-offset: 3px; }
 
 /* ---------- Licensed downloads ---------- */
@@ -1502,9 +1510,10 @@ html.photo-transition .site-header { view-transition-name: none; }
   ::view-transition-old(root), ::view-transition-new(root),
   ::view-transition-group(photo), ::view-transition-old(photo), ::view-transition-new(photo) { animation: none; }
   .site-menu, .site-menu::backdrop, .lightbox, .lightbox::backdrop, .lightbox-stage img,
-  .pill, .round-button, .button-link, .thumb-button img, .menu-close, .menu-action, .share-menu,
+  .pill, .round-button, .button-link, .thumb-button img, .set-card img, .hero-image, .menu-close, .menu-action, .share-menu,
   .lightbox-button, .lightbox-download, .lightbox-counter, .lightbox-info, button, .icon-button { transition: none; }
-  :is(.pill, .round-button, .button-link, .menu-close, .menu-action, .lightbox-button, .lightbox-download, button):active { scale: none; }
+  :is(.pill, .round-button, .button-link, .menu-close, .menu-action, .lightbox-button, .lightbox-download, button):active,
+  .set-card:hover img, .hero-frame:hover .hero-image, .thumb-button:hover img { scale: none; }
   html[data-js] img.fade.is-loaded,
   .lightbox[data-state="loading"]::after { animation: none; }
 }
