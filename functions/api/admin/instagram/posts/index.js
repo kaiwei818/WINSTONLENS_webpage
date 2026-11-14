@@ -26,15 +26,20 @@ export async function onRequestPost(context) {
   ).bind(setId, ...ids).all();
   if (found.length !== ids.length) return Response.json({ error: "Some of those photos are not in this set." }, { status: 400 });
 
-  const post = await env.DB.prepare(
-    `INSERT INTO instagram_posts (set_id, orientation, url, note) VALUES (?, ?, ?, ?) RETURNING id`
-  ).bind(setId, orientation, url, cleanNote(body.note)).first();
-  await env.DB.batch([
+  // One batch = one transaction: the record, its photos, and taking them off
+  // your picks all save together, or none of it does. Nothing else writes in
+  // between, so the newest post id is the one just made.
+  const [created] = await env.DB.batch([
+    env.DB.prepare(
+      `INSERT INTO instagram_posts (set_id, orientation, url, note) VALUES (?, ?, ?, ?) RETURNING id`
+    ).bind(setId, orientation, url, cleanNote(body.note)),
     ...ids.map((photoId, position) => env.DB.prepare(
-      `INSERT INTO instagram_post_photos (post_id, photo_id, position) VALUES (?, ?, ?)`
-    ).bind(post.id, photoId, position)),
+      `INSERT INTO instagram_post_photos (post_id, photo_id, position)
+       VALUES ((SELECT MAX(id) FROM instagram_posts), ?, ?)`
+    ).bind(photoId, position)),
     env.DB.prepare(`UPDATE photos SET instagram = 0 WHERE id IN (${ids.map(() => "?").join(",")})`).bind(...ids),
   ]);
+  const post = created.results[0];
   await logActivity(context, "instagram_post",
     `Marked a ${orientation} Instagram post of ${ids.length} ${ids.length === 1 ? "photo" : "photos"} from ${quoted(set.title)} as posted`, setId);
 

@@ -8,7 +8,8 @@
     "db:migrate:remote": "wrangler d1 migrations apply portfolio-db --remote",
     "seed:local": "node scripts/seed-local.mjs",
     "deploy": "node scripts/deploy.mjs",
-    "hash-password": "node scripts/hash-password.mjs"
+    "hash-password": "node scripts/hash-password.mjs",
+    "test": "node --test tests/*.test.mjs"
   },
   "devDependencies": {
     "wrangler": "4.148.0"

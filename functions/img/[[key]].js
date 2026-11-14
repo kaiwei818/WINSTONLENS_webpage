@@ -8,6 +8,8 @@
 // We refuse those, so other sites cannot show your photos using your bandwidth.
 // Requests with no Referer at all are allowed: opening an image link directly,
 // privacy browser settings, and link-preview bots (iMessage, LINE) look like that.
+// But a site can hide its Referer on purpose (<img referrerpolicy="no-referrer">).
+// Browsers still say "Sec-Fetch-Site: cross-site" then, so that is refused too.
 
 export async function onRequestGet({ request, env, params, waitUntil }) {
   if (!isAllowedReferer(request, env)) {
@@ -79,7 +81,7 @@ export const onRequestHead = onRequestGet;
 
 function isAllowedReferer(request, env) {
   const referer = request.headers.get("Referer");
-  if (!referer) return true;
+  if (!referer) return request.headers.get("Sec-Fetch-Site") !== "cross-site";
 
   let refererHost;
   try {

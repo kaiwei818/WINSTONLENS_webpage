@@ -428,7 +428,17 @@ function createPhotoCard(photo, index) {
 // ---------- Rating and Instagram picks (only for you, never shown publicly) ----------
 
 // Saves one or more of a photo's fields; returns the saved photo, or null.
-async function savePhoto(photo, changes) {
+// Saves run one after another, never at the same time. Otherwise pressing 4
+// then 5 quickly (or 5 then P) could finish in the wrong order, and the older
+// answer would win, on the server or on the card.
+let photoSaves = Promise.resolve();
+function savePhoto(photo, changes) {
+  const run = photoSaves.then(() => savePhotoNow(photo, changes));
+  photoSaves = run.catch(() => {});
+  return run;
+}
+
+async function savePhotoNow(photo, changes) {
   const response = await fetch(`/api/admin/photos/${photo.id}`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
@@ -881,7 +891,7 @@ async function uploadItem(item) {
   form.append("taken_at", facts?.takenAt || "");
   for (const size of ["small", "thumb", "display", "download"]) {
     const blob = item.result[size];
-    if (blob) form.append(size, blob, `${size}.${extension(blob)}`);
+    if (blob) form.append(size, blob, `${size}.jpg`);
   }
 
   try {
@@ -923,10 +933,6 @@ $("retry-button").addEventListener("click", () => {
   pumpProcessing();
   if (uploadStarted) pumpUploads();
 });
-
-function extension(blob) {
-  return blob.type === "image/webp" ? "webp" : "jpg";
-}
 
 // ---------- Clearing ----------
 

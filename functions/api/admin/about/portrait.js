@@ -4,15 +4,10 @@
 // The upload page shrinks the photo in the browser first, like set photos
 // (800 and 1200 px versions, no watermark).
 
+import { imageFormat } from "../../../../lib/image-format.js";
 import { ABOUT_KEYS, getSettings, saveSettings } from "../../../../lib/settings.js";
 
 const MAX_BYTES = 15 * 1024 * 1024;
-const IMAGE_TYPES = {
-  jpg: (b) => b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff,
-  png: (b) => b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4e && b[3] === 0x47,
-  webp: (b) => String.fromCharCode(...b.slice(0, 4)) === "RIFF" && String.fromCharCode(...b.slice(8, 12)) === "WEBP",
-};
-const CONTENT_TYPES = { jpg: "image/jpeg", png: "image/png", webp: "image/webp" };
 
 export async function onRequestPost({ request, env }) {
   const form = await request.formData().catch(() => null);
@@ -32,10 +27,9 @@ export async function onRequestPost({ request, env }) {
       return Response.json({ error: `The ${size} image is missing or too large.` }, { status: 400 });
     }
     const bytes = await file.arrayBuffer();
-    const start = new Uint8Array(bytes, 0, Math.min(12, bytes.byteLength));
-    const ext = Object.keys(IMAGE_TYPES).find((type) => IMAGE_TYPES[type](start));
-    if (!ext) return Response.json({ error: "The portrait must be JPEG, PNG, or WebP." }, { status: 400 });
-    stored[size] = { key: `about/${id}-${size}.${ext}`, bytes, contentType: CONTENT_TYPES[ext] };
+    const format = imageFormat(bytes);
+    if (!format) return Response.json({ error: "The portrait must be JPEG, PNG, or WebP." }, { status: 400 });
+    stored[size] = { key: `about/${id}-${size}.${format.ext}`, bytes, contentType: format.type };
   }
 
   await Promise.all(Object.values(stored).map((f) =>

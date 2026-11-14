@@ -14,22 +14,13 @@
 // We still check everything: never trust what a browser sends.
 
 import { logActivity, quoted } from "../../../../lib/activity.js";
+import { imageFormat } from "../../../../lib/image-format.js";
 import { cleanPlaceholder } from "../../../../lib/render.js";
 
-// 15 MB per file. A 3000 px photo at quality 0.9 is usually 1 to 4 MB, but Safari
-// saves JPEG (larger than WebP) and very detailed photos can go higher.
+// 15 MB per file. A 3000 px photo at quality 0.9 is usually 1 to 4 MB, but very
+// detailed photos can go higher. The file type is checked from the file's own
+// first bytes (lib/image-format.js).
 const MAX_BYTES = 15 * 1024 * 1024;
-
-// Every image format starts with a few fixed "magic" bytes. Checking them is
-// more reliable than trusting the file name or the type the browser claims.
-const FORMATS = [
-  { type: "image/jpeg", ext: "jpg", matches: (b) => b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff },
-  { type: "image/png", ext: "png", matches: (b) => b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4e && b[3] === 0x47 },
-  {
-    type: "image/webp", ext: "webp",
-    matches: (b) => text(b, 0, 4) === "RIFF" && text(b, 8, 12) === "WEBP",
-  },
-];
 
 // thumb and display are required. small and medium (phone sizes) are optional,
 // so an upload page left open from before the update still works.
@@ -117,15 +108,10 @@ async function checkImage(file, name) {
   if (file.size > MAX_BYTES) return { error: `The ${name} image is larger than 15 MB.` };
 
   const bytes = await file.arrayBuffer();
-  const start = new Uint8Array(bytes, 0, Math.min(12, bytes.byteLength));
-  const format = FORMATS.find((f) => f.matches(start));
+  const format = imageFormat(bytes);
   if (!format) return { error: `The ${name} image must be JPEG, PNG, or WebP.` };
 
   return { bytes, format };
-}
-
-function text(bytes, from, to) {
-  return String.fromCharCode(...bytes.slice(from, to));
 }
 
 function error(message, status = 400) {

@@ -135,6 +135,7 @@ Secrets never go in the code or on GitHub. `.dev.vars` is listed in `.gitignore`
 | `npm run db:migrate:remote` | Apply database changes to the live site |
 | `npm run seed:local` | Replace local data with three sample sets |
 | `npm run deploy` | Publish to Cloudflare Pages |
+| `npm test` | Check that the admin login lock still holds (tests/) |
 
 ## How it fits together
 
@@ -163,6 +164,7 @@ lib/                     Shared server code: site name (site.js), database queri
                          settings, login, slugs, ordering, security headers, page tags
 migrations/              Database tables, one numbered file per change
 scripts/                 hash-password and seed-local
+tests/                   Automated checks, run with npm test
 ```
 
 ## API
