@@ -94,7 +94,7 @@ $("portrait-input").addEventListener("change", async (event) => {
   form.append("height", result.height);
   for (const size of ["small", "thumb"]) {
     const blob = result[size];
-    form.append(size, blob, `${size}.${blob.type === "image/webp" ? "webp" : "jpg"}`);
+    form.append(size, blob, `${size}.jpg`);
   }
   const response = await fetch("/api/admin/about/portrait", { method: "POST", body: form });
   const data = await response.json().catch(() => ({}));

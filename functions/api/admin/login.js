@@ -22,11 +22,19 @@ export async function onRequestPost(context) {
   const ip = request.headers.get("CF-Connecting-IP") || "local";
   const now = Math.floor(Date.now() / 1000);
 
-  const { failures } = await env.DB.prepare(
-    `SELECT COUNT(*) AS failures FROM login_attempts WHERE ip = ? AND attempted_at > ?`
-  ).bind(ip, now - WINDOW_SECONDS).first();
+  // Record this attempt BEFORE checking anything, then count. If 500 guesses
+  // arrive at the same moment, each one then counts the others too, so only
+  // the first 5 get through. (Counting first would let all 500 see "0 so far".)
+  // A correct login removes the record again, below.
+  const [, , counted] = await env.DB.batch([
+    env.DB.prepare(`INSERT INTO login_attempts (ip, attempted_at) VALUES (?, ?)`).bind(ip, now),
+    // Housekeeping: forget attempts older than the window.
+    env.DB.prepare(`DELETE FROM login_attempts WHERE attempted_at <= ?`).bind(now - WINDOW_SECONDS),
+    env.DB.prepare(`SELECT COUNT(*) AS attempts FROM login_attempts WHERE ip = ? AND attempted_at > ?`)
+      .bind(ip, now - WINDOW_SECONDS),
+  ]);
 
-  if (failures >= MAX_FAILURES) {
+  if (counted.results[0].attempts > MAX_FAILURES) {
     return Response.json(
       { error: "Too many wrong attempts. Please wait 15 minutes and try again." },
       { status: 429, headers: { "Retry-After": String(WINDOW_SECONDS) } }
@@ -45,11 +53,6 @@ export async function onRequestPost(context) {
   ]);
 
   if (!usernameOk || !passwordOk) {
-    await env.DB.batch([
-      env.DB.prepare(`INSERT INTO login_attempts (ip, attempted_at) VALUES (?, ?)`).bind(ip, now),
-      // Housekeeping: forget attempts older than the window.
-      env.DB.prepare(`DELETE FROM login_attempts WHERE attempted_at <= ?`).bind(now - WINDOW_SECONDS),
-    ]);
     await logActivity(context, "login_failed", "Wrong username or password");
     // Never say which one was wrong: that would help someone guessing.
     return Response.json({ error: "Wrong username or password." }, { status: 401 });

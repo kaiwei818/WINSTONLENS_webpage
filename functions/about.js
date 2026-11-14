@@ -5,6 +5,7 @@
 
 import { withPageMeta } from "../lib/meta.js";
 import { contactItems, externalAttrs } from "../lib/contact.js";
+import { escapeHtml } from "../lib/render.js";
 import { ABOUT_KEYS, getSettings } from "../lib/settings.js";
 
 export async function onRequestGet({ request, env }) {
@@ -79,13 +80,4 @@ function portraitHtml(about) {
   return `<img src="/img/${escapeHtml(about.about_portrait_key)}"` +
     (srcset ? ` srcset="${escapeHtml(srcset)}" sizes="(max-width: 700px) calc(100vw - 32px), 420px"` : "") +
     ` width="${width}" height="${height}" alt="Portrait of the photographer">`;
-}
-
-function escapeHtml(text) {
-  return String(text)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
 }
