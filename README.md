@@ -12,7 +12,8 @@ Winston Chang's photography portfolio. It runs on Cloudflare's free tier:
   at a scheduled time,
   rename, reorder, and delete them;
   upload photos (shrunk and watermarked in your browser, full or small style, so originals
-  never leave your computer), optionally with a private clean copy for downloads;
+  never leave your computer), optionally with a private clean copy for downloads
+  (normal, or high resolution up to 6000 px, with a 300 MB limit per set);
   create license codes and categories; get warned about duplicate photos;
   see an activity log of uploads, deletions, license codes, and downloads, and a
   receipt for every licensed download (optionally by email); license checks and
@@ -44,6 +45,8 @@ The original plan is in [photo-portfolio-spec.md](photo-portfolio-spec.md).
 18. [An accessibility and polish pass](docs/lessons/18-uiux-audit.md)
 19. [Blurry previews, photo links, smoother viewer, and faster photos](docs/lessons/19-polish-and-speed.md)
 20. [Renamed sets keep their old links, and other fixes from a code review](docs/lessons/20-review-fixes.md)
+21. [High-resolution clean copies for licensed downloads](docs/lessons/21-high-resolution-downloads.md)
+22. [A lighter viewer on slow connections](docs/lessons/22-slow-connections.md)
 
 ---
 
@@ -136,7 +139,7 @@ Secrets never go in the code or on GitHub. `.dev.vars` is listed in `.gitignore`
 | `npm run db:migrate:remote` | Apply database changes to the live site |
 | `npm run seed:local` | Replace local data with three sample sets |
 | `npm run deploy` | Publish to Cloudflare Pages |
-| `npm test` | Check the admin login lock, the rate limits, and the home page image sizes (tests/) |
+| `npm test` | Check the admin login lock, the rate limits, the home page image sizes, and the slow-connection rule (tests/) |
 
 ## How it fits together
 

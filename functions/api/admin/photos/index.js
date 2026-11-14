@@ -8,6 +8,8 @@
 //   upload pages from before the storage limit, and still accepted)
 //   download (optional): the clean copy for licensed downloads, stored under
 //   "private/", which /img/ refuses to serve
+//   download_hires ("1"): that clean copy is the high-resolution kind (up to
+//   6000 px). A set with those may store 300 MB at most (public/js/clean-copy.js)
 // Saves the files to R2 and adds a row to the photos table.
 //
 // The browser did the resizing, so the 25 MB original never arrives here.
@@ -16,6 +18,7 @@
 import { logActivity, quoted } from "../../../../lib/activity.js";
 import { imageFormat } from "../../../../lib/image-format.js";
 import { cleanPlaceholder } from "../../../../lib/render.js";
+import { SET_LIMIT_BYTES } from "../../../../public/js/clean-copy.js";
 
 // 15 MB per file. A 3000 px photo at quality 0.9 is usually 1 to 4 MB, but very
 // detailed photos can go higher. The file type is checked from the file's own
@@ -68,6 +71,22 @@ export async function onRequestPost(context) {
     files[name] = checked;
   }
 
+  const totalBytes = Object.values(files).reduce((sum, file) => sum + file.bytes.byteLength, 0);
+
+  // High-resolution clean copies are several times bigger, so a set that
+  // takes them has a storage limit. Checked before anything is stored.
+  if (files.download && form.get("download_hires") === "1") {
+    const { used } = await env.DB.prepare(
+      `SELECT COALESCE(SUM(size_bytes), 0) AS used FROM photos WHERE set_id = ?`
+    ).bind(setId).first();
+    if (used + totalBytes > SET_LIMIT_BYTES) {
+      const mb = (bytes) => `${Math.round(bytes / 1024 / 1024)} MB`;
+      return error(
+        `This set is full for high-resolution copies: it stores ${mb(used)} of ${mb(SET_LIMIT_BYTES)}, and this photo needs ${mb(totalBytes)}. ` +
+        `Upload it without the high-resolution box, or free some space in this set first.`, 413);
+    }
+  }
+
   // A random id makes every key unique, which is what lets /img/ cache forever.
   const id = crypto.randomUUID();
   const keys = {};
@@ -79,7 +98,6 @@ export async function onRequestPost(context) {
   await Promise.all(Object.entries(files).map(([name, file]) =>
     env.BUCKET.put(keys[name], file.bytes, { httpMetadata: { contentType: file.format.type } })
   ));
-  const totalBytes = Object.values(files).reduce((sum, file) => sum + file.bytes.byteLength, 0);
 
   try {
     const photo = await env.DB.prepare(

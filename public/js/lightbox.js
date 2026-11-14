@@ -13,9 +13,15 @@
 // place in the grid when opened and shrinks back into it when closed (a "view
 // transition"). Elsewhere, and for visitors who asked for less motion, it fades.
 //
+// Slow connections: a visitor on a slow connection, or with "data saver" on,
+// first gets the 1200 px file instead of the 3000 px one (about a fifth of the
+// data). The full file follows only when they zoom in, or stay on the photo
+// for a moment (connection.js decides what counts as slow).
+//
 // It uses the built-in <dialog> element, which gives us for free: showing on top
 // of everything, closing on Escape, and keeping keyboard focus inside while open.
 
+import { connection, noteFullLoad } from "./connection.js";
 import { img as imageUrl, viewerSrcset } from "./images.js";
 
 const SWIPE_DISTANCE = 50; // pixels a finger must travel to count as a swipe
@@ -27,6 +33,9 @@ const FLICK_MIN = 20; // ...but not a tap that wobbled a little
 // change photos instantly: keyboard users want speed, not movement.
 const SETTLE = { duration: 220, easing: "cubic-bezier(0.16, 1, 0.3, 1)" };
 const SETTLE_DISTANCE = 24; // pixels
+// On a slow connection: how long the visitor stays on a photo before its
+// full-size file is fetched after all. Flicking through a set costs little.
+const STAY_BEFORE_FULL = 2000; // milliseconds
 
 // downloadUrl(photo): optional; returns a download address for this photo, or ""
 // when it cannot be downloaded (no license code entered, or no clean copy).
@@ -89,17 +98,11 @@ export function createLightbox(photos, { downloadUrl = () => "", thumbFor = () =
         SETTLE,
       );
     }
-    const large = loadLarge(photo);
-    large.onload = () => {
-      if (photos[index] !== photo) return; // moved on to another photo meanwhile
-      img.src = large.currentSrc || large.src;
-      setState("");
-      // Only now start on the next one, so it does not slow this one down.
-      preload(index + direction);
-    };
-    large.onerror = () => {
-      if (photos[index] === photo) setState("error");
-    };
+    clearTimeout(stayTimer);
+    waitingForFull = null;
+    const { slow, reason } = connection();
+    if (slow && !zoomed() && !photo.fullLoaded) showLighter(photo, reason);
+    else showFull(photo);
 
     caption.textContent = photo.caption;
     caption.hidden = !photo.caption;
@@ -118,6 +121,59 @@ export function createLightbox(photos, { downloadUrl = () => "", thumbFor = () =
       ? `Photo ${index + 1} of ${photos.length}${photo.alt_text ? `: ${photo.alt_text}` : ""}`
       : "";
     if (wantOpen) rememberAddress();
+  }
+
+  // The full 3000 px file: what every visitor gets on a normal connection.
+  // quiet: it replaces a 1200 px picture already on show (a slow connection),
+  // so no loading line, and a failure just leaves that picture.
+  function showFull(photo, { quiet = false } = {}) {
+    const large = loadLarge(photo);
+    large.onload = () => {
+      const url = large.currentSrc || large.src;
+      noteFullLoad(url); // how fast it came, for the next photo's decision
+      photo.fullLoaded = true;
+      if (photos[index] !== photo) return; // moved on to another photo meanwhile
+      img.src = url;
+      setState("");
+      // Only now start on the next one, so it does not slow this one down.
+      if (!quiet) preload(index + direction);
+    };
+    large.onerror = () => {
+      if (photos[index] === photo && !quiet) setState("error");
+    };
+  }
+
+  // A slow connection: the 1200 px file first. The full one follows when the
+  // visitor stays on this photo, or zooms in (see the zoom listener below).
+  // With "data saver" on, only zooming fetches it: they asked to save data.
+  let stayTimer;
+  let waitingForFull = null; // the photo on show in its 1200 px version
+  function showLighter(photo, reason) {
+    const lighter = new Image();
+    lighter.src = imageUrl(photo.thumb_key);
+    waitingForFull = photo;
+    lighter.onload = () => {
+      // Moved on meanwhile, or the full file was asked for already.
+      if (photos[index] !== photo || waitingForFull !== photo) return;
+      img.src = lighter.src;
+      setState("");
+      // The next photo's light version, so moving on still feels instant.
+      if (reason !== "data-saver" && photos.length > 1) {
+        new Image().src = imageUrl(photos[(index + direction + photos.length) % photos.length].thumb_key);
+      }
+    };
+    // The light file failed: try the full one, the way it always worked.
+    lighter.onerror = () => {
+      if (photos[index] === photo && waitingForFull === photo) upgrade();
+    };
+    if (reason !== "data-saver") stayTimer = setTimeout(upgrade, STAY_BEFORE_FULL);
+  }
+
+  function upgrade() {
+    clearTimeout(stayTimer);
+    const photo = waitingForFull;
+    waitingForFull = null;
+    if (photo && photos[index] === photo && wantOpen) showFull(photo, { quiet: dialog.dataset.state !== "loading" });
   }
 
   // The address follows the photo, a moment after the last change: Safari
@@ -210,6 +266,8 @@ export function createLightbox(photos, { downloadUrl = () => "", thumbFor = () =
   function cleanUp() {
     if (cleanedUp) return;
     cleanedUp = true;
+    clearTimeout(stayTimer);
+    waitingForFull = null;
     document.body.classList.remove("no-scroll");
     const thumb = thumbFor(index);
     thumb?.scrollIntoView({ block: "nearest", behavior: "instant" });
@@ -345,6 +403,8 @@ export function createLightbox(photos, { downloadUrl = () => "", thumbFor = () =
   // anywhere else, instead of changing or closing it.
   window.visualViewport?.addEventListener("resize", () => {
     dialog.style.touchAction = zoomed() ? "auto" : "";
+    // Zooming in is asking for detail: fetch the full-size file now.
+    if (zoomed() && waitingForFull) upgrade();
   });
 
   // How the photo lets go when the finger lifts:
