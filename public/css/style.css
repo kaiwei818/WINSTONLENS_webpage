@@ -105,6 +105,11 @@
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-slide: cubic-bezier(0.2, 0.8, 0.2, 1);
   --dur-micro: 120ms; --dur-short: 220ms; --dur-long: 420ms;
+  --dur-exit: 160ms;  /* leaving is quicker and quieter than arriving */
+  /* A pressed button sinks a little. It uses the separate "scale" property,
+     so it never replaces a button's own transform (the viewer's arrows are
+     centred with one). Small round buttons sink a little further to show it. */
+  --press: 0.97; --press-small: 0.94;
 
   --z-raised: 10; --z-sticky-nav: 20; --z-dropdown: 50; --z-modal: 100; --z-ghost: 1000;
 }
@@ -268,12 +273,12 @@ html[data-pointer] :focus-visible:not(input, textarea, select) { outline: none; 
   white-space: nowrap;
   text-decoration: none;
   cursor: pointer;
-  transition: transform var(--dur-micro) var(--ease-out), background-color var(--dur-micro) var(--ease-out);
+  transition: scale var(--dur-micro) var(--ease-out), background-color var(--dur-micro) var(--ease-out);
 }
 .pill:hover { background: var(--color-ink-2); }
-.pill:active { transform: scale(0.96); }
+.pill:active { scale: var(--press); }
 .pill:disabled,
-.pill[aria-disabled="true"] { background: var(--color-paper-3); color: var(--color-muted); cursor: not-allowed; transform: none; }
+.pill[aria-disabled="true"] { background: var(--color-paper-3); color: var(--color-muted); cursor: not-allowed; scale: none; }
 .pill-gray { background: var(--color-paper-2); color: var(--color-ink); }
 .pill-gray:hover { background: var(--color-paper-3); }
 .pill-on-photo { background: var(--color-night-ink); color: var(--color-night); }
@@ -303,12 +308,12 @@ html[data-pointer] :focus-visible:not(input, textarea, select) { outline: none; 
   background: transparent;
   color: var(--color-ink);
   cursor: pointer;
-  transition: background-color var(--dur-micro) var(--ease-out), transform var(--dur-micro) var(--ease-out);
+  transition: background-color var(--dur-micro) var(--ease-out), scale var(--dur-micro) var(--ease-out);
 }
 /* The tap area reaches 48 px without making the circle bigger. */
 .round-button::after { content: ""; position: absolute; inset: calc(-1 * var(--space-2xs)); }
 .round-button:hover { background: var(--color-paper-2); }
-.round-button:active { transform: scale(0.94); }
+.round-button:active { scale: var(--press-small); }
 .round-button svg {
   width: 22px;
   height: 22px;
@@ -422,15 +427,16 @@ html[data-pointer] :focus-visible:not(input, textarea, select) { outline: none; 
      dialog's "always on top" place at once; Chrome keeps it until the end). */
   z-index: var(--z-modal);
   transform: translateX(100%);
-  transition: transform 0.32s var(--ease-slide), overlay 0.32s allow-discrete, display 0.32s allow-discrete;
+  /* Closing: quicker than opening (below), the visitor is already moving on. */
+  transition: transform var(--dur-short) var(--ease-slide), overlay var(--dur-short) allow-discrete, display var(--dur-short) allow-discrete;
 }
-.site-menu[open] { transform: translateX(0); }
+.site-menu[open] { transform: translateX(0); transition-duration: 0.32s; }
 @starting-style { .site-menu[open] { transform: translateX(100%); } }
 .site-menu::backdrop {
   background: var(--color-scrim-none);
-  transition: background-color 0.32s, overlay 0.32s allow-discrete, display 0.32s allow-discrete;
+  transition: background-color var(--dur-short) var(--ease-out), overlay var(--dur-short) allow-discrete, display var(--dur-short) allow-discrete;
 }
-.site-menu[open]::backdrop { background: var(--color-scrim-soft); }
+.site-menu[open]::backdrop { background: var(--color-scrim-soft); transition-duration: 0.32s; }
 @starting-style { .site-menu[open]::backdrop { background: var(--color-scrim-none); } }
 
 .menu-panel {
@@ -460,9 +466,10 @@ html[data-pointer] :focus-visible:not(input, textarea, select) { outline: none; 
   background: var(--color-paper-2);
   color: var(--color-ink);
   cursor: pointer;
+  transition: background-color var(--dur-micro) var(--ease-out), scale var(--dur-micro) var(--ease-out);
 }
 .menu-close:hover { background: var(--color-paper-3); }
-.menu-close:active { transform: scale(0.94); }
+.menu-close:active { scale: var(--press-small); }
 .menu-nav ul { list-style: none; margin: 0; padding: 0; }
 /* Work, About, Contact: the display letters, large, one under another. */
 .menu-main a {
@@ -520,9 +527,10 @@ html[data-pointer] :focus-visible:not(input, textarea, select) { outline: none; 
   font-weight: 500;
   text-align: left;
   cursor: pointer;
+  transition: background-color var(--dur-micro) var(--ease-out), scale var(--dur-micro) var(--ease-out);
 }
 .menu-action:hover { background: var(--color-paper-3); }
-.menu-action:active { transform: scale(0.98); }
+.menu-action:active { scale: var(--press); }
 
 /* ---------- Home: the first screen ---------- */
 /* The featured set's name in the display letters on the left, as tall as the
@@ -598,8 +606,12 @@ html[data-pointer] :focus-visible:not(input, textarea, select) { outline: none; 
    real link of its own: no layer stretched over the hero, which a pressed
    button (it shrinks a little) would pull out from under the pointer. */
 .hero-title-link { color: inherit; text-decoration: none; text-decoration-thickness: 3px; text-underline-offset: 0.08em; }
-.hero-title-link:hover,
-.hero:has(.hero-frame:hover) .hero-title-link { text-decoration: underline; }
+/* Only with a mouse: on phones a tap leaves :hover stuck on what was tapped,
+   so after Back the card or photo would still look pointed at. */
+@media (hover: hover) {
+  .hero-title-link:hover,
+  .hero:has(.hero-frame:hover) .hero-title-link { text-decoration: underline; }
+}
 .hero-title-link:focus-visible { outline-offset: 4px; }
 .hero-frame { cursor: pointer; }
 .hero-frame:focus-visible { outline-offset: 4px; }
@@ -735,8 +747,10 @@ html[data-pointer] :focus-visible:not(input, textarea, select) { outline: none; 
   text-underline-offset: 0.1em;
   text-decoration-thickness: 2px;
 }
-.set-card:hover h2,
-.set-card:hover h3 { text-decoration: underline; }
+@media (hover: hover) { /* see .hero-title-link */
+  .set-card:hover h2,
+  .set-card:hover h3 { text-decoration: underline; }
+}
 .set-card-meta {
   display: flex;
   flex-wrap: wrap;
@@ -873,7 +887,7 @@ html[data-pointer] :focus-visible:not(input, textarea, select) { outline: none; 
   cursor: zoom-in;
 }
 .thumb-button img { transition: opacity var(--dur-micro) var(--ease-out); }
-.thumb-button:hover img { opacity: 0.88; }
+@media (hover: hover) { .thumb-button:hover img { opacity: 0.88; } } /* see .hero-title-link */
 .thumb-button:focus-visible { outline-offset: 3px; }
 
 /* ---------- Licensed downloads ---------- */
@@ -1025,10 +1039,10 @@ html[data-pointer] :focus-visible:not(input, textarea, select) { outline: none; 
   font-weight: 500;
   white-space: nowrap;
   text-decoration: none;
-  transition: background-color var(--dur-micro) var(--ease-out), transform var(--dur-micro) var(--ease-out);
+  transition: background-color var(--dur-micro) var(--ease-out), scale var(--dur-micro) var(--ease-out);
 }
 .button-link:hover { background: var(--color-ink-2); }
-.button-link:active { transform: scale(0.96); }
+.button-link:active { scale: var(--press); }
 
 /* ---------- Footer: a colophon on every page ---------- */
 /* "Get in touch" set large over the contact rows, then the © line. */
@@ -1117,16 +1131,16 @@ html[data-pointer] :focus-visible:not(input, textarea, select) { outline: none; 
   /* Fades in and out instead of appearing at once. While it fades out, it
      keeps covering the screen, in Safari too (see .site-menu). */
   opacity: 0;
-  transition: opacity 0.25s ease, overlay 0.25s allow-discrete, display 0.25s allow-discrete;
+  transition: opacity var(--dur-exit) var(--ease-out), overlay var(--dur-exit) allow-discrete, display var(--dur-exit) allow-discrete;
 }
-.lightbox[open] { opacity: 1; }
+.lightbox[open] { opacity: 1; transition-duration: var(--dur-short); }
 @starting-style { .lightbox[open] { opacity: 0; } }
 .lightbox::backdrop {
   background: var(--color-night);
   opacity: 0;
-  transition: opacity 0.25s ease, overlay 0.25s allow-discrete, display 0.25s allow-discrete;
+  transition: opacity var(--dur-exit) var(--ease-out), overlay var(--dur-exit) allow-discrete, display var(--dur-exit) allow-discrete;
 }
-.lightbox[open]::backdrop { opacity: 1; }
+.lightbox[open]::backdrop { opacity: 1; transition-duration: var(--dur-short); }
 @starting-style { .lightbox[open]::backdrop { opacity: 0; } }
 
 .lightbox-stage {
@@ -1152,7 +1166,7 @@ html[data-pointer] :focus-visible:not(input, textarea, select) { outline: none; 
   /* Under the photo, its tiny blurry preview, until the picture is drawn. */
   background: var(--ph, none) center / cover no-repeat;
   /* Springs back after a swipe that was too short (see lightbox.js). */
-  transition: transform 0.15s ease;
+  transition: transform var(--dur-short) var(--ease-out);
 }
 .lightbox-counter {
   position: absolute;
@@ -1192,10 +1206,9 @@ html[data-pointer] :focus-visible:not(input, textarea, select) { outline: none; 
   color: var(--color-night-ink);
   line-height: 1;
   cursor: pointer;
-  transition: background-color var(--dur-micro) var(--ease-out);
 }
 .lightbox-button:hover { background: var(--color-night-3); }
-.lightbox-button:active { background: var(--color-night-3); }
+.lightbox-button:active { background: var(--color-night-3); scale: var(--press-small); }
 .lightbox-button svg {
   display: block;
   margin: auto;
@@ -1226,9 +1239,18 @@ html[data-pointer] :focus-visible:not(input, textarea, select) { outline: none; 
   font-weight: 500;
   white-space: nowrap;
   text-decoration: none;
-  transition: background-color var(--dur-micro) var(--ease-out);
 }
 .lightbox-download:hover { background: var(--color-night-ink-2); }
+.lightbox-download:active { scale: var(--press); }
+/* The viewer's buttons and words. While a finger drags the photo down to
+   close it, they step aside, so only the photo moves (lightbox.js). */
+.lightbox-button,
+.lightbox-download,
+.lightbox-counter,
+.lightbox-info {
+  transition: opacity var(--dur-micro) var(--ease-out), background-color var(--dur-micro) var(--ease-out), scale var(--dur-micro) var(--ease-out);
+}
+.lightbox[data-dragging] :is(.lightbox-button, .lightbox-download, .lightbox-counter, .lightbox-info) { opacity: 0; }
 
 /* On phones, swiping replaces the arrows, so they stop covering the photo.
    They are only hidden from sight: screen readers still find them. */
@@ -1318,7 +1340,12 @@ html[data-pointer] :focus-visible:not(input, textarea, select) { outline: none; 
   padding: var(--space-xs);
   background: var(--color-paper);
   border: 1px solid var(--color-rule-strong);
+  /* Arrives from its button (it opens under it, at the right): a short fade
+     and drop. Closing simply removes it. */
+  transform-origin: top right;
+  transition: opacity var(--dur-short) var(--ease-out), translate var(--dur-short) var(--ease-out);
 }
+@starting-style { .share-menu { opacity: 0; translate: 0 -4px; } }
 .share-item {
   display: flex;
   align-items: center;
@@ -1412,8 +1439,8 @@ main img,
 .thumb-button img { position: relative; }
 .set-card-image .placeholder { z-index: 0; }
 html[data-js] img.fade:not(.is-loaded) { opacity: 0; }
-.thumb-button img.fade,
-.set-card img.fade { transition: opacity 0.45s ease; }
+html[data-js] img.fade.is-loaded { animation: photo-in var(--dur-long) var(--ease-out); }
+@keyframes photo-in { from { opacity: 0; } }
 /* A photo that could not load: keep its preview, not a broken-image icon. */
 html[data-js] img.fade.is-broken { visibility: hidden; }
 
@@ -1421,8 +1448,8 @@ html[data-js] img.fade.is-broken { visibility: hidden; }
 /* Browsers that support it fade from one page to the next instead of flashing
    white, while the header stays still. */
 @view-transition { navigation: auto; }
-::view-transition-old(root) { animation: page-out 0.18s ease both; }
-::view-transition-new(root) { animation: page-in 0.28s ease both; }
+::view-transition-old(root) { animation: page-out var(--dur-exit) var(--ease-out) both; }
+::view-transition-new(root) { animation: page-in var(--dur-short) var(--ease-out) both; }
 @keyframes page-out { to { opacity: 0; } }
 @keyframes page-in { from { opacity: 0; transform: translateY(8px); } }
 
@@ -1442,8 +1469,8 @@ html { scroll-behavior: smooth; scroll-padding-top: 80px; }
   animation-duration: 0.36s;
   height: 100%; /* both pictures have the photo's own shape: no squashing */
 }
-html.photo-transition::view-transition-old(root) { animation: viewer-fade-out 0.3s ease both; }
-html.photo-transition::view-transition-new(root) { animation: viewer-fade-in 0.3s ease both; }
+html.photo-transition::view-transition-old(root) { animation: viewer-fade-out 0.3s var(--ease-out) both; }
+html.photo-transition::view-transition-new(root) { animation: viewer-fade-in 0.3s var(--ease-out) both; }
 @keyframes viewer-fade-out { to { opacity: 0; } }
 @keyframes viewer-fade-in { from { opacity: 0; } }
 html.photo-transition .lightbox,
@@ -1473,9 +1500,10 @@ html.photo-transition .site-header { view-transition-name: none; }
   ::view-transition-old(root), ::view-transition-new(root),
   ::view-transition-group(photo), ::view-transition-old(photo), ::view-transition-new(photo) { animation: none; }
   .site-menu, .site-menu::backdrop, .lightbox, .lightbox::backdrop, .lightbox-stage img,
-  .pill, .round-button, .button-link, .thumb-button img, .set-card img.fade, .thumb-button img.fade,
-  .lightbox-button, .lightbox-download, button, .icon-button { transition: none; }
-  .pill:active, .round-button:active, .button-link:active, .menu-close:active, .menu-action:active, button:active { transform: none; }
+  .pill, .round-button, .button-link, .thumb-button img, .menu-close, .menu-action, .share-menu,
+  .lightbox-button, .lightbox-download, .lightbox-counter, .lightbox-info, button, .icon-button { transition: none; }
+  :is(.pill, .round-button, .button-link, .menu-close, .menu-action, .lightbox-button, .lightbox-download, button):active { scale: none; }
+  html[data-js] img.fade.is-loaded,
   .lightbox[data-state="loading"]::after { animation: none; }
 }
 
@@ -1546,10 +1574,10 @@ button {
   line-height: 1.2;
   white-space: nowrap;
   cursor: pointer;
-  transition: background-color var(--dur-micro) var(--ease-out), border-color var(--dur-micro) var(--ease-out), transform var(--dur-micro) var(--ease-out);
+  transition: background-color var(--dur-micro) var(--ease-out), border-color var(--dur-micro) var(--ease-out), scale var(--dur-micro) var(--ease-out);
 }
 button:hover { background: var(--color-ink-2); }
-button:active { transform: scale(0.97); }
+button:active { scale: var(--press); }
 /* Three channels: a gray fill, gray text, and the "not allowed" pointer, on
    top of the disabled attribute itself. */
 button:disabled,
@@ -1558,7 +1586,7 @@ button:disabled:hover {
   border-color: transparent;
   color: var(--color-muted);
   cursor: not-allowed;
-  transform: none;
+  scale: none;
 }
 .button-secondary {
   background: transparent;
