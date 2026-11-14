@@ -12,7 +12,8 @@ Winston Chang's photography portfolio. It runs on Cloudflare's free tier:
   at a scheduled time,
   rename, reorder, and delete them;
   upload photos (shrunk and watermarked in your browser, full or small style, so originals
-  never leave your computer), optionally with a private clean copy for downloads;
+  never leave your computer), optionally with a private clean copy for downloads
+  (normal, or high resolution up to 6000 px, with a 1 GB limit per set);
   create license codes and categories; get warned about duplicate photos;
   see an activity log of uploads, deletions, license codes, and downloads, and a
   receipt for every licensed download (optionally by email); license checks and
@@ -44,6 +45,7 @@ The original plan is in [photo-portfolio-spec.md](photo-portfolio-spec.md).
 18. [An accessibility and polish pass](docs/lessons/18-uiux-audit.md)
 19. [Blurry previews, photo links, smoother viewer, and faster photos](docs/lessons/19-polish-and-speed.md)
 20. [Renamed sets keep their old links, and other fixes from a code review](docs/lessons/20-review-fixes.md)
+21. [High-resolution clean copies for licensed downloads](docs/lessons/21-high-resolution-downloads.md)
 
 ---
 

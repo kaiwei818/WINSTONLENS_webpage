@@ -15,6 +15,7 @@
 import { configureQuickLook, openQuickLook } from "./quick-look.js";
 import { GROUPS, groupCounts, groupLimitNote, groupShortText } from "./picks-limit.js";
 import { postRecordList } from "./instagram-posts.js";
+import { SET_LIMIT_BYTES } from "./clean-copy.js";
 import { readCaptureKey } from "./exif.js";
 import { makePlaceholder } from "./placeholder.js";
 import { currentIds, makeSortable, moveItem } from "./sortable.js";
@@ -27,6 +28,7 @@ const $ = (id) => document.getElementById(id);
 const baseTitle = document.title; // "Set · Admin | winstonlens"
 const wmOn = $("wm-on");
 const keepClean = $("keep-clean");
+const cleanHiRes = $("clean-hires");
 const wmText = $("wm-text");
 const wmStyleInputs = [...document.querySelectorAll('input[name="wm-style"]')];
 
@@ -48,6 +50,8 @@ async function loadSet() {
     return;
   }
   set = await response.json();
+  setBytes = set.photos.reduce((sum, photo) => sum + (photo.size_bytes || 0), 0);
+  showSetRoom();
   showDetails();
   renderExisting();
   loadCategories();
@@ -813,7 +817,7 @@ async function processItem(item) {
   const result = await new Promise((resolve) => {
     worker.onmessage = (event) => resolve(event.data);
     worker.onerror = () => resolve({ error: "Processing failed." });
-    worker.postMessage({ id: item.id, file: item.file, watermark: currentWatermark(), watermarkStyle: watermarkStyle(), keepClean: keepClean.checked });
+    worker.postMessage({ id: item.id, file: item.file, watermark: currentWatermark(), watermarkStyle: watermarkStyle(), keepClean: keepClean.checked, hiRes: keepClean.checked && cleanHiRes.checked });
   });
 
   if (result.error) {
@@ -889,6 +893,8 @@ async function uploadItem(item) {
   form.append("original_name", item.file.name);
   form.append("original_hash", facts?.hash || "");
   form.append("taken_at", facts?.takenAt || "");
+  // A high-resolution clean copy: the server checks the set's storage limit.
+  if (item.result.cleanHiRes) form.append("download_hires", "1");
   for (const size of ["small", "thumb", "display", "download"]) {
     const blob = item.result[size];
     if (blob) form.append(size, blob, `${size}.jpg`);
@@ -902,6 +908,8 @@ async function uploadItem(item) {
       throw new Error(data.error || `Server said ${response.status}`);
     }
     item.status = "done";
+    setBytes += (await response.json().catch(() => ({}))).size_bytes || 0;
+    showSetRoom();
   } catch (err) {
     if (!item.uploadRetried) {
       // Networks hiccup. Try once more before calling it a failure.
@@ -1112,7 +1120,11 @@ function renderItem(item) {
     const { small, thumb, display, cameraInfo } = item.result;
     const online = small.size + thumb.size + display.size;
     sizes.textContent = `${formatBytes(item.file.size)} → ${formatBytes(online)} online (3 sizes)`;
-    if (item.result.download) sizes.textContent += ` + ${formatBytes(item.result.download.size)} private clean copy`;
+    if (item.result.download) {
+      const { cleanSize, cleanHiRes: big } = item.result;
+      sizes.textContent += ` + ${formatBytes(item.result.download.size)} private clean copy` +
+        (cleanSize ? ` (${big ? "high resolution, " : ""}${cleanSize.width} × ${cleanSize.height})` : "");
+    }
     if (cameraInfo) sizes.textContent += ` · ${cameraInfo}`;
   }
 }
@@ -1137,6 +1149,13 @@ function renderSummary() {
     const online = shrunk.reduce((sum, i) => sum + i.result.small.size + i.result.thumb.size + i.result.display.size, 0);
     const clean = shrunk.reduce((sum, i) => sum + (i.result.download?.size || 0), 0);
     text += ` Storage: ${formatBytes(online)}` + (clean ? ` + ${formatBytes(clean)} clean copies.` : ".");
+    // High-resolution copies only fit while the set stays under its limit.
+    const waiting = items.filter((i) => i.result && i.status === "ready");
+    const coming = waiting.reduce((sum, i) =>
+      sum + i.result.small.size + i.result.thumb.size + i.result.display.size + (i.result.download?.size || 0), 0);
+    if (waiting.some((i) => i.result.cleanHiRes) && setBytes + coming > SET_LIMIT_BYTES) {
+      text += ` These do not all fit: the set would store ${formatBytes(setBytes + coming)}, and with high-resolution copies the limit is ${formatBytes(SET_LIMIT_BYTES)}. Remove some, or start again without the high-resolution box.`;
+    }
   }
   const duplicates = items.filter((i) => i.duplicates?.length && i.status !== "done" && i.status !== "uploading").length;
   if (duplicates) text += ` ${duplicates} possible ${duplicates === 1 ? "duplicate" : "duplicates"}: see the yellow notes.`;
@@ -1155,6 +1174,7 @@ function renderSummary() {
   // The watermark is baked in while shrinking, so it cannot change mid-batch.
   const locked = isBusy() || ready > 0;
   wmOn.disabled = wmText.disabled = keepClean.disabled = locked;
+  cleanHiRes.disabled = locked || !keepClean.checked;
   for (const input of wmStyleInputs) input.disabled = locked;
 }
 
@@ -1165,6 +1185,21 @@ function isBusy() {
 window.addEventListener("beforeunload", (event) => {
   if (isBusy() || items.some((i) => i.status === "ready")) event.preventDefault();
 });
+
+// ---------- High-resolution clean copies ----------
+// Only for downloadable photos, so the box needs "clean copy" ticked first.
+keepClean.addEventListener("change", () => {
+  cleanHiRes.disabled = !keepClean.checked;
+  if (!keepClean.checked) cleanHiRes.checked = false;
+});
+
+// What this set stores now, counted up as uploads finish, and the room left
+// under the limit for sets with high-resolution copies (clean-copy.js).
+let setBytes = 0;
+function showSetRoom() {
+  const left = Math.max(0, SET_LIMIT_BYTES - setBytes);
+  $("set-room").textContent = `This set uses ${formatBytes(setBytes)}; ${formatBytes(left)} left.`;
+}
 
 function formatBytes(bytes) {
   if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;

@@ -7,7 +7,9 @@
 //   thumb   1200 px on the long edge   (grids on computers, home page cards)
 //   display 3000 px on the long edge   (the full-screen viewer, on every screen)
 //   download 3000 px JPEG, NO watermark, only if you ticked "clean copy"; kept
-//            private and given out only with a license code
+//            private and given out only with a license code. With "high
+//            resolution" also ticked: the photo's own size, up to 6000 px, at
+//            a higher quality (limits in clean-copy.js)
 //   placeholder  an 8 px color grid for the blurry preview, as text (js/placeholder.js)
 // Every public size gets the watermark, in the style you picked:
 //   full   repeated diagonally across the whole photo (strong on the viewer
@@ -34,6 +36,7 @@
 // original's hidden data (EXIF: GPS location, camera serial number) is left behind.
 // Before that, we read just the camera details we want to show (exif.js).
 
+import { HIRES } from "./clean-copy.js";
 import { readCameraInfo } from "./exif.js";
 import { makePlaceholder } from "./placeholder.js";
 import { drawWatermark } from "./watermark.js";
@@ -50,10 +53,10 @@ const SIZES = {
 };
 
 self.onmessage = async (event) => {
-  const { id, file, watermark, watermarkStyle = "full", keepClean } = event.data;
+  const { id, file, watermark, watermarkStyle = "full", keepClean, hiRes } = event.data;
   try {
     const [images, cameraInfo] = await Promise.all([
-      processPhoto(file, watermark, watermarkStyle, keepClean),
+      processPhoto(file, watermark, watermarkStyle, keepClean, hiRes),
       readCameraInfo(file),
     ]);
     self.postMessage({ id, ...images, cameraInfo });
@@ -66,7 +69,8 @@ self.onmessage = async (event) => {
 
 // keepClean: also make a private, clean 3000 px JPEG ("download"), for
 // visitors with a license code. It is saved BEFORE any watermark is drawn.
-async function processPhoto(file, watermark, watermarkStyle, keepClean) {
+// hiRes: make that copy from the original at up to 6000 px instead (below).
+async function processPhoto(file, watermark, watermarkStyle, keepClean, hiRes) {
   // "from-image" applies the camera's rotation flag, so portrait shots stand upright.
   const original = await createImageBitmap(file, { imageOrientation: "from-image" });
   const canvases = {};
@@ -74,18 +78,34 @@ async function processPhoto(file, watermark, watermarkStyle, keepClean) {
     // Each size is made from the next bigger one: much faster than starting
     // from the 6000 px original every time. All are still clean at this point.
     canvases.display = shrink(original, SIZES.display.edge);
+
+    const blobs = {};
+    // The high-resolution clean copy has to come from the original, so it is
+    // made now, before the original is let go. Only when the original is
+    // really bigger than the normal 3000 px copy. If the browser cannot do it
+    // (phones and Safari run out of image memory on very large photos), the
+    // normal clean copy is made further down instead.
+    let cleanSize = null;
+    if (keepClean && hiRes && Math.max(original.width, original.height) > SIZES.display.edge) {
+      try {
+        ({ blob: blobs.download, ...cleanSize } = await encodeHiRes(original));
+      } catch {
+        delete blobs.download;
+        cleanSize = null;
+      }
+    }
     original.close(); // free the ~100 MB of decoded pixels as early as possible
     canvases.thumb = shrink(canvases.display, SIZES.thumb.edge);
     canvases.small = shrink(canvases.thumb, SIZES.small.edge);
 
-    const blobs = {};
     // Made before the watermark: at 8 px it would only be a smudge anyway.
     const placeholder = await makePlaceholder(canvases.small, canvases.small.width, canvases.small.height).catch(() => "");
 
     // JPEG for the download: every program can open it. High quality, since
     // this is the copy people license.
-    if (keepClean) {
+    if (keepClean && !blobs.download) {
       blobs.download = await canvases.display.convertToBlob({ type: "image/jpeg", quality: 0.92 });
+      cleanSize = { width: canvases.display.width, height: canvases.display.height };
     }
 
     // Now mark every public size.
@@ -105,7 +125,10 @@ async function processPhoto(file, watermark, watermarkStyle, keepClean) {
       ({ width, height } = blobs.display.fallback);
       blobs.display = blobs.display.blob;
     }
-    return { ...blobs, width, height, placeholder };
+    // cleanSize: the clean copy's size in pixels. cleanHiRes: it is the
+    // high-resolution kind (counts toward the set's storage limit).
+    const cleanHiRes = Boolean(cleanSize) && Math.max(cleanSize.width, cleanSize.height) > SIZES.display.edge;
+    return { ...blobs, width, height, placeholder, cleanSize, cleanHiRes };
   } finally {
     original.close(); // safe to call twice
     Object.values(canvases).forEach(release);
@@ -133,6 +156,33 @@ async function encodeWithin(canvas, size) {
   } finally {
     release(smaller);
   }
+}
+
+// The high-resolution clean copy: the original at its own size (6000 px at
+// most), saved at the first quality whose file fits within HIRES.maxBytes;
+// if none fits, a little smaller. Returns { blob, width, height }.
+async function encodeHiRes(original) {
+  const attempts = [HIRES, HIRES.fallback];
+  for (const { edge, qualities } of attempts) {
+    const canvas = fit(original, edge);
+    try {
+      for (const quality of qualities) {
+        const blob = await canvas.convertToBlob({ type: "image/jpeg", quality });
+        if (blob.size <= HIRES.maxBytes) return { blob, width: canvas.width, height: canvas.height };
+      }
+    } finally {
+      release(canvas);
+    }
+  }
+  // Still too big: the server would refuse it, so fall back to the normal copy.
+  throw new Error("too large");
+}
+
+// The source at its own size, or scaled down so its long edge is `edge`.
+// One step is enough here: at most a small reduction, never below half.
+function fit(source, edge) {
+  const scale = Math.min(1, edge / Math.max(source.width, source.height));
+  return draw(source, Math.round(source.width * scale), Math.round(source.height * scale));
 }
 
 // A canvas keeps its pixels in memory until the browser gets around to cleaning
