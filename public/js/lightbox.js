@@ -19,6 +19,14 @@
 import { img as imageUrl, viewerSrcset } from "./images.js";
 
 const SWIPE_DISTANCE = 50; // pixels a finger must travel to count as a swipe
+// A quick flick counts too, even when it is short: pixels per millisecond.
+const FLICK_SPEED = 0.4;
+const FLICK_MIN = 20; // ...but not a tap that wobbled a little
+// A new photo settles in from the side it came from (a swipe, a click on ‹ ›).
+// Same timing as --dur-short and --ease-out in style.css. The arrow keys
+// change photos instantly: keyboard users want speed, not movement.
+const SETTLE = { duration: 220, easing: "cubic-bezier(0.16, 1, 0.3, 1)" };
+const SETTLE_DISTANCE = 24; // pixels
 
 // downloadUrl(photo): optional; returns a download address for this photo, or ""
 // when it cannot be downloaded (no license code entered, or no clean copy).
@@ -46,7 +54,10 @@ export function createLightbox(photos, { downloadUrl = () => "", thumbFor = () =
   let wantOpen = false;
   const closeButton = document.getElementById("lightbox-close");
 
-  function show(newIndex) {
+  // from: -1 or 1 to let the photo settle in from the left or the right (see
+  // SETTLE above); 0, the default, shows it at once.
+  let settling = null;
+  function show(newIndex, { from = 0 } = {}) {
     const previous = index;
     index = (newIndex + photos.length) % photos.length; // wrap around at the ends
     if (index !== previous) direction = newIndex < previous ? -1 : 1;
@@ -69,6 +80,14 @@ export function createLightbox(photos, { downloadUrl = () => "", thumbFor = () =
     } else {
       img.style.removeProperty("--ratio");
       img.style.removeProperty("--w");
+    }
+    settling?.cancel();
+    settling = null;
+    if (from && dialog.open && !lessMotion.matches) {
+      settling = img.animate(
+        [{ opacity: 0, transform: `translateX(${from * SETTLE_DISTANCE}px)` }, { opacity: 1, transform: "none" }],
+        SETTLE,
+      );
     }
     const large = loadLarge(photo);
     large.onload = () => {
@@ -173,7 +192,13 @@ export function createLightbox(photos, { downloadUrl = () => "", thumbFor = () =
   function showDialog(instant) {
     morph("open", () => {
       if (!wantOpen || dialog.open) return; // closed again meanwhile
+      // A photo dragged down to close keeps its place until the viewer is
+      // gone (it shrinks or fades from there); put it back for this opening.
+      img.style.transition = "none";
+      img.style.transform = "";
+      delete dialog.dataset.dragging;
       dialog.showModal();
+      img.style.transition = "";
       document.body.classList.add("no-scroll");
       cleanedUp = false;
       status.textContent = "";
@@ -277,8 +302,10 @@ export function createLightbox(photos, { downloadUrl = () => "", thumbFor = () =
   }
 
   closeButton.addEventListener("click", close);
-  prevButton.addEventListener("click", () => show(index - 1));
-  nextButton.addEventListener("click", () => show(index + 1));
+  // A click from the keyboard (Enter or Space on the button) has no pointer
+  // position (detail is 0): that one changes the photo instantly too.
+  prevButton.addEventListener("click", (event) => show(index - 1, { from: event.detail ? -1 : 0 }));
+  nextButton.addEventListener("click", (event) => show(index + 1, { from: event.detail ? 1 : 0 }));
 
   dialog.addEventListener("keydown", (event) => {
     if (event.altKey || event.ctrlKey || event.metaKey) return;
@@ -299,15 +326,17 @@ export function createLightbox(photos, { downloadUrl = () => "", thumbFor = () =
     const photo = img.getBoundingClientRect();
     const levelWithPhoto = event.clientY >= photo.top && event.clientY <= photo.bottom;
     if (mouse.matches && photos.length > 1 && levelWithPhoto) {
-      if (event.clientX < photo.left) return show(index - 1);
-      if (event.clientX > photo.right) return show(index + 1);
+      if (event.clientX < photo.left) return show(index - 1, { from: -1 });
+      if (event.clientX > photo.right) return show(index + 1, { from: 1 });
     }
     close();
   });
 
   // ---------- Swipes ----------
-  // While a finger moves sideways, the photo moves with it. Not with a mouse,
-  // not while zoomed in, and not for visitors who asked for less motion.
+  // While a finger moves sideways, the photo moves with it; dragged down, it
+  // follows the finger and shrinks a little, ready to close. Not with a mouse,
+  // not while zoomed in, and not for visitors who asked for less motion (for
+  // them a swipe still works, the photo just does not follow the finger).
   const fingers = new Set(); // pointers touching the screen now
   const zoomed = () => (window.visualViewport?.scale || 1) > 1.01;
   let start = null;
@@ -318,50 +347,76 @@ export function createLightbox(photos, { downloadUrl = () => "", thumbFor = () =
     dialog.style.touchAction = zoomed() ? "auto" : "";
   });
 
-  function release(event, instant) {
+  // How the photo lets go when the finger lifts:
+  //   "spring"  glides back to the middle (a swipe that was too short)
+  //   "jump"    back to the middle at once (a new photo is about to settle in)
+  //   "keep"    stays where it was dragged (the viewer closes from there)
+  function release(event, how) {
     fingers.delete(event.pointerId);
-    img.style.transition = instant ? "none" : ""; // a short swipe springs back
+    if (how === "keep") return;
+    delete dialog.dataset.dragging;
+    img.style.transition = how === "jump" ? "none" : "";
     img.style.transform = "";
-    if (instant) {
+    if (how === "jump") {
       void img.offsetWidth; // apply the jump now, before the spring-back is turned on again
       img.style.transition = "";
     }
+  }
+
+  // Far enough, or fast enough (a flick with a finger), to count.
+  function counts(distance, elapsed, far, pointerType) {
+    const flick = pointerType !== "mouse" && distance > FLICK_MIN && distance / elapsed > FLICK_SPEED;
+    return distance > far || flick;
   }
 
   dialog.addEventListener("pointerdown", (event) => {
     if (event.isPrimary) fingers.clear(); // the first finger of a new touch
     fingers.add(event.pointerId);
     // A second finger means a pinch, not a swipe.
-    start = fingers.size === 1 ? { x: event.clientX, y: event.clientY } : null;
+    start = fingers.size === 1 ? { x: event.clientX, y: event.clientY, t: event.timeStamp } : null;
   });
   dialog.addEventListener("pointermove", (event) => {
     if (!start || event.pointerType === "mouse" || fingers.size !== 1 || zoomed() || lessMotion.matches) return;
     const dx = event.clientX - start.x;
-    const sideways = Math.abs(dx) > Math.abs(event.clientY - start.y);
+    const dy = event.clientY - start.y;
     img.style.transition = "none";
-    img.style.transform = sideways ? `translateX(${dx}px)` : "";
+    if (Math.abs(dx) > Math.abs(dy)) {
+      delete dialog.dataset.dragging;
+      img.style.transform = `translateX(${dx}px)`;
+    } else if (dy > 0) {
+      // Down: follow the finger, a little smaller the further it goes.
+      const shrink = 1 - Math.min(dy / innerHeight, 1) * 0.25;
+      dialog.dataset.dragging = "";
+      img.style.transform = `translateY(${dy}px) scale(${shrink})`;
+    } else {
+      delete dialog.dataset.dragging;
+      img.style.transform = "";
+    }
   });
   dialog.addEventListener("pointercancel", (event) => {
     start = null;
-    release(event, false);
+    release(event, "spring");
   });
   dialog.addEventListener("pointerup", (event) => {
     if (!start || zoomed()) {
       start = null;
-      release(event, false);
+      release(event, "spring");
       return;
     }
     const dx = event.clientX - start.x;
     const dy = event.clientY - start.y;
+    const elapsed = Math.max(1, event.timeStamp - start.t);
     start = null;
-    if (Math.abs(dx) > SWIPE_DISTANCE && Math.abs(dx) > Math.abs(dy)) {
-      release(event, true); // the next photo appears in the middle, not where the finger was
-      show(dx < 0 ? index + 1 : index - 1); // finger moved left: next photo
-    } else if (dy > SWIPE_DISTANCE * 2 && Math.abs(dy) > Math.abs(dx)) {
-      release(event, true);
+    if (Math.abs(dx) > Math.abs(dy) && counts(Math.abs(dx), elapsed, SWIPE_DISTANCE, event.pointerType)) {
+      release(event, "jump");
+      // Finger moved left: the next photo, arriving from the right.
+      if (dx < 0) show(index + 1, { from: 1 });
+      else show(index - 1, { from: -1 });
+    } else if (dy > Math.abs(dx) && counts(dy, elapsed, SWIPE_DISTANCE * 2, event.pointerType)) {
+      release(event, "keep");
       close(); // swipe down
     } else {
-      release(event, false);
+      release(event, "spring");
     }
   });
 
