@@ -9,7 +9,7 @@
 //   download (optional): the clean copy for licensed downloads, stored under
 //   "private/", which /img/ refuses to serve
 //   download_hires ("1"): that clean copy is the high-resolution kind (up to
-//   6000 px). A set with those may store 1 GB at most (public/js/clean-copy.js)
+//   6000 px). A set with those may store 300 MB at most (public/js/clean-copy.js)
 // Saves the files to R2 and adds a row to the photos table.
 //
 // The browser did the resizing, so the 25 MB original never arrives here.

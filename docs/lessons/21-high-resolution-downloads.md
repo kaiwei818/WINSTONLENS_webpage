@@ -35,15 +35,15 @@ After shrinking, each photo's line says what it got, for example
   photos, run out of image memory), that photo quietly gets the normal clean
   copy instead, and its line shows the smaller size.
 
-## The limit: 1 GB per set
+## The limit: 300 MB per set
 
 High-resolution copies are several times bigger, and the free storage is
-10 GB for the whole site. So a set that takes them may store **1 GB at most**,
-everything counted (all sizes plus clean copies): about 80 to 150
+10 GB for the whole site. So a set that takes them may store **300 MB at most**,
+everything counted (all sizes plus clean copies): about 25 to 40
 high-resolution photos.
 
 - Under the box, the page shows the room left: "This set uses 240.0 MB;
-  784.0 MB left."
+  60.0 MB left."
 - If the photos you added would not fit, the summary says so before you
   upload.
 - The server checks again for every photo, and refuses one that would pass
@@ -52,7 +52,7 @@ high-resolution photos.
 - Uploads **without** the high-resolution box are not limited, exactly as
   before, so your normal bulk uploads behave the same.
 
-To change the numbers (6000 px, 12 MB per file, 1 GB per set), edit
+To change the numbers (6000 px, 12 MB per file, 300 MB per set), edit
 `public/js/clean-copy.js`. Only photos uploaded afterwards change.
 
 ## Good to know

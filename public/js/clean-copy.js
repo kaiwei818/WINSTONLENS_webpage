@@ -19,6 +19,7 @@ export const HIRES = {
 };
 
 // Everything one set stores (all sizes plus clean copies) may not pass this
-// once high-resolution copies are involved. 1 GB is a tenth of the 10 GB of
-// free storage: about 80 to 150 high-resolution photos.
-export const SET_LIMIT_BYTES = 1024 * MB;
+// once high-resolution copies are involved. 300 MB is about 25 to 40
+// high-resolution photos, and keeps the whole site well inside the 10 GB of
+// free storage: thirty such sets would still fit.
+export const SET_LIMIT_BYTES = 300 * MB;
