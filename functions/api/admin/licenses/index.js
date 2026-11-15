@@ -4,6 +4,7 @@
 
 import { logActivity, quoted } from "../../../../lib/activity.js";
 import { codeName, newCode } from "../../../../lib/license.js";
+import { isPublicSql } from "../../../../lib/visibility.js";
 
 export async function onRequestGet({ env }) {
   const { results: codes } = await env.DB.prepare(
@@ -11,10 +12,11 @@ export async function onRequestGet({ env }) {
      FROM license_codes ORDER BY id DESC`
   ).all();
   const { results: links } = await env.DB.prepare(
-    `SELECT ls.code_id, s.id, s.title FROM license_code_sets ls JOIN sets s ON s.id = ls.set_id`
+    `SELECT ls.code_id, s.id, s.title, s.slug, ${isPublicSql()} AS published
+     FROM license_code_sets ls JOIN sets s ON s.id = ls.set_id`
   ).all();
   for (const code of codes) {
-    code.sets = links.filter((l) => l.code_id === code.id).map(({ id, title }) => ({ id, title }));
+    code.sets = links.filter((l) => l.code_id === code.id).map(({ id, title, slug, published }) => ({ id, title, slug, published }));
   }
   return Response.json(codes);
 }
