@@ -27,6 +27,44 @@ async function loadCodes() {
   $("codes-empty").hidden = codes.length > 0;
   $("codes-table").hidden = codes.length === 0;
   $("codes-body").replaceChildren(...codes.map(codeRow));
+  return codes;
+}
+
+// A ready-to-send message for a chat: each set's link, the code, how to use
+// it, and its limits.
+function shareMessage(code) {
+  const link = (set) => `${location.origin}/sets/${encodeURIComponent(set.slug)}`;
+  const lines = code.sets.length === 1
+    ? [`Your photos from "${code.sets[0].title}":`, link(code.sets[0])]
+    : ["Your photos:", ...code.sets.map((set) => `${set.title}: ${link(set)}`)];
+  lines.push(
+    "",
+    `License code: ${code.code}`,
+    `Open the link, scroll to "Have a license code?" under the photos, enter the code and tap Unlock to download full-quality copies without the watermark.`,
+  );
+  const limits = [
+    code.expires_at ? `valid until ${new Date(code.expires_at * 1000).toISOString().slice(0, 10)}` : "",
+    code.max_downloads !== null ? `good for ${code.max_downloads} downloads` : "",
+  ].filter(Boolean);
+  if (limits.length) lines.push(`The code is ${limits.join(" and ")}.`);
+  return lines.join("\n");
+}
+
+// Copies the message; warns first if a set is still a draft (its link would not open).
+function shareButton(code) {
+  const b = button("Copy message", async () => {
+    const drafts = code.sets.filter((s) => !s.published).map((s) => s.title);
+    if (drafts.length && !confirm(`${drafts.join(", ")} ${drafts.length === 1 ? "is still a draft, so its link" : "are still drafts, so their links"} won't open for anyone but you yet. Copy the message anyway?`)) return;
+    try {
+      await navigator.clipboard.writeText(shareMessage(code));
+      b.textContent = "Message copied";
+    } catch {
+      b.textContent = "Could not copy";
+    }
+    setTimeout(() => (b.textContent = "Copy message"), 2000);
+  });
+  b.title = "Copies the set link, the code and how to use it, ready to paste into a chat";
+  return b;
 }
 
 function codeRow(code) {
@@ -73,6 +111,8 @@ function codeRow(code) {
     await fetch(`/api/admin/licenses/${code.id}`, { method: "DELETE" });
     loadCodes();
   }, "button-danger");
+  // A message only makes sense for a code that still works and still has a set.
+  if (!row.className && code.sets.length) actions.append(shareButton(code));
   actions.append(copy, toggle, remove);
 
   row.append(
@@ -117,11 +157,11 @@ $("new-code-form").addEventListener("submit", async (event) => {
     return;
   }
   const result = $("new-code-result");
-  result.replaceChildren("New code: ", Object.assign(document.createElement("code"), { textContent: data.code }),
-    ". Send it to the person, with a link to the set.");
-  result.hidden = false;
   event.target.reset();
-  loadCodes();
+  const created = (await loadCodes()).find((c) => c.id === data.id);
+  result.replaceChildren("New code: ", Object.assign(document.createElement("code"), { textContent: data.code }),
+    ". Copy the message and paste it into a chat with the person. ", ...(created ? [shareButton(created)] : []));
+  result.hidden = false;
 });
 
 Promise.all([loadSets(), loadCodes()]).catch((error) => console.error(error));
