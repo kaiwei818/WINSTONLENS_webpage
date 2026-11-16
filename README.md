@@ -181,7 +181,8 @@ remembered, and a browser set to Chinese gets 中文 by itself. A link with
 `?lang=zh` opens the Chinese version (its link preview too). The site's own
 words are in `lib/i18n.js`; your Chinese set titles and descriptions, category
 names and About bio are optional boxes on the admin pages (empty shows the
-English). Admin pages stay in English.
+English). Admin pages stay in English. Chinese pages use 思源黑體 (Noto Sans TC),
+stored on this site in pieces by `node scripts/zh-font.mjs`; English pages never load it.
 
 ## API
 

@@ -108,6 +108,13 @@ export async function onRequest({ request, env, next }) {
       .on("#site-menu", { element(el) { el.setInnerContent(chrome.menu, { html: true }); el.setAttribute("aria-label", t("menu.label")); } })
       .on("#contact", { element(el) { el.setInnerContent(chrome.footer, { html: true }); } })
       .on("html", { element(el) { el.setAttribute("lang", HTML_LANG[lang]); } })
+      // Chinese pages: 思源黑體, stored on this site (scripts/zh-font.mjs). English
+      // pages never load it. Added already versioned, like the other styles.
+      .on("head", {
+        element(el) {
+          if (lang === "zh") el.append(`<link rel="stylesheet" href="${version ? `/v/${version}` : ""}/css/noto-sans-tc.css">`, { html: true });
+        },
+      })
       // The shared header: the other language's link first, then its words.
       .on(".header-buttons", {
         element(el) {
