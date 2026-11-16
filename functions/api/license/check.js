@@ -7,17 +7,18 @@ import { checkCode, downloadsLeft } from "../../../lib/license.js";
 import { isSameOrigin } from "../../../lib/auth.js";
 import { clientIp, hit, tooMany } from "../../../lib/ratelimit.js";
 import { isPublicSql } from "../../../lib/visibility.js";
+import { langOf, translator } from "../../../lib/i18n.js";
 
 export async function onRequestPost(context) {
   const { request, env } = context;
   if (!isSameOrigin(request)) return Response.json({ error: "Forbidden" }, { status: 403 });
   const limit = await hit(context, "license_check", clientIp(request));
-  if (!limit.ok) return tooMany(limit.retryAfter, true);
+  if (!limit.ok) return tooMany(limit.retryAfter, true, langOf(request));
   const body = await request.json().catch(() => ({}));
 
   const set = await env.DB.prepare(`SELECT id FROM sets s WHERE slug = ? AND ${isPublicSql()}`)
     .bind(String(body.slug || "")).first();
-  if (!set) return Response.json({ error: "Set not found." }, { status: 404 });
+  if (!set) return Response.json({ error: translator(langOf(request))("license.setNotFound") }, { status: 404 });
 
   const result = await checkCode(request, env, body.code, set.id);
   if (!result.ok) {

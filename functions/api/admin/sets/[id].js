@@ -7,7 +7,7 @@ import { listPosts } from "../../../../lib/instagram.js";
 import { uniqueSlug } from "../../../../lib/slug.js";
 import { settleScheduled } from "../../../../lib/visibility.js";
 
-const RETURNED = "id, slug, title, description, shot_date, location, featured, feature_months, cover_photo_id, published, publish_at, map_lat, map_lng, map_precision";
+const RETURNED = "id, slug, title, title_zh, description, description_zh, shot_date, location, featured, feature_months, cover_photo_id, published, publish_at, map_lat, map_lng, map_precision";
 
 export async function onRequestGet(context) {
   const { env, params } = context;
@@ -55,6 +55,9 @@ export async function onRequestPatch(context) {
   if ("description" in body) {
     changes.description = String(body.description).trim().slice(0, 2000);
   }
+  // The 繁體中文 title and description (optional: empty shows the English ones).
+  if ("title_zh" in body) changes.title_zh = String(body.title_zh ?? "").trim().slice(0, 200);
+  if ("description_zh" in body) changes.description_zh = String(body.description_zh ?? "").trim().slice(0, 2000);
   if ("shot_date" in body) {
     changes.shot_date = String(body.shot_date ?? "").trim();
     if (changes.shot_date && !/^\d{4}-\d{2}-\d{2}$/.test(changes.shot_date)) {

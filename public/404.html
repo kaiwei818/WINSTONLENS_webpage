@@ -7,13 +7,13 @@
   <meta name="theme-color" content="#ffffff">
   <meta name="robots" content="noindex">
   <!-- Text in data-site="..." elements and the title come from lib/site.js (see functions/_middleware.js). -->
-  <title data-page="Page not found"></title>
+  <title data-page="Page not found" data-i18n-page="notfound.title"></title>
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="stylesheet" href="/css/style.css">
   <script src="/js/theme.js"></script>
   <script src="/js/menu.js" defer></script>
-  <script src="/js/share.js" defer></script>
+  <script src="/js/share.js" type="module"></script>
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -42,9 +42,9 @@
   <!-- Cloudflare shows this page for any address that does not exist. -->
   <main id="main" class="not-found">
     <p class="not-found-code" aria-hidden="true"></p> <!-- "404", drawn by style.css -->
-    <h1>Page not found</h1>
-    <p class="muted">This page does not exist, or it has moved.</p>
-    <p><a class="button-link" href="/">See all photo sets</a></p>
+    <h1 data-i18n="notfound.heading">Page not found</h1>
+    <p class="muted" data-i18n="notfound.text">This page does not exist, or it has moved.</p>
+    <p><a class="button-link" href="/" data-i18n="notfound.home">See all photo sets</a></p>
   </main>
 
   <footer class="site-footer" id="contact">

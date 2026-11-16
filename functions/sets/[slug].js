@@ -12,7 +12,8 @@ import { withPageMeta } from "../../lib/meta.js";
 import { galleryData } from "../../lib/structured.js";
 import { decodeSlug, movedSet, setWithPhotos } from "../../lib/queries.js";
 import { relatedSets } from "../../lib/related.js";
-import { escapeHtml, jsonForPage, monthYear, photoThumbHtml, relatedCardHtml } from "../../lib/render.js";
+import { escapeHtml, jsonForPage, photoThumbHtml, relatedCardHtml } from "../../lib/render.js";
+import { langOf, localized, monthYear, translator } from "../../lib/i18n.js";
 
 export async function onRequestGet({ request, env, params }) {
   const slug = decodeSlug(params.slug);
@@ -34,16 +35,23 @@ export async function onRequestGet({ request, env, params }) {
   const visible = set.published || (await isLoggedIn(request, env));
   if (!visible) return notFoundPage(env, request);
 
+  // English or 繁體中文 (lib/i18n.js): the site's words, and the set's own
+  // title and description when a Chinese one was written.
+  const lang = langOf(request);
+  const t = translator(lang);
+  const title = localized(set.title, set.title_zh, lang);
+  const description = localized(set.description, set.description_zh, lang);
+
   const [page, related] = await Promise.all([
     env.ASSETS.fetch(new URL("/set.html", url)),
-    relatedSets(env, set.id),
+    relatedSets(env, set.id, lang),
   ]);
 
   const filled = new HTMLRewriter()
-    .on("#set-title", { element(el) { el.setInnerContent(set.title); } }) // plain text: escaped for us
+    .on("#set-title", { element(el) { el.setInnerContent(title); } }) // plain text: escaped for us
     .on("#set-description", {
       element(el) {
-        if (set.description) el.setInnerContent(set.description);
+        if (description) el.setInnerContent(description);
         else el.remove();
       },
     })
@@ -51,19 +59,19 @@ export async function onRequestGet({ request, env, params }) {
     .on("#set-location", {
       element(el) {
         const count = set.photos.length;
-        const facts = [set.location, monthYear(set.shot_date), count ? `${count} ${count === 1 ? "photo" : "photos"}` : ""];
+        const facts = [set.location, monthYear(set.shot_date, lang), count ? t("photos", { n: count }) : ""];
         const lines = facts.filter(Boolean).map((fact) => `<span>${escapeHtml(fact)}</span>`).join("");
         if (lines) el.setInnerContent(lines, { html: true });
         else el.remove();
       },
     })
     .on("#related-sets", { element(el) { if (!related.length) el.remove(); } })
-    .on("#related-grid", { element(el) { el.setInnerContent(related.map(relatedCardHtml).join(""), { html: true }); } })
-    .on("#photo-grid", { element(el) { el.setInnerContent(set.photos.map(photoThumbHtml).join(""), { html: true }); } })
+    .on("#related-grid", { element(el) { el.setInnerContent(related.map((s) => relatedCardHtml(s, lang)).join(""), { html: true }); } })
+    .on("#photo-grid", { element(el) { el.setInnerContent(set.photos.map((p, i) => photoThumbHtml(p, i, lang)).join(""), { html: true }); } })
     .on("#status", {
       element(el) {
         if (set.photos.length) el.remove();
-        else el.setInnerContent("This set has no photos yet.");
+        else el.setInnerContent(t("set.empty"));
       },
     })
     // The license code box, only when some photos here can be downloaded.
@@ -97,16 +105,16 @@ export async function onRequestGet({ request, env, params }) {
   };
 
   return withPageMeta(filled, {
-    title: set.title,
-    shareTitle: shared ? `${set.title}, photo ${photoNumber}` : "",
-    description: shared ? shared.caption || shared.alt_text || set.description : set.description,
+    title,
+    shareTitle: shared ? t("set.photoTitle", { title, n: photoNumber }) : "",
+    description: shared ? shared.caption || shared.alt_text || description : description || t("site.description"),
     url: url.origin + url.pathname,
     shareUrl: shared ? `${url.origin}${url.pathname}?photo=${photoNumber}` : "",
     // The 1200 px thumbnail, not the 3000 px version: link previews are small,
     // and some apps give up on large images.
     image: cover.thumb_key ? `${url.origin}/img/${cover.thumb_key}` : "",
     imageSize: thumbSize(cover),
-    imageAlt: cover.alt_text || set.title,
+    imageAlt: cover.alt_text || title,
     // Drafts are never indexed, so they need no structured data.
     structuredData: set.published ? galleryData(url.origin, set) : null,
   });

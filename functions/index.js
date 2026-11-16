@@ -14,9 +14,13 @@ import { homeData } from "../lib/structured.js";
 import { categoriesInUse, publishedSets } from "../lib/queries.js";
 import { escapeHtml, heroHtml, setCardHtml } from "../lib/render.js";
 import { SITE } from "../lib/site.js";
+import { joinList, langOf, localized, translator } from "../lib/i18n.js";
 
 export async function onRequestGet({ request, env }) {
   const url = new URL(request.url);
+  const lang = langOf(request);
+  const t = translator(lang);
+  const nameOf = (c) => localized(c.name, c.name_zh, lang);
   // ?category=landscape shows only that category. Plain links, so the filter
   // works without JavaScript and Google can follow each category page.
   const category = (url.searchParams.get("category") || "").slice(0, 60);
@@ -30,8 +34,8 @@ export async function onRequestGet({ request, env }) {
   const button = (href, name, active) =>
     `<a href="${href}"${active ? ' aria-current="page"' : ""}>${escapeHtml(name)}</a>`;
   const nav = categories.length
-    ? button("/", "All", !current) +
-      categories.map((c) => button(`/?category=${encodeURIComponent(c.slug)}`, c.name, c === current)).join("")
+    ? button("/", t("home.all"), !current) +
+      categories.map((c) => button(`/?category=${encodeURIComponent(c.slug)}`, nameOf(c), c === current)).join("")
     : "";
 
   // The hero: only on the main home page (lib/hero.js picks the set).
@@ -40,14 +44,14 @@ export async function onRequestGet({ request, env }) {
   const filled = new HTMLRewriter()
     .on("#hero", {
       element(el) {
-        if (hero) el.setInnerContent(heroHtml(hero.set, hero.label), { html: true });
+        if (hero) el.setInnerContent(heroHtml(hero.set, hero.label, lang), { html: true });
         else el.remove();
       },
     })
     // With the hero, the featured set's name is the page's main heading, so
     // "Photo sets" steps down to the next level.
     .on(".section-head h1", { element(el) { if (hero) el.tagName = "h2"; } })
-    .on("#set-grid", { element(el) { el.setInnerContent(sets.map(setCardHtml).join(""), { html: true }); } })
+    .on("#set-grid", { element(el) { el.setInnerContent(sets.map((s, i, all) => setCardHtml(s, i, all, lang)).join(""), { html: true }); } })
     .on("#category-nav", {
       element(el) {
         if (nav) el.setInnerContent(nav, { html: true });
@@ -57,26 +61,25 @@ export async function onRequestGet({ request, env }) {
     .on("#status", {
       element(el) {
         if (sets.length) el.remove();
-        else el.setInnerContent("No photo sets yet. Please come back soon.");
+        else el.setInnerContent(t("home.empty"));
       },
     })
     .transform(page);
 
   // "Winston Chang Photography" in the tab and in Google, and a description
   // that names what is here ("... landscape, sports, travel and wildlife").
-  const names = categories.map((c) => c.name.toLowerCase());
-  const list = names.length > 1 ? `${names.slice(0, -1).join(", ")} and ${names.at(-1)}` : names[0] || "";
+  const list = joinList(categories.map((c) => (lang === "en" ? c.name.toLowerCase() : nameOf(c))), lang);
   const description = current
-    ? `${current.name} photo sets by ${SITE.owner}.`
-    : list ? `Photo sets by ${SITE.owner}: ${list} photography.` : SITE.description;
+    ? t("home.category.description", { name: nameOf(current), owner: SITE.owner })
+    : list ? t("home.description", { owner: SITE.owner, list }) : t("site.description");
 
   return withPageMeta(filled, {
-    title: current ? current.name : `${SITE.owner} Photography`,
+    title: current ? nameOf(current) : t("home.title", { owner: SITE.owner }),
     description,
     url: current ? `${url.origin}/?category=${encodeURIComponent(current.slug)}` : url.origin + "/",
     image: (hero?.set || sets[0])?.cover_thumb_key ? `${url.origin}/img/${(hero?.set || sets[0]).cover_thumb_key}` : "",
     imageSize: thumbSize(hero?.set || sets[0]),
-    imageAlt: (hero?.set || sets[0])?.title || "",
+    imageAlt: localized((hero?.set || sets[0])?.title, (hero?.set || sets[0])?.title_zh, lang) || "",
     structuredData: current ? null : homeData(url.origin),
   });
 }

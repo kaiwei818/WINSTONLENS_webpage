@@ -5,7 +5,7 @@ import { slugify } from "../../../../lib/slug.js";
 
 export async function onRequestGet({ env }) {
   const { results } = await env.DB.prepare(
-    `SELECT c.id, c.name, c.slug, COUNT(sc.set_id) AS set_count
+    `SELECT c.id, c.name, c.name_zh, c.slug, COUNT(sc.set_id) AS set_count
      FROM categories c LEFT JOIN set_categories sc ON sc.category_id = c.id
      GROUP BY c.id ORDER BY c.sort_order, c.name`
   ).all();

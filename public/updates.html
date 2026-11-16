@@ -6,7 +6,7 @@
   <!-- The color of the phone's browser bar; js/theme.js keeps it in step with dark mode. -->
   <meta name="theme-color" content="#ffffff">
   <!-- Text in data-site="..." elements and the title come from lib/site.js (see functions/_middleware.js). -->
-  <title data-page="What's new"></title>
+  <title data-page="What's new" data-i18n-page="updates.title"></title>
   <meta name="description" content="New things you can do on the site: find photos by jersey number, like and share single photos.">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="">
@@ -17,7 +17,7 @@
   <link rel="stylesheet" href="/css/style.css">
   <script src="/js/theme.js"></script>
   <script src="/js/menu.js" defer></script>
-  <script src="/js/share.js" defer></script>
+  <script src="/js/share.js" type="module"></script>
   <script src="/js/protect.js" defer></script>
 </head>
 <body>
@@ -47,9 +47,14 @@
   <!-- What's new: features visitors can use, newest first. Add an entry at
        the top whenever something new ships. -->
   <main id="main" class="updates">
-    <h1>What's new</h1>
-    <p class="updates-lead">New things you can do on the site.</p>
-    <ol class="updates-list">
+    <h1 data-i18n="updates.title">What's new</h1>
+    <p class="updates-lead" data-i18n="updates.lead">New things you can do on the site.</p>
+    <ol class="updates-list" data-lang="en">
+      <li>
+        <p class="updates-date"><time datetime="2026-11-16">16 November 2026</time></p>
+        <h2>The site in 繁體中文</h2>
+        <p>Tap <strong>中文</strong> at the top of any page to read the site in Traditional Chinese, and <strong>English</strong> to switch back. The site remembers your choice.</p>
+      </li>
       <li>
         <p class="updates-date"><time datetime="2026-11-16">16 November 2026</time></p>
         <h2>A map of the sets</h2>
@@ -74,6 +79,38 @@
         <p class="updates-date"><time datetime="2026-11-15">15 November 2026</time></p>
         <h2>A tidier menu</h2>
         <p>In the menu, the list of sets and the categories fold open and closed, so it stays short.</p>
+      </li>
+    </ol>
+    <ol class="updates-list" data-lang="zh">
+      <li>
+        <p class="updates-date"><time datetime="2026-11-16">2026 年 11 月 16 日</time></p>
+        <h2>網站推出繁體中文版</h2>
+        <p>點每一頁上方的<strong>中文</strong>，就能用繁體中文瀏覽網站；點 <strong>English</strong> 可以切換回英文。網站會記住您的選擇。</p>
+      </li>
+      <li>
+        <p class="updates-date"><time datetime="2026-11-16">2026 年 11 月 16 日</time></p>
+        <h2>作品集地圖</h2>
+        <p>打開選單裡的<a href="/map">地圖</a>，就能看到每個作品集的拍攝地點。點地圖上的照片即可打開作品集。野生動物作品不會標示在地圖上，以保護鳥巢與棲息處。</p>
+      </li>
+      <li>
+        <p class="updates-date"><time datetime="2026-11-16">2026 年 11 月 16 日</time></p>
+        <h2>為單張照片按讚與分享</h2>
+        <p>打開任何一張照片，下方的<strong>按讚</strong>會把照片加入我的最愛，<strong>分享</strong>則會傳送這張照片的連結。在手機上會開啟分享選單；在電腦上會複製連結。</p>
+      </li>
+      <li>
+        <p class="updates-date"><time datetime="2026-11-16">2026 年 11 月 16 日</time></p>
+        <h2>我的最愛，集中在一起</h2>
+        <p>在作品集裡按讚之後，照片上方會出現<strong>我的最愛</strong>，只顯示您按讚的照片，方便挑選照片放到自己的貼文。資料只存在您的瀏覽器裡，不需要註冊帳號。</p>
+      </li>
+      <li>
+        <p class="updates-date"><time datetime="2026-11-15">2026 年 11 月 15 日</time></p>
+        <h2>用背號找照片</h2>
+        <p>在運動作品集裡，於照片上方的<strong>用背號找照片</strong>輸入球衣背號，或從清單中選擇，就只會顯示那位球員的照片。連結也可以分享，讓全隊都能找到自己的照片。</p>
+      </li>
+      <li>
+        <p class="updates-date"><time datetime="2026-11-15">2026 年 11 月 15 日</time></p>
+        <h2>更簡潔的選單</h2>
+        <p>選單裡的作品集清單與分類可以展開和收合，讓選單更簡短。</p>
       </li>
     </ol>
   </main>

@@ -12,18 +12,23 @@ import { checkCode, codeName } from "../../../lib/license.js";
 import { clientIp, hit, tooMany } from "../../../lib/ratelimit.js";
 import { placeOf, recordReceipt } from "../../../lib/receipts.js";
 import { isPublicSql } from "../../../lib/visibility.js";
+import { langOf, translator } from "../../../lib/i18n.js";
 
 export async function onRequestGet(context) {
   const { request, env, params } = context;
+  const lang = langOf(request); // the visitor's messages in their language; the log stays English
+  const t = translator(lang);
+  // Plain text in the visitor's language (it shows in the browser tab).
+  const say = (key, status) => new Response(t(key), { status, headers: { "Content-Type": "text/plain; charset=utf-8" } });
   const photo = await env.DB.prepare(
     `SELECT p.id, p.download_key, p.sort_order, p.original_name, s.id AS set_id, s.slug, s.title
      FROM photos p JOIN sets s ON s.id = p.set_id
      WHERE p.id = ? AND ${isPublicSql()} AND p.download_key IS NOT NULL`
   ).bind(Number(params.id)).first();
-  if (!photo) return new Response("This photo cannot be downloaded.", { status: 404 });
+  if (!photo) return say("license.notDownloadable", 404);
 
   const limit = await hit(context, "download", clientIp(request));
-  if (!limit.ok) return tooMany(limit.retryAfter);
+  if (!limit.ok) return tooMany(limit.retryAfter, false, lang);
   if (limit.justReachedLimit) {
     // Logged once, when the limit is reached, not for every refused request after.
     await logActivity(context, "rate_limited", "One address reached the hourly download limit", photo.set_id);
@@ -36,20 +41,20 @@ export async function onRequestGet(context) {
   if (!result.ok) {
     if (result.license) {
       await logActivity(context, "download_refused",
-        `Refused ${codeName(result.license)} for photo #${photo.id} in ${quoted(photo.title)}: ${result.error}`, photo.set_id);
+        `Refused ${codeName(result.license)} for photo #${photo.id} in ${quoted(photo.title)}: ${result.reason}`, photo.set_id);
     }
     const headers = result.retryAfter ? { "Retry-After": String(result.retryAfter) } : {};
-    return new Response(result.error, { status: result.status, headers });
+    return new Response(result.error, { status: result.status, headers: { ...headers, "Content-Type": "text/plain; charset=utf-8" } });
   }
 
   const perCode = await hit(context, "download_code", String(result.license.id));
-  if (!perCode.ok) return tooMany(perCode.retryAfter);
+  if (!perCode.ok) return tooMany(perCode.retryAfter, false, lang);
   if (perCode.justReachedLimit) {
     await logActivity(context, "rate_limited", `${codeName(result.license)} reached its hourly download limit`, photo.set_id);
   }
 
   const file = await env.BUCKET.get(photo.download_key);
-  if (!file) return new Response("File missing. Please contact the photographer.", { status: 404 });
+  if (!file) return say("license.fileMissing", 404);
 
   // Count it. "downloads < max" is checked again here, so two downloads at the
   // same moment cannot both squeeze past the limit.
@@ -61,7 +66,7 @@ export async function onRequestGet(context) {
   if (!counted) {
     await logActivity(context, "download_refused",
       `Refused ${codeName(result.license)} for photo #${photo.id} in ${quoted(photo.title)}: no downloads left`, photo.set_id);
-    return new Response("This code has no downloads left.", { status: 403 });
+    return say("license.usedUp", 403);
   }
   const used = counted.max_downloads === null ? `${counted.downloads} used, no limit` : `${counted.downloads} of ${counted.max_downloads} used`;
   const place = placeOf(request);

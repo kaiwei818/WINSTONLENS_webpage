@@ -3,6 +3,9 @@
 // them (seen when zoomed in). Tapping opens a card with the cover, the name
 // and "View set".
 // The data comes from functions/map.js; Leaflet draws the map.
+// (A module, run after leaflet.js, which comes before it in the page.)
+
+import { t } from "./text.js";
 
 (function () {
   const box = document.getElementById("map");
@@ -35,12 +38,12 @@
     title.textContent = pin.title;
     const facts = document.createElement("p");
     facts.className = "map-card-facts";
-    facts.textContent = [pin.location, `${pin.count} ${pin.count === 1 ? "photo" : "photos"}`, pin.area ? "rough area" : ""]
-      .filter(Boolean).join(", ");
+    facts.textContent = [pin.location, t("photos", { n: pin.count }), pin.area ? t("map.rough") : ""]
+      .filter(Boolean).join(document.documentElement.lang.startsWith("zh") ? "，" : ", ");
     const link = document.createElement("a");
     link.className = "pill";
     link.href = `/sets/${encodeURIComponent(pin.slug)}`;
-    link.textContent = "View set";
+    link.textContent = t("hero.view");
     el.append(title, facts, link);
     return el;
   };
@@ -53,7 +56,7 @@
     const where = [pin.lat, pin.lng];
     if (pin.area) L.circle(where, { radius: 6000, className: "map-area", interactive: false }).addTo(map);
     L.marker(where, {
-      title: pin.area ? `${pin.title} (rough area)` : pin.title,
+      title: pin.area ? `${pin.title} (${t("map.rough")})` : pin.title,
       alt: pin.title,
       icon: L.divIcon({
         className: pin.area ? "map-pin map-pin-area" : "map-pin",

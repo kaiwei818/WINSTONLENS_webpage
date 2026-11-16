@@ -22,7 +22,7 @@
   <link rel="stylesheet" href="/css/style.css">
   <script src="/js/theme.js"></script>
   <script src="/js/menu.js" defer></script>
-  <script src="/js/share.js" defer></script>
+  <script src="/js/share.js" type="module"></script>
   <script src="/js/protect.js" defer></script>
 </head>
 <body>
@@ -54,12 +54,12 @@
     <p class="draft-banner" id="draft-banner" hidden>
       Draft preview: only you can see this set. Publish it from the admin page.
     </p>
-    <a class="back-link" href="/"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>All sets</a>
+    <a class="back-link" href="/"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg><span data-i18n="set.all">All sets</span></a>
     <div class="set-heading">
       <h1 id="set-title"></h1>
       <!-- Shares this set (see js/share.js). -->
       <button type="button" class="share-button pill pill-gray" data-share>
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V3M7.5 7.5L12 3l4.5 4.5"/><path d="M5 12v8h14v-8"/></svg> Share
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V3M7.5 7.5L12 3l4.5 4.5"/><path d="M5 12v8h14v-8"/></svg> <span data-i18n="share">Share</span>
       </button>
     </div>
     <p class="set-location" id="set-location"></p>
@@ -69,15 +69,15 @@
          Stays hidden when there is nothing to search or show. -->
     <div class="photo-filter" id="photo-filter" hidden>
       <div class="number-search" id="number-search-box" hidden>
-        <label class="photo-filter-label" for="number-search">Find my photos by jersey number</label>
+        <label class="photo-filter-label" for="number-search" data-i18n="find.label">Find my photos by jersey number</label>
         <div class="number-field">
           <span class="number-hash" aria-hidden="true">#</span>
-          <input id="number-search" type="text" inputmode="numeric" maxlength="3" autocomplete="off" placeholder="Number"
+          <input id="number-search" type="text" inputmode="numeric" maxlength="3" autocomplete="off" placeholder="Number" data-i18n-attr="placeholder=find.placeholder"
                  role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="number-options">
-          <button type="button" class="number-clear" id="number-clear" aria-label="Clear, show all photos" hidden>
+          <button type="button" class="number-clear" id="number-clear" aria-label="Clear, show all photos" data-i18n-attr="aria-label=find.clear" hidden>
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"/></svg>
           </button>
-          <ul class="number-options" id="number-options" role="listbox" aria-label="Numbers in this set" hidden></ul>
+          <ul class="number-options" id="number-options" role="listbox" aria-label="Numbers in this set" data-i18n-attr="aria-label=find.options" hidden></ul>
         </div>
       </div>
       <button type="button" class="pill pill-gray favorites-toggle" id="favorites-toggle" aria-pressed="false" hidden></button>
@@ -90,16 +90,16 @@
          downloadable photos. set.js checks the code and shows Download buttons. -->
     <section class="license-panel" id="license-panel" hidden aria-labelledby="license-heading">
       <div class="license-text">
-        <h2 id="license-heading">Have a license code?</h2>
-        <p class="muted" id="license-help">Enter the code you received to download full-quality copies without the watermark.</p>
+        <h2 id="license-heading" data-i18n="license.heading">Have a license code?</h2>
+        <p class="muted" id="license-help" data-i18n="license.help">Enter the code you received to download full-quality copies without the watermark.</p>
       </div>
       <div class="license-form-area">
         <form id="license-form" class="inline-form">
           <div class="license-field">
-            <label for="license-code">License code</label>
+            <label for="license-code" data-i18n="license.label">License code</label>
             <input id="license-code" type="text" placeholder="WL-XXXX-XXXX" autocomplete="off" autocapitalize="characters" spellcheck="false" required>
           </div>
-          <button type="submit" class="pill">Unlock</button>
+          <button type="submit" class="pill" data-i18n="license.unlock">Unlock</button>
         </form>
         <p class="form-error" id="license-error" role="alert"></p>
         <!-- Shown after a code is accepted: every downloadable photo in one .zip file. -->
@@ -112,7 +112,7 @@
 
     <!-- Up to 4 sets with something in common, filled in by functions/sets/[slug].js. -->
     <section class="related-sets" id="related-sets" aria-labelledby="related-heading">
-      <h2 id="related-heading">Related sets</h2>
+      <h2 id="related-heading" data-i18n="set.related">Related sets</h2>
       <ul class="set-grid related-grid" id="related-grid"></ul>
     </section>
 
@@ -125,7 +125,7 @@
   </footer>
 
   <!-- The full-screen viewer. Hidden until a photo is tapped (see js/lightbox.js). -->
-  <dialog class="lightbox" id="lightbox" aria-label="Photo viewer">
+  <dialog class="lightbox" id="lightbox" aria-label="Photo viewer" data-i18n-attr="aria-label=viewer.label">
     <div class="lightbox-stage">
       <img id="lightbox-img" alt="" draggable="false">
     </div>
@@ -135,30 +135,30 @@
     <div class="lightbox-bottom">
       <div class="lightbox-actions">
         <button type="button" class="lightbox-action lightbox-heart" id="lightbox-heart" aria-pressed="false">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg><span>Like</span>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg><span data-i18n="viewer.like">Like</span>
         </button>
         <button type="button" class="lightbox-action" id="lightbox-share">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V3M7.5 7.5L12 3l4.5 4.5"/><path d="M5 12v8h14v-8"/></svg><span>Share</span>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V3M7.5 7.5L12 3l4.5 4.5"/><path d="M5 12v8h14v-8"/></svg><span data-i18n="share">Share</span>
         </button>
-        <a class="lightbox-action lightbox-download" id="lightbox-download" hidden download>Download</a>
+        <a class="lightbox-action lightbox-download" id="lightbox-download" hidden download data-i18n="viewer.download">Download</a>
       </div>
       <div class="lightbox-info" id="lightbox-info" hidden>
         <p class="lightbox-caption" id="lightbox-caption"></p>
         <p class="lightbox-camera" id="lightbox-camera"></p>
       </div>
     </div>
-    <button type="button" class="lightbox-button lightbox-close" id="lightbox-close" aria-label="Close">
+    <button type="button" class="lightbox-button lightbox-close" id="lightbox-close" aria-label="Close" data-i18n-attr="aria-label=viewer.close">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
     </button>
-    <button type="button" class="lightbox-button lightbox-prev" id="lightbox-prev" aria-label="Previous photo">
+    <button type="button" class="lightbox-button lightbox-prev" id="lightbox-prev" aria-label="Previous photo" data-i18n-attr="aria-label=viewer.prev">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>
     </button>
-    <button type="button" class="lightbox-button lightbox-next" id="lightbox-next" aria-label="Next photo">
+    <button type="button" class="lightbox-button lightbox-next" id="lightbox-next" aria-label="Next photo" data-i18n-attr="aria-label=viewer.next">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
     </button>
     <!-- Only when the photo cannot be loaded (js/lightbox.js). -->
     <p class="lightbox-problem" id="lightbox-problem" role="alert" hidden>
-      This photo could not be loaded. <button type="button">Try again</button>
+      <span data-i18n="viewer.problem">This photo could not be loaded.</span> <button type="button" data-i18n="viewer.retry">Try again</button>
     </p>
     <!-- Read aloud by screen readers when the photo changes ("Photo 2 of 5"). -->
     <p class="visually-hidden" id="lightbox-status" role="status" aria-atomic="true"></p>

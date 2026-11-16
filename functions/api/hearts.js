@@ -11,6 +11,7 @@
 import { isSameOrigin } from "../../lib/auth.js";
 import { clientIp, hit, tooMany } from "../../lib/ratelimit.js";
 import { isPublicSql } from "../../lib/visibility.js";
+import { langOf } from "../../lib/i18n.js";
 
 export async function onRequestPost(context) {
   const { request, env } = context;
@@ -23,7 +24,7 @@ export async function onRequestPost(context) {
   }
 
   const limit = await hit(context, "heart", clientIp(request));
-  if (!limit.ok) return tooMany(limit.retryAfter, true);
+  if (!limit.ok) return tooMany(limit.retryAfter, true, langOf(request));
 
   // Only photos visitors can see.
   const photo = await env.DB.prepare(

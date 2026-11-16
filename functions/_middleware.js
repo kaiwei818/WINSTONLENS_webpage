@@ -10,6 +10,10 @@
 //   4. on HTML pages, gives every style and script a versioned address, so
 //      browsers never mix a new page with an old saved copy of the CSS
 //      (see "Fresh styles and scripts" at the end of this file)
+//   5. on public pages, English or 繁體中文 (lib/i18n.js): ?lang=zh / ?lang=en
+//      shows that language and remembers the choice; marked text (data-i18n,
+//      data-lang) is translated, and the page scripts get their strings as
+//      data (#site-text)
 //
 // Doing this in one place means no page can forget it.
 //
@@ -20,6 +24,8 @@
 import { ASSET_VERSION } from "../lib/asset-version.js";
 import { footerHtml, menuHtml, navHtml } from "../lib/chrome.js";
 import { CONTACT_KEYS } from "../lib/contact.js";
+import { HTML_LANG, LANGS, clientText, langOf, translator } from "../lib/i18n.js";
+import { escapeHtml, jsonForPage } from "../lib/render.js";
 import { categoriesInUse } from "../lib/queries.js";
 import { addSecurityHeaders } from "../lib/security.js";
 import { getSettings } from "../lib/settings.js";
@@ -42,6 +48,7 @@ export async function onRequest({ request, env, next }) {
 
   const versioned = url.pathname.match(VERSIONED_PATH);
   if (versioned) return serveVersioned(request, env, url, versioned[1], versioned[2]);
+
 
   const original = await next(withoutRevalidation(request));
   const response = new Response(original.body, original); // a copy we can change
@@ -66,11 +73,20 @@ export async function onRequest({ request, env, next }) {
 
   const isPublic = !url.pathname.startsWith("/admin");
   let chrome = null;
+  const lang = isPublic ? langOf(request) : "en";
+  const t = translator(lang);
   if (isPublic) {
     // Chrome and Edge: start loading a page as soon as the visitor points at
     // (or touches) its link, so it appears instantly when clicked.
     response.headers.set("Speculation-Rules", '"/speculation-rules.json"');
-    chrome = await loadChrome(env, url);
+    // The page depends on the visitor's language choice. ?lang=zh / ?lang=en
+    // (the 中文 / English link, or a shared link) is remembered for a year.
+    response.headers.append("Vary", "Cookie, Accept-Language");
+    const asked = url.searchParams.get("lang");
+    if (LANGS.includes(asked)) {
+      response.headers.append("Set-Cookie", `lang=${asked}; Path=/; Max-Age=31536000; SameSite=Lax${url.protocol === "https:" ? "; Secure" : ""}`);
+    }
+    chrome = await loadChrome(env, url, lang);
   }
 
   let rewriter = new HTMLRewriter();
@@ -86,10 +102,36 @@ export async function onRequest({ request, env, next }) {
       });
   }
   if (chrome) {
+    const values = { owner: SITE.owner };
     rewriter = rewriter
       .on("#site-nav", { element(el) { el.setInnerContent(chrome.nav, { html: true }); } })
-      .on("#site-menu", { element(el) { el.setInnerContent(chrome.menu, { html: true }); } })
-      .on("#contact", { element(el) { el.setInnerContent(chrome.footer, { html: true }); } });
+      .on("#site-menu", { element(el) { el.setInnerContent(chrome.menu, { html: true }); el.setAttribute("aria-label", t("menu.label")); } })
+      .on("#contact", { element(el) { el.setInnerContent(chrome.footer, { html: true }); } })
+      .on("html", { element(el) { el.setAttribute("lang", HTML_LANG[lang]); } })
+      // The shared header: the other language's link first, then its words.
+      .on(".header-buttons", {
+        element(el) {
+          el.prepend(`<a class="lang-switch" href="${escapeHtml(chrome.langHref)}" lang="${lang === "zh" ? "en" : "zh-Hant-TW"}" ` +
+            `aria-label="${t("lang.switchLabel")}">${t("lang.switch")}</a>`, { html: true });
+        },
+      })
+      .on(".skip-link", { element(el) { el.setInnerContent(t("skip")); } })
+      .on(".menu-button-label", { element(el) { el.setInnerContent(t("menu.label")); } })
+      // Words marked in the pages: data-i18n="key" (the text), data-i18n-attr=
+      // "aria-label=key,placeholder=key" (attributes), data-lang="en" / "zh"
+      // (a whole block kept only in its own language).
+      .on("[data-i18n]", { element(el) { el.setInnerContent(t(el.getAttribute("data-i18n"), values)); } })
+      .on("[data-i18n-attr]", {
+        element(el) {
+          for (const pair of el.getAttribute("data-i18n-attr").split(",")) {
+            const [name, key] = pair.split("=").map((s) => s.trim());
+            el.setAttribute(name, t(key, values));
+          }
+        },
+      })
+      .on("[data-lang]", { element(el) { if (el.getAttribute("data-lang") !== lang) el.remove(); } })
+      // The strings the page scripts need, before any script runs (js/text.js).
+      .on("body", { element(el) { el.prepend(`<script type="application/json" id="site-text">${jsonForPage(clientText(lang))}</script>`, { html: true }); } });
   }
   return rewriter
     // <span data-site="name"></span>  becomes  <span data-site="name">winstonlens</span>
@@ -100,9 +142,11 @@ export async function onRequest({ request, env, next }) {
       },
     })
     // <title data-page="Forest">  becomes  <title>Forest | winstonlens</title>
+    // (data-i18n-page="key": a fixed page's name, in the visitor's language)
     .on("title", {
       element(el) {
-        const page = el.getAttribute("data-page");
+        const key = el.getAttribute("data-i18n-page");
+        const page = key ? t(key) : el.getAttribute("data-page");
         el.setInnerContent(page ? `${page} | ${SITE.name}` : SITE.name);
         el.removeAttribute("data-page");
       },
@@ -110,7 +154,7 @@ export async function onRequest({ request, env, next }) {
     .on('meta[property="og:site_name"]', { element(el) { el.setAttribute("content", SITE.name); } })
     .on('meta[name="description"]', {
       element(el) {
-        if (!el.getAttribute("content")) el.setAttribute("content", SITE.description);
+        if (!el.getAttribute("content")) el.setAttribute("content", isPublic ? t("site.description") : SITE.description);
       },
     })
     .transform(response);
@@ -118,22 +162,28 @@ export async function onRequest({ request, env, next }) {
 
 // The header links, and the sets, categories, and contact details for the menu and footer. If the
 // database cannot be reached, the page still works, with a shorter menu.
-async function loadChrome(env, url) {
-  const nav = navHtml({ path: url.pathname, category: url.searchParams.get("category") || "" });
+async function loadChrome(env, url, lang) {
+  const category = url.searchParams.get("category") || "";
+  const nav = navHtml({ path: url.pathname, category, lang });
+  // This page's address with the other language chosen (anything after "?" kept).
+  const other = new URL(url);
+  other.searchParams.set("lang", lang === "zh" ? "en" : "zh");
+  const langHref = other.pathname + other.search;
   try {
     const [{ results: sets }, categories, about] = await Promise.all([
-      env.DB.prepare(`SELECT slug, title FROM sets s WHERE ${isPublicSql()} ORDER BY sort_order, id`).all(),
+      env.DB.prepare(`SELECT slug, title, title_zh FROM sets s WHERE ${isPublicSql()} ORDER BY sort_order, id`).all(),
       categoriesInUse(env),
       getSettings(env, CONTACT_KEYS),
     ]);
     return {
       nav,
-      menu: menuHtml({ sets, categories, path: url.pathname, category: url.searchParams.get("category") || "" }),
-      footer: footerHtml(about),
+      langHref,
+      menu: menuHtml({ sets, categories, path: url.pathname, category, lang, langHref }),
+      footer: footerHtml(about, lang),
     };
   } catch (err) {
     console.error("Could not load the menu:", err);
-    return { nav, menu: menuHtml({ sets: [], categories: [], path: url.pathname }), footer: footerHtml({}) };
+    return { nav, langHref, menu: menuHtml({ sets: [], categories: [], path: url.pathname, lang, langHref }), footer: footerHtml({}, lang) };
   }
 }
 

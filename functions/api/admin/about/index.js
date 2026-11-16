@@ -13,6 +13,7 @@ export async function onRequestPatch({ request, env }) {
   const text = (value, max) => String(value ?? "").trim().slice(0, max);
 
   if ("bio" in body) changes.about_bio = text(body.bio, 5000);
+  if ("bio_zh" in body) changes.about_bio_zh = text(body.bio_zh, 5000); // the bio in 繁體中文 (optional)
   if ("gear" in body) changes.about_gear = text(body.gear, 2000);
 
   if ("email" in body) {
