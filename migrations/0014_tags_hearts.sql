@@ -1,8 +1,8 @@
 -- Who is in each photo, and which photos visitors like.
 --
--- tags: jersey numbers or names, as you typed them on the admin pages and
--- cleaned up by public/js/tags.js ("12, 7, Lee Chen"). Visitors filter a set
--- by them ("Find my photos" on the set page).
+-- tags: the jersey numbers in the photo, as typed on the admin pages and
+-- cleaned up by public/js/tags.js ("12, 7"). Visitors search a set by them
+-- ("Find my photos" on the set page).
 ALTER TABLE photos ADD COLUMN tags TEXT NOT NULL DEFAULT '';
 
 -- One row per visitor per photo they hearted. "visitor" is a random id their

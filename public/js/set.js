@@ -5,7 +5,7 @@
 // hearts, and handles license codes.
 
 import { createLightbox } from "./lightbox.js";
-import { sortTags, tagLabel, tagList } from "./tags.js";
+import { sortTags, tagList } from "./tags.js";
 
 // The photo details (all sizes, captions, camera info), sent along in the page.
 const photos = JSON.parse(document.getElementById("set-data").textContent);
@@ -40,16 +40,17 @@ let visitor = stored("visitor", "");
 if (!visitor) store("visitor", (visitor = crypto.randomUUID()));
 
 // ---------- Find my photos ----------
-// One chip per player tagged in this set (jersey numbers first), plus
-// "My favorites" once the visitor has hearted something here. ?player=12 in
-// the address opens the set already filtered, so the link can be shared.
-const FAVORITES = "\u2665"; // the filter value for "My favorites"
+// Search by jersey number: suggestions list the numbers tagged in this set,
+// with how many photos each. ?number=12 in the address opens the set already
+// filtered, so the link can be shared. Plus "My favorites": this visitor's hearts.
+const FAVORITES = "favorites"; // the filter value for "My favorites"
 const tagsOf = photos.map((photo) => tagList(photo.tags));
-const allTags = sortTags([...new Set(tagsOf.flat())]);
+const numbers = sortTags([...new Set(tagsOf.flat())]);
+const countOf = (n) => tagsOf.filter((tags) => tags.includes(n)).length;
 let filter = "";
-const same = (a, b) => a.toLowerCase() === b.toLowerCase();
-const matches = (i) => !filter ||
-  (filter === FAVORITES ? hearted.has(photos[i].id) : tagsOf[i].some((tag) => same(tag, filter)));
+const matches = (i) => !filter || (filter === FAVORITES ? hearted.has(photos[i].id) : tagsOf[i].includes(filter));
+const lessMotion = matchMedia("(prefers-reduced-motion: reduce)");
+const ease = "cubic-bezier(0.16, 1, 0.3, 1)"; // --ease-out in style.css
 
 const thumbs = document.querySelectorAll("#photo-grid .thumb-button");
 const lightbox = createLightbox(photos, {
@@ -60,52 +61,123 @@ const lightbox = createLightbox(photos, {
   onShow: paintHeart,
 });
 
+const search = document.getElementById("number-search");
+const options = document.getElementById("number-options");
+const clearButton = document.getElementById("number-clear");
+const favoritesButton = document.getElementById("favorites-toggle");
+const plural = (n, word) => `${n} ${word}${n === 1 ? "" : "s"}`;
+
 function renderFilter() {
   const favorites = photos.filter((p) => hearted.has(p.id)).length;
-  const box = document.getElementById("photo-filter");
-  box.hidden = !allTags.length && !favorites;
-  if (box.hidden) return;
-  const chip = (value, text) => {
-    const a = document.createElement("a");
-    a.href = value && value !== FAVORITES ? `?player=${encodeURIComponent(value)}` : location.pathname;
-    a.textContent = text;
-    if (filter === value) a.setAttribute("aria-current", "page");
-    a.addEventListener("click", (event) => {
-      event.preventDefault();
-      applyFilter(filter === value ? "" : value); // tapping the chosen chip again shows all
-    });
-    return a;
-  };
-  document.getElementById("photo-filter-chips").replaceChildren(
-    chip("", "All"),
-    ...allTags.map((tag) => chip(tag, tagLabel(tag))),
-    ...(favorites ? [chip(FAVORITES, `\u2665 My favorites (${favorites})`)] : []),
-  );
+  document.getElementById("photo-filter").hidden = !numbers.length && !favorites;
+  document.getElementById("number-search-box").hidden = !numbers.length;
+  favoritesButton.hidden = !favorites;
+  favoritesButton.textContent = `\u2665 My favorites (${favorites})`;
+  favoritesButton.setAttribute("aria-pressed", String(filter === FAVORITES));
+  clearButton.hidden = !search.value;
 }
 
-function applyFilter(value) {
+// The photos change all at once, so the grid fades in rather than jumping.
+function applyFilter(value, { fade = true } = {}) {
+  if (value === FAVORITES && !photos.some((p) => hearted.has(p.id))) value = "";
+  const changed = value !== filter;
   filter = value;
-  if (filter === FAVORITES && !photos.some((p) => hearted.has(p.id))) filter = "";
-  let count = 0;
-  thumbs.forEach((button, i) => {
-    button.parentElement.hidden = !matches(i);
-    if (matches(i)) count++;
-  });
-  const photoWord = `${count} ${count === 1 ? "photo" : "photos"}`;
-  document.getElementById("photo-filter-label").textContent = !filter ? "Find my photos"
-    : filter === FAVORITES ? `Your favorites: ${photoWord}` : `${photoWord} of ${tagLabel(filter)}`;
-  // A player's filter goes into the address (and the Share button), so the
-  // link opens on just their photos. Favorites are this visitor's own: not shared.
-  const query = filter && filter !== FAVORITES ? `?player=${encodeURIComponent(filter)}` : "";
+  const grid = document.getElementById("photo-grid");
+  thumbs.forEach((button, i) => (button.parentElement.hidden = !matches(i)));
+  if (changed && fade && !lessMotion.matches) grid.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 220, easing: ease });
+  const count = photos.filter((_, i) => matches(i)).length;
+  document.getElementById("photo-filter-status").textContent = !filter ? ""
+    : filter === FAVORITES ? `Your favorites: ${plural(count, "photo")}` : `${plural(count, "photo")} of #${filter}`;
+  if (filter !== FAVORITES && search.value !== filter) search.value = filter;
+  if (filter === FAVORITES) search.value = "";
+  // A number goes into the address (and the Share button), so the link opens
+  // on just those photos. Favorites are this visitor's own: not shared.
+  const query = filter && filter !== FAVORITES ? `?number=${filter}` : "";
   history.replaceState(history.state, "", location.pathname + query);
   if (query) document.documentElement.dataset.shareUrl = location.origin + location.pathname + query;
   else delete document.documentElement.dataset.shareUrl;
   renderFilter();
 }
 
-const wanted = new URLSearchParams(location.search).get("player") || "";
-const startTag = allTags.find((tag) => same(tag, wanted.replace(/^#/, "")));
-if (startTag) applyFilter(startTag);
+// ---------- The suggestions (a combobox: type, or pick with the arrow keys) ----------
+let active = -1;
+function showOptions() {
+  const typed = search.value;
+  const found = numbers.filter((n) => n.startsWith(typed));
+  active = found.indexOf(typed);
+  options.replaceChildren(...found.map((n, i) => {
+    const li = document.createElement("li");
+    li.id = `number-option-${n}`;
+    li.setAttribute("role", "option");
+    li.setAttribute("aria-selected", String(i === active));
+    li.dataset.number = n;
+    const label = document.createElement("span");
+    label.textContent = `#${n}`;
+    const count = document.createElement("span");
+    count.className = "number-count";
+    count.textContent = plural(countOf(n), "photo");
+    li.append(label, count);
+    // pointerdown, not click: picks before the box loses focus and the list closes.
+    li.addEventListener("pointerdown", (event) => {
+      event.preventDefault();
+      choose(n);
+    });
+    return li;
+  }));
+  const open = document.activeElement === search && found.length > 0;
+  options.hidden = !open;
+  search.setAttribute("aria-expanded", String(open));
+  search.setAttribute("aria-activedescendant", open && active >= 0 ? `number-option-${found[active]}` : "");
+  if (typed && !found.length) document.getElementById("photo-filter-status").textContent = `No photos tagged #${typed} in this set yet.`;
+}
+function closeOptions() {
+  options.hidden = true;
+  search.setAttribute("aria-expanded", "false");
+  search.removeAttribute("aria-activedescendant");
+}
+function choose(n) {
+  applyFilter(n);
+  closeOptions();
+  search.blur(); // on phones: put the keyboard away, so the photos show
+}
+search.addEventListener("focus", showOptions);
+search.addEventListener("blur", closeOptions);
+search.addEventListener("input", () => {
+  search.value = search.value.replace(/\D/g, "");
+  // The grid follows as soon as the typed number is one in this set.
+  if (!search.value) applyFilter("");
+  else if (numbers.includes(search.value)) applyFilter(search.value);
+  else document.getElementById("photo-filter-status").textContent = "";
+  clearButton.hidden = !search.value;
+  showOptions();
+});
+search.addEventListener("keydown", (event) => {
+  const items = [...options.children];
+  if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+    event.preventDefault();
+    if (options.hidden) return showOptions();
+    if (!items.length) return;
+    active = (active + (event.key === "ArrowDown" ? 1 : -1) + items.length) % items.length;
+    items.forEach((li, i) => li.setAttribute("aria-selected", String(i === active)));
+    search.setAttribute("aria-activedescendant", items[active].id);
+    items[active].scrollIntoView({ block: "nearest" });
+  } else if (event.key === "Enter") {
+    event.preventDefault();
+    const pick = items[active]?.dataset.number || (numbers.includes(search.value) ? search.value : "");
+    if (pick) choose(pick);
+  } else if (event.key === "Escape" && !options.hidden) {
+    event.preventDefault();
+    closeOptions();
+  }
+});
+clearButton.addEventListener("click", () => {
+  applyFilter("");
+  search.focus();
+});
+favoritesButton.addEventListener("click", () => applyFilter(filter === FAVORITES ? "" : FAVORITES));
+
+const wanted = (new URLSearchParams(location.search).get("number") || "").replace(/\D/g, "");
+if (numbers.includes(wanted)) applyFilter(wanted, { fade: false });
 else renderFilter();
 
 const heartButton = document.getElementById("lightbox-heart");
@@ -124,10 +196,23 @@ function setHeart(photo, on) {
   if (filter === FAVORITES) applyFilter(FAVORITES);
   else renderFilter();
 }
-heartButton.addEventListener("click", async () => {
+// A heart given gets a small pop; one taken back just settles. Not from the
+// keyboard (Enter or Space: detail is 0), and not for reduced motion.
+let pop;
+function popHeart(on) {
+  if (lessMotion.matches) return;
+  pop?.cancel();
+  pop = heartButton.querySelector("svg").animate(
+    on ? [{ transform: "scale(1)" }, { transform: "scale(1.3)" }, { transform: "scale(0.94)" }, { transform: "scale(1)" }]
+      : [{ transform: "scale(1)" }, { transform: "scale(0.85)" }, { transform: "scale(1)" }],
+    { duration: on ? 380 : 200, easing: ease },
+  );
+}
+heartButton.addEventListener("click", async (event) => {
   const photo = current;
   const on = !hearted.has(photo.id);
   setHeart(photo, on); // at once; put back if the server says no
+  if (event.detail) popHeart(on);
   try {
     const response = await fetch("/api/hearts", {
       method: "POST",

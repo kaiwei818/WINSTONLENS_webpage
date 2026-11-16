@@ -414,7 +414,7 @@ function createPhotoCard(photo, index) {
     figure.append(badge);
   }
 
-  const players = textField(photo, "tags", "Players (jersey numbers or names; visitors can filter by them)", "e.g. 12 7, or Lee Chen");
+  const numbers = textField(photo, "tags", "Jersey numbers (visitors can search them)", "e.g. 12 7");
   const caption = textField(photo, "caption", "Caption (shown in the viewer)");
   const camera = textField(photo, "camera_info", "Camera details (shown in the viewer; clear to hide)");
   const alt = textField(photo, "alt_text", "Description for blind visitors (alt text)",
@@ -435,7 +435,7 @@ function createPhotoCard(photo, index) {
     toolButton("×", `Delete photo ${number}`, () => deletePhoto(photo), "danger"),
   );
 
-  item.append(figure, ratingField(photo, number), players, caption, camera, alt, instagramToggle(photo, number, figure), tools);
+  item.append(figure, ratingField(photo, number), numbers, caption, camera, alt, instagramToggle(photo, number, figure), tools);
   return item;
 }
 

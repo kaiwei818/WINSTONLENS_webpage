@@ -483,14 +483,48 @@ html[data-pointer] :focus-visible:not(input, textarea, select) { outline: none; 
 .menu-main a:hover,
 .menu-list a:hover { text-decoration: underline; }
 .menu-nav a[aria-current="page"] { text-decoration: underline; text-decoration-thickness: 2px; }
+/* Sets and Categories: each folds open and closed under its name (a native
+   <details>, lib/chrome.js). The name row is the whole width, so it is easy to tap. */
+.menu-section { margin-top: var(--space-md); border-top: 1px solid var(--color-rule); }
 .menu-heading {
-  margin: var(--space-lg) 0 var(--space-xs);
-  padding-top: var(--space-lg);
-  border-top: 1px solid var(--color-rule);
-  color: var(--color-muted);
-  font-size: var(--text-sm);
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  min-height: var(--control);
+  color: var(--color-ink);
   font-weight: 500;
+  list-style: none;
+  cursor: pointer;
 }
+.menu-heading::-webkit-details-marker { display: none; }
+.menu-count { color: var(--color-muted); font-size: var(--text-sm); font-variant-numeric: tabular-nums; }
+.menu-chevron {
+  width: 18px;
+  height: 18px;
+  margin-left: auto;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: rotate var(--dur-short) var(--ease-out);
+}
+.menu-section[open] .menu-chevron { rotate: 90deg; }
+.menu-section > ul { padding-bottom: var(--space-sm); }
+/* The fold: the section grows to its height and the list fades in; closing is
+   quicker. Height is the one thing that can show a section opening, and the
+   list is short. Browsers without ::details-content or interpolate-size simply
+   open at once. */
+.menu-panel { interpolate-size: allow-keywords; }
+.menu-section::details-content {
+  block-size: 0;
+  overflow: clip;
+  transition: block-size var(--dur-exit) var(--ease-out), content-visibility var(--dur-exit) allow-discrete;
+}
+.menu-section[open]::details-content { block-size: auto; transition-duration: var(--dur-short); }
+.menu-section > ul { transition: opacity var(--dur-short) var(--ease-out), translate var(--dur-short) var(--ease-out); }
+.menu-section:not([open]) > ul { opacity: 0; translate: 0 -4px; }
+@starting-style { .menu-section[open] > ul { opacity: 0; translate: 0 -4px; } }
 .menu-list a {
   display: block;
   padding: var(--space-xs) 0;
@@ -885,10 +919,96 @@ html[data-pointer] :focus-visible:not(input, textarea, select) { outline: none; 
 }
 
 /* ---------- Find my photos (set page, js/set.js) ---------- */
-/* The category chips' look, a quiet label above saying what is shown. */
-.photo-filter { display: flex; flex-direction: column; gap: var(--space-xs); margin-top: var(--space-xl); }
+/* A pill-shaped number box with suggestions under it, "My favorites" beside it,
+   and a quiet line saying what is shown. */
+.photo-filter { display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--space-sm) var(--space-md); margin-top: var(--space-xl); }
+.number-search { display: flex; flex-direction: column; gap: var(--space-2xs); }
 .photo-filter-label { margin: 0; color: var(--color-muted); font-size: var(--text-sm); font-weight: 500; }
+.photo-filter-status { flex-basis: 100%; margin: 0; color: var(--color-muted); font-size: var(--text-sm); }
+.photo-filter-status:empty { display: none; }
 .photo-filter + .photo-grid { margin-top: var(--space-lg); }
+.number-field {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 220px;
+  min-height: var(--control);
+  padding: 0 var(--space-2xs) 0 var(--space-md);
+  border: 1px solid var(--color-rule-strong);
+  border-radius: var(--radius-pill);
+  background: var(--color-paper);
+  transition: border-color var(--dur-micro) var(--ease-out);
+}
+.number-field:focus-within { border-color: var(--color-ink); }
+.number-field:has(input:focus-visible) { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+.number-field input:focus-visible { outline: none; } /* the ring is on the whole pill instead */
+.number-hash { color: var(--color-muted); font-weight: 500; }
+.number-field input {
+  flex: 1;
+  min-width: 0;
+  height: 46px;
+  padding: 0 var(--space-2xs);
+  border: 0;
+  background: transparent;
+  color: var(--color-ink);
+  font: inherit;
+  font-size: 1rem; /* 16px: iPhones zoom into smaller text boxes */
+  font-variant-numeric: tabular-nums;
+  outline: none;
+}
+.number-clear {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  min-height: 36px;
+  height: 36px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--color-muted);
+}
+.number-clear:hover { background: var(--color-paper-2); color: var(--color-ink); }
+.number-clear svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; }
+/* The suggestions: the share menu's look, dropping in from the box. */
+.number-options {
+  position: absolute;
+  top: calc(100% + var(--space-2xs));
+  left: 0;
+  right: 0;
+  z-index: var(--z-dropdown);
+  max-height: 264px;
+  margin: 0;
+  padding: var(--space-2xs);
+  overflow-y: auto;
+  list-style: none;
+  border: 1px solid var(--color-rule-strong);
+  background: var(--color-paper);
+  transform-origin: top center;
+  transition: opacity var(--dur-short) var(--ease-out), translate var(--dur-short) var(--ease-out);
+}
+@starting-style { .number-options { opacity: 0; translate: 0 -4px; } }
+.number-options li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  min-height: 44px;
+  padding: 0 var(--space-sm);
+  border-radius: var(--radius-pill);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+.number-options li[aria-selected="true"] { background: var(--color-paper-2); }
+@media (hover: hover) { .number-options li:hover { background: var(--color-paper-2); } }
+.number-count { color: var(--color-muted); font-size: var(--text-sm); font-weight: 400; }
+/* Appears with the first heart: a short fade, like the suggestions. */
+.favorites-toggle { transition: opacity var(--dur-short) var(--ease-out), scale var(--dur-micro) var(--ease-out), background-color var(--dur-micro) var(--ease-out); }
+@starting-style { .favorites-toggle { opacity: 0; } }
+.favorites-toggle[aria-pressed="true"] { background: var(--color-accent); color: var(--color-accent-ink); }
+.favorites-toggle[aria-pressed="true"]:hover { background: var(--color-ink-2); }
 
 /* ---------- Tappable photos ---------- */
 .thumb-button {
@@ -1208,6 +1328,7 @@ html[data-pointer] :focus-visible:not(input, textarea, select) { outline: none; 
 /* The heart (js/set.js): bottom right on phones, under the thumb; outlined,
    filled once hearted. */
 .lightbox-heart { right: var(--space-sm); bottom: calc(var(--space-2xs) + env(safe-area-inset-bottom)); }
+.lightbox-heart svg { transition: fill var(--dur-micro) var(--ease-out); }
 .lightbox-heart[aria-pressed="true"] svg { fill: currentColor; }
 .lightbox-info p { margin: 0; }
 .lightbox-camera {
@@ -1524,7 +1645,9 @@ html.photo-transition .site-header { view-transition-name: none; }
   ::view-transition-group(photo), ::view-transition-old(photo), ::view-transition-new(photo) { animation: none; }
   .site-menu, .site-menu::backdrop, .lightbox, .lightbox::backdrop, .lightbox-stage img,
   .pill, .round-button, .button-link, .thumb-button img, .set-card img, .hero-image, .menu-close, .menu-action, .share-menu,
-  .lightbox-button, .lightbox-download, .lightbox-counter, .lightbox-info, button, .icon-button { transition: none; }
+  .lightbox-button, .lightbox-download, .lightbox-counter, .lightbox-info, button, .icon-button,
+  .menu-section::details-content, .menu-section > ul, .menu-chevron, .number-options, .favorites-toggle,
+  .lightbox-heart svg { transition: none; }
   :is(.pill, .round-button, .button-link, .menu-close, .menu-action, .lightbox-button, .lightbox-download, button):active,
   .set-card:hover img, .hero-frame:hover .hero-image, .thumb-button:hover img { scale: none; }
   html[data-js] img.fade.is-loaded,

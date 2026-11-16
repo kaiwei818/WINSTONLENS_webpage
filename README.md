@@ -200,7 +200,7 @@ Admin (login required; writes must come from this site):
 - `GET /api/admin/receipts`: download receipts (`?format=csv` for a spreadsheet)
 - `GET`, `PATCH /api/admin/hero`: how the home page hero is chosen
 - `POST /api/admin/photos`: upload one photo (small, thumb, display, plus an optional private clean copy)
-- `PATCH`, `DELETE /api/admin/photos/:id`: caption, alt text, camera details, players (tags), rating, remove clean copy, delete
+- `PATCH`, `DELETE /api/admin/photos/:id`: caption, alt text, camera details, jersey numbers (tags), rating, remove clean copy, delete
 - `GET`, `POST /api/admin/licenses`; `PATCH`, `DELETE /api/admin/licenses/:id`: license codes
 - `GET`, `POST /api/admin/categories`; `DELETE /api/admin/categories/:id`: categories
 - `GET`, `PATCH /api/admin/about`: About page bio, gear, and contact details (email, phone, Instagram, one link)

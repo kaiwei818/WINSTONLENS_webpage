@@ -46,7 +46,7 @@ export async function onRequestPatch(context) {
   if ("rating" in body) changes.rating = Math.min(5, Math.max(0, Math.round(Number(body.rating)) || 0));
   // instagram: picked to post on Instagram (admin only, never public)
   if ("instagram" in body) changes.instagram = body.instagram ? 1 : 0;
-  // tags: who is in the photo, jersey numbers or names ("12, 7, Lee Chen"); public
+  // tags: the jersey numbers in the photo ("12, 7"); public, visitors search them
   if ("tags" in body) changes.tags = cleanTags(body.tags);
   // placeholder: the tiny blurry preview (only a small image data: address is accepted)
   if ("placeholder" in body) changes.placeholder = cleanPlaceholder(body.placeholder);
