@@ -278,6 +278,7 @@ function renderExisting() {
   addMissingPlaceholders();
   updateAltReminder();
   updatePicksCount();
+  updateHearts();
   renderInstagramPosts();
 }
 
@@ -405,6 +406,15 @@ function createPhotoCard(photo, index) {
     figure.append(badge);
   }
 
+  if (photo.hearts) {
+    const badge = document.createElement("span");
+    badge.className = "hearts-badge";
+    badge.textContent = `\u2665 ${photo.hearts}`;
+    badge.title = `${photo.hearts} ${photo.hearts === 1 ? "visitor" : "visitors"} hearted this photo`;
+    figure.append(badge);
+  }
+
+  const numbers = textField(photo, "tags", "Jersey numbers (visitors can search them)", "e.g. 12 7");
   const caption = textField(photo, "caption", "Caption (shown in the viewer)");
   const camera = textField(photo, "camera_info", "Camera details (shown in the viewer; clear to hide)");
   const alt = textField(photo, "alt_text", "Description for blind visitors (alt text)",
@@ -425,7 +435,7 @@ function createPhotoCard(photo, index) {
     toolButton("×", `Delete photo ${number}`, () => deletePhoto(photo), "danger"),
   );
 
-  item.append(figure, ratingField(photo, number), caption, camera, alt, instagramToggle(photo, number, figure), tools);
+  item.append(figure, ratingField(photo, number), numbers, caption, camera, alt, instagramToggle(photo, number, figure), tools);
   return item;
 }
 
@@ -473,6 +483,11 @@ configureQuickLook({
     return true;
   },
   pickCounts: () => pickCounts(), // looked up when needed: it is defined further down
+  tag: async (photo, tags) => {
+    if (!(await savePhoto(photo, { tags }))) return false;
+    redrawCard(photo);
+    return true;
+  },
 });
 
 // Five stars: click one to rate, click the same one again to clear.
@@ -550,6 +565,17 @@ function instagramToggle(photo, number, figure) {
   return button;
 }
 
+// "Visitors hearted 9 photos (23 hearts)", and a quick look through those
+// photos, most hearts first: the shots people actually like.
+function updateHearts() {
+  const liked = set.photos.filter((p) => p.hearts > 0).sort((a, b) => b.hearts - a.hearts);
+  const total = liked.reduce((sum, p) => sum + p.hearts, 0);
+  $("hearts-line").hidden = liked.length === 0;
+  $("hearts-count").textContent =
+    `Visitors hearted ${liked.length} ${liked.length === 1 ? "photo" : "photos"} (${total} ${total === 1 ? "heart" : "hearts"}).`;
+  $("hearts-look").onclick = () => openQuickLook(liked, 0, $("hearts-look"));
+}
+
 // Each set is posted on its own, so counts are for this set only.
 const pickCounts = () => groupCounts(set.photos.filter((p) => p.instagram));
 
@@ -600,7 +626,7 @@ function textField(photo, field, labelText, placeholder = "") {
   const input = document.createElement("input");
   input.type = "text";
   input.value = photo[field];
-  input.maxLength = { caption: 1000, alt_text: 500, camera_info: 200 }[field];
+  input.maxLength = { caption: 1000, alt_text: 500, camera_info: 200, tags: 400 }[field];
   input.placeholder = placeholder;
   const status = document.createElement("span");
   status.className = "save-status";
@@ -619,6 +645,7 @@ function textField(photo, field, labelText, placeholder = "") {
       return;
     }
     photo[field] = (await response.json())[field];
+    input.value = photo[field]; // as saved: "12 7" becomes "12, 7"
     if (field === "alt_text") updateAltReminder();
     flash(status, "Saved");
   });

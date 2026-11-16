@@ -150,6 +150,11 @@
         <p><span id="picks-count"></span> <a href="/admin/instagram">Open Instagram picks</a></p>
         <p class="picks-note" id="picks-note" role="status" hidden></p>
       </div>
+      <!-- Photos visitors hearted on the set page, most hearts first (admin-set.js). -->
+      <p class="hearts-line" id="hearts-line" hidden>
+        <span id="hearts-count"></span>
+        <button type="button" class="button-secondary" id="hearts-look">Look through them, most hearted first</button>
+      </p>
       <!-- Shuffle: a random new order, saved at once; Undo puts the old one back. -->
       <div class="order-tools" id="order-tools" hidden>
         <button type="button" class="button-secondary" id="shuffle-photos">Shuffle order</button>
@@ -188,6 +193,10 @@
         <button type="button" class="button-secondary instagram-toggle" id="ql-pick" aria-pressed="false">Pick for Instagram</button>
         <p class="ql-picks" id="ql-picks" role="status"></p>
         <p class="picks-note" id="ql-picks-note" hidden></p>
+        <label class="ql-tags" for="ql-tags">Jersey numbers
+          <input id="ql-tags" type="text" maxlength="400" autocomplete="off" placeholder="e.g. 12 7; Enter saves and goes on">
+        </label>
+        <p class="save-status" id="ql-tags-status" role="status"></p>
         <p class="ql-keys">Keys: 1 to 5 rate, 0 clears, P picks, ← → next photo.</p>
       </div>
       <div class="ql-nav">

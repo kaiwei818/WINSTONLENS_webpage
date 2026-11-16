@@ -41,7 +41,10 @@ const STAY_BEFORE_FULL = 2000; // milliseconds
 // when it cannot be downloaded (no license code entered, or no clean copy).
 // thumbFor(index): optional; the grid button of that photo, for the grow and
 // shrink effect and to put keyboard focus back on the photo last viewed.
-export function createLightbox(photos, { downloadUrl = () => "", thumbFor = () => null } = {}) {
+// visible(index): optional; false for photos the set page's filter hides
+// ("Find my photos"); the viewer then steps over them and counts only the rest.
+// onShow(photo): optional; called each time a photo is shown (the heart button).
+export function createLightbox(photos, { downloadUrl = () => "", thumbFor = () => null, visible = () => true, onShow = () => {} } = {}) {
   const dialog = document.getElementById("lightbox");
   const img = document.getElementById("lightbox-img");
   const info = document.getElementById("lightbox-info");
@@ -66,10 +69,22 @@ export function createLightbox(photos, { downloadUrl = () => "", thumbFor = () =
   // from: -1 or 1 to let the photo settle in from the left or the right (see
   // SETTLE above); 0, the default, shows it at once.
   let settling = null;
+  // The photos being gone through: those the filter shows, and the one on screen.
+  const shownList = () => photos.map((_, i) => i).filter((i) => visible(i) || i === index);
+  const neighbour = (step) => {
+    const list = shownList();
+    return list[(list.indexOf(index) + step + list.length) % list.length];
+  };
+
   function show(newIndex, { from = 0 } = {}) {
     const previous = index;
+    const step = newIndex < previous ? -1 : 1;
     index = (newIndex + photos.length) % photos.length; // wrap around at the ends
-    if (index !== previous) direction = newIndex < previous ? -1 : 1;
+    // Step over photos the filter hides, in the direction of travel.
+    for (let n = 0; n < photos.length && index !== previous && !visible(index); n++) {
+      index = (index + step + photos.length) % photos.length;
+    }
+    if (index !== previous) direction = step;
     const photo = photos[index];
 
     // Show the grid picture at once (already downloaded, so instant), then swap
@@ -109,17 +124,20 @@ export function createLightbox(photos, { downloadUrl = () => "", thumbFor = () =
     camera.textContent = photo.camera_info || "";
     camera.hidden = !photo.camera_info;
     info.hidden = caption.hidden && camera.hidden;
-    counter.textContent = `${index + 1} / ${photos.length}`;
+    const list = shownList();
+    const position = list.indexOf(index) + 1;
+    counter.textContent = `${position} / ${list.length}`;
     const href = downloadUrl(photo);
     download.hidden = !href;
     if (href) download.href = href;
-    const single = photos.length === 1;
+    const single = list.length === 1;
     prevButton.hidden = nextButton.hidden = single;
     // Screen readers say this when the photo changes (not on opening, when
     // they already announce the viewer itself).
     status.textContent = dialog.open
-      ? `Photo ${index + 1} of ${photos.length}${photo.alt_text ? `: ${photo.alt_text}` : ""}`
+      ? `Photo ${position} of ${list.length}${photo.alt_text ? `: ${photo.alt_text}` : ""}`
       : "";
+    onShow(photo);
     if (wantOpen) rememberAddress();
   }
 
@@ -136,7 +154,7 @@ export function createLightbox(photos, { downloadUrl = () => "", thumbFor = () =
       img.src = url;
       setState("");
       // Only now start on the next one, so it does not slow this one down.
-      if (!quiet) preload(index + direction);
+      if (!quiet) preload(neighbour(direction));
     };
     large.onerror = () => {
       if (photos[index] === photo && !quiet) setState("error");
@@ -158,8 +176,8 @@ export function createLightbox(photos, { downloadUrl = () => "", thumbFor = () =
       img.src = lighter.src;
       setState("");
       // The next photo's light version, so moving on still feels instant.
-      if (reason !== "data-saver" && photos.length > 1) {
-        new Image().src = imageUrl(photos[(index + direction + photos.length) % photos.length].thumb_key);
+      if (reason !== "data-saver" && shownList().length > 1) {
+        new Image().src = imageUrl(photos[neighbour(direction)].thumb_key);
       }
     };
     // The light file failed: try the full one, the way it always worked.
@@ -205,8 +223,8 @@ export function createLightbox(photos, { downloadUrl = () => "", thumbFor = () =
   // so moving on feels instant. Not when the visitor's device asks to save data.
   function preload(i) {
     const connection = navigator.connection;
-    if (photos.length < 2 || connection?.saveData || /2g/.test(connection?.effectiveType || "")) return;
-    loadLarge(photos[(i + photos.length) % photos.length]);
+    if (shownList().length < 2 || connection?.saveData || /2g/.test(connection?.effectiveType || "")) return;
+    loadLarge(photos[i]);
   }
 
   function photoAddress(i) {
@@ -367,7 +385,8 @@ export function createLightbox(photos, { downloadUrl = () => "", thumbFor = () =
 
   dialog.addEventListener("keydown", (event) => {
     if (event.altKey || event.ctrlKey || event.metaKey) return;
-    const to = { ArrowLeft: index - 1, ArrowRight: index + 1, Home: 0, End: photos.length - 1 }[event.key];
+    const list = shownList();
+    const to = { ArrowLeft: index - 1, ArrowRight: index + 1, Home: list[0], End: list.at(-1) }[event.key];
     if (to === undefined) return;
     event.preventDefault();
     show(to);
@@ -383,7 +402,7 @@ export function createLightbox(photos, { downloadUrl = () => "", thumbFor = () =
     if (event.target !== dialog && !event.target.classList.contains("lightbox-stage")) return;
     const photo = img.getBoundingClientRect();
     const levelWithPhoto = event.clientY >= photo.top && event.clientY <= photo.bottom;
-    if (mouse.matches && photos.length > 1 && levelWithPhoto) {
+    if (mouse.matches && shownList().length > 1 && levelWithPhoto) {
       if (event.clientX < photo.left) return show(index - 1, { from: -1 });
       if (event.clientX > photo.right) return show(index + 1, { from: 1 });
     }

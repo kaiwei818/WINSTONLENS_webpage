@@ -64,6 +64,25 @@
     </div>
     <p class="set-location" id="set-location"></p>
     <p class="set-description" id="set-description"></p>
+    <!-- "Find my photos": search by jersey number, with suggestions from the
+         numbers tagged in this set, and the visitor's own hearts (js/set.js).
+         Stays hidden when there is nothing to search or show. -->
+    <div class="photo-filter" id="photo-filter" hidden>
+      <div class="number-search" id="number-search-box" hidden>
+        <label class="photo-filter-label" for="number-search">Find my photos by jersey number</label>
+        <div class="number-field">
+          <span class="number-hash" aria-hidden="true">#</span>
+          <input id="number-search" type="text" inputmode="numeric" maxlength="3" autocomplete="off" placeholder="Number"
+                 role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="number-options">
+          <button type="button" class="number-clear" id="number-clear" aria-label="Clear, show all photos" hidden>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"/></svg>
+          </button>
+          <ul class="number-options" id="number-options" role="listbox" aria-label="Numbers in this set" hidden></ul>
+        </div>
+      </div>
+      <button type="button" class="pill pill-gray favorites-toggle" id="favorites-toggle" aria-pressed="false" hidden></button>
+      <p class="photo-filter-status" id="photo-filter-status" role="status"></p>
+    </div>
     <!-- functions/sets/[slug].js fills in the title, description, and photos. -->
     <ul class="photo-grid" id="photo-grid"></ul>
     <p class="status" id="status"></p>
@@ -116,6 +135,10 @@
       <p class="lightbox-camera" id="lightbox-camera"></p>
     </div>
     <a class="lightbox-download" id="lightbox-download" hidden download>Download</a>
+    <!-- Heart a photo you like (js/set.js); the photographer sees how many hearts each photo has. -->
+    <button type="button" class="lightbox-button lightbox-heart" id="lightbox-heart" aria-pressed="false" aria-label="Heart this photo">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>
+    </button>
     <button type="button" class="lightbox-button lightbox-close" id="lightbox-close" aria-label="Close">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
     </button>

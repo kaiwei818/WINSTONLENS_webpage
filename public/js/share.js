@@ -21,7 +21,8 @@
   function pageInfo() {
     const canonical = document.querySelector('link[rel="canonical"]')?.href;
     return {
-      url: canonical || location.href.split("#")[0],
+      // The set page sets data-share-url while it is filtered to one player.
+      url: document.documentElement.dataset.shareUrl || canonical || location.href.split("#")[0],
       title: document.title,
       text: document.querySelector('meta[name="description"]')?.content || "",
     };

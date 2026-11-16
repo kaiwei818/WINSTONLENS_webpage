@@ -1,9 +1,10 @@
-// PATCH  /api/admin/photos/:id   body: any of {"caption", "alt_text", "camera_info", "rating", "instagram"},
+// PATCH  /api/admin/photos/:id   body: any of {"caption", "alt_text", "camera_info", "rating", "instagram", "tags"},
 //                                or {"remove_download": true} to delete the clean copy
 // DELETE /api/admin/photos/:id   deletes the row and all of its image files
 
 import { logActivity, quoted } from "../../../../lib/activity.js";
 import { cleanPlaceholder } from "../../../../lib/render.js";
+import { cleanTags } from "../../../../public/js/tags.js";
 
 // The photo with its set's title, for the activity log.
 function findPhoto(env, id) {
@@ -45,6 +46,8 @@ export async function onRequestPatch(context) {
   if ("rating" in body) changes.rating = Math.min(5, Math.max(0, Math.round(Number(body.rating)) || 0));
   // instagram: picked to post on Instagram (admin only, never public)
   if ("instagram" in body) changes.instagram = body.instagram ? 1 : 0;
+  // tags: the jersey numbers in the photo ("12, 7"); public, visitors search them
+  if ("tags" in body) changes.tags = cleanTags(body.tags);
   // placeholder: the tiny blurry preview (only a small image data: address is accepted)
   if ("placeholder" in body) changes.placeholder = cleanPlaceholder(body.placeholder);
 
@@ -53,7 +56,7 @@ export async function onRequestPatch(context) {
 
   const updated = await env.DB.prepare(
     `UPDATE photos SET ${columns.map((c) => `${c} = ?`).join(", ")} WHERE id = ?
-     RETURNING id, caption, alt_text, camera_info, rating, instagram`
+     RETURNING id, caption, alt_text, camera_info, rating, instagram, tags`
   ).bind(...Object.values(changes), Number(params.id)).first();
 
   if (!updated) return Response.json({ error: "Photo not found" }, { status: 404 });
@@ -70,6 +73,7 @@ export async function onRequestDelete(context) {
     // If this photo was a set's cover, go back to "first photo is the cover".
     env.DB.prepare(`UPDATE sets SET cover_photo_id = NULL WHERE cover_photo_id = ?`).bind(photo.id),
     env.DB.prepare(`DELETE FROM instagram_post_photos WHERE photo_id = ?`).bind(photo.id),
+    env.DB.prepare(`DELETE FROM photo_hearts WHERE photo_id = ?`).bind(photo.id),
     env.DB.prepare(`DELETE FROM photos WHERE id = ?`).bind(photo.id),
   ]);
   // Older photos have no small/medium version (null): leave those out.

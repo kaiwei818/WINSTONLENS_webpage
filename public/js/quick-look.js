@@ -19,7 +19,8 @@ let opener = null; // what had focus before, to return to on close
 // Saving lives in the page that opens the quick look (admin-set.js):
 // rate(photo, 0-5) and pick(photo) save and return true or false; pickCounts()
 // counts this set's Instagram picks, { vertical, horizontal }.
-let controls = { rate: async () => false, pick: async () => false, pickCounts: () => ({ vertical: 0, horizontal: 0 }) };
+// tag(photo, text) saves its jersey numbers, true or false.
+let controls = { rate: async () => false, pick: async () => false, tag: async () => false, pickCounts: () => ({ vertical: 0, horizontal: 0 }) };
 export function configureQuickLook(options) { controls = { ...controls, ...options }; }
 
 // Common shapes, so 3000 x 1999 still reads as "3:2".
@@ -68,7 +69,10 @@ function show(newIndex) {
     ...row("Instagram", instagramText(w, h)),
     ...(p.original_name ? row("File", p.original_name) : []),
     ...(p.camera_info ? row("Camera", p.camera_info) : []),
+    ...(p.hearts ? row("Hearts", `\u2665 ${p.hearts} from visitors`) : []),
   );
+  $("ql-tags").value = p.tags || "";
+  $("ql-tags-status").textContent = "";
   paintControls();
   const single = photos.length < 2;
   $("ql-prev").hidden = single;
@@ -130,6 +134,24 @@ async function pick() {
 }
 $("ql-pick").addEventListener("click", pick);
 
+// Jersey numbers: type them and press Enter to save and go on to the next
+// photo, the quickest way through a set. Leaving the box saves too.
+async function saveTags() {
+  const p = photos[index];
+  const box = $("ql-tags");
+  if (box.value === (p.tags || "")) return true;
+  const saved = await controls.tag(p, box.value);
+  if (photos[index] === p) box.value = saved ? p.tags : box.value;
+  $("ql-tags-status").textContent = saved ? "Saved" : "Not saved. Try again.";
+  return saved;
+}
+$("ql-tags").addEventListener("change", saveTags);
+$("ql-tags").addEventListener("keydown", async (event) => {
+  if (event.key !== "Enter") return;
+  event.preventDefault();
+  if ((await saveTags()) && photos.length > 1) show(index + 1);
+});
+
 export function openQuickLook(list, start, returnTo = document.activeElement) {
   photos = list;
   opener = returnTo;
@@ -143,6 +165,7 @@ $("ql-next").addEventListener("click", () => show(index + 1));
 $("ql-close").addEventListener("click", () => dialog.close());
 dialog.addEventListener("keydown", (event) => {
   if (event.altKey || event.ctrlKey || event.metaKey) return;
+  if (event.target.matches("input")) return; // typing numbers: digits are not ratings here
   if (/^[0-5]$/.test(event.key)) { event.preventDefault(); rate(Number(event.key)); return; }
   if (event.key === "p" || event.key === "P") { event.preventDefault(); if (!$("ql-pick").disabled) pick(); return; }
   if (photos.length < 2) return;
