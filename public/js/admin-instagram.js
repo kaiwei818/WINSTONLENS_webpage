@@ -16,6 +16,7 @@
 import { makeZip } from "./zip.js";
 import { GROUPS, PER_POST, groupOf, splitIntoPosts } from "./picks-limit.js";
 import { markAsPosted, postRecordList } from "./instagram-posts.js";
+import { makeFoldable } from "./admin-chrome.js";
 
 const $ = (id) => document.getElementById(id);
 let photos = [];          // picks, from /api/admin/instagram
@@ -78,6 +79,7 @@ function setSection(set) {
     history.append(el("h3", "", `Posted from ${set.title}`), postRecordList(own, { onChange: load }));
     section.append(history);
   }
+  makeFoldable(section, { key: `set-${set.id}` }); // fold a set away under its name
   return section;
 }
 

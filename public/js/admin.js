@@ -233,13 +233,6 @@ document.getElementById("new-category-form").addEventListener("submit", async (e
   loadCategories();
 });
 
-// ---------- Log out ----------
-
-document.getElementById("logout").addEventListener("click", async () => {
-  await fetch("/api/admin/logout", { method: "POST" });
-  location.href = "/admin/login";
-});
-
 loadSets().catch((error) => console.error(error));
 
 // ---------- Home page hero ----------
