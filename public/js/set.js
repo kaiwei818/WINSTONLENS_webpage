@@ -1,9 +1,11 @@
 // Set page. The server already put the title, description, and photo grid into
 // the page (see functions/sets/[slug].js), so there is nothing to download or
 // build here. This script makes the photos clickable (tapping one opens the
-// full-screen viewer) and handles license codes.
+// full-screen viewer), filters it ("Find my photos"), keeps the visitor's
+// hearts, and handles license codes.
 
 import { createLightbox } from "./lightbox.js";
+import { sortTags, tagLabel, tagList } from "./tags.js";
 
 // The photo details (all sizes, captions, camera info), sent along in the page.
 const photos = JSON.parse(document.getElementById("set-data").textContent);
@@ -18,11 +20,123 @@ try {
   licenseCode = sessionStorage.getItem(`license:${slug}`) || "";
 } catch {}
 
+// ---------- Hearts ----------
+// Kept in this browser (localStorage): the photos this visitor hearted, and a
+// random id that lets the server count one heart per visitor (api/hearts.js).
+function stored(key, fallback) {
+  try {
+    return JSON.parse(localStorage.getItem(key)) ?? fallback;
+  } catch {
+    return fallback;
+  }
+}
+function store(key, value) {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch {}
+}
+const hearted = new Set(stored("hearts", []));
+let visitor = stored("visitor", "");
+if (!visitor) store("visitor", (visitor = crypto.randomUUID()));
+
+// ---------- Find my photos ----------
+// One chip per player tagged in this set (jersey numbers first), plus
+// "My favorites" once the visitor has hearted something here. ?player=12 in
+// the address opens the set already filtered, so the link can be shared.
+const FAVORITES = "\u2665"; // the filter value for "My favorites"
+const tagsOf = photos.map((photo) => tagList(photo.tags));
+const allTags = sortTags([...new Set(tagsOf.flat())]);
+let filter = "";
+const same = (a, b) => a.toLowerCase() === b.toLowerCase();
+const matches = (i) => !filter ||
+  (filter === FAVORITES ? hearted.has(photos[i].id) : tagsOf[i].some((tag) => same(tag, filter)));
+
 const thumbs = document.querySelectorAll("#photo-grid .thumb-button");
 const lightbox = createLightbox(photos, {
   downloadUrl: (photo) =>
     licenseCode && photo.downloadable ? `/api/download/${photo.id}?code=${encodeURIComponent(licenseCode)}` : "",
   thumbFor: (index) => thumbs[index] || null,
+  visible: matches,
+  onShow: paintHeart,
+});
+
+function renderFilter() {
+  const favorites = photos.filter((p) => hearted.has(p.id)).length;
+  const box = document.getElementById("photo-filter");
+  box.hidden = !allTags.length && !favorites;
+  if (box.hidden) return;
+  const chip = (value, text) => {
+    const a = document.createElement("a");
+    a.href = value && value !== FAVORITES ? `?player=${encodeURIComponent(value)}` : location.pathname;
+    a.textContent = text;
+    if (filter === value) a.setAttribute("aria-current", "page");
+    a.addEventListener("click", (event) => {
+      event.preventDefault();
+      applyFilter(filter === value ? "" : value); // tapping the chosen chip again shows all
+    });
+    return a;
+  };
+  document.getElementById("photo-filter-chips").replaceChildren(
+    chip("", "All"),
+    ...allTags.map((tag) => chip(tag, tagLabel(tag))),
+    ...(favorites ? [chip(FAVORITES, `\u2665 My favorites (${favorites})`)] : []),
+  );
+}
+
+function applyFilter(value) {
+  filter = value;
+  if (filter === FAVORITES && !photos.some((p) => hearted.has(p.id))) filter = "";
+  let count = 0;
+  thumbs.forEach((button, i) => {
+    button.parentElement.hidden = !matches(i);
+    if (matches(i)) count++;
+  });
+  const photoWord = `${count} ${count === 1 ? "photo" : "photos"}`;
+  document.getElementById("photo-filter-label").textContent = !filter ? "Find my photos"
+    : filter === FAVORITES ? `Your favorites: ${photoWord}` : `${photoWord} of ${tagLabel(filter)}`;
+  // A player's filter goes into the address (and the Share button), so the
+  // link opens on just their photos. Favorites are this visitor's own: not shared.
+  const query = filter && filter !== FAVORITES ? `?player=${encodeURIComponent(filter)}` : "";
+  history.replaceState(history.state, "", location.pathname + query);
+  if (query) document.documentElement.dataset.shareUrl = location.origin + location.pathname + query;
+  else delete document.documentElement.dataset.shareUrl;
+  renderFilter();
+}
+
+const wanted = new URLSearchParams(location.search).get("player") || "";
+const startTag = allTags.find((tag) => same(tag, wanted.replace(/^#/, "")));
+if (startTag) applyFilter(startTag);
+else renderFilter();
+
+const heartButton = document.getElementById("lightbox-heart");
+let current = null;
+function paintHeart(photo = current) {
+  current = photo;
+  const on = hearted.has(photo.id);
+  heartButton.setAttribute("aria-pressed", String(on));
+  heartButton.setAttribute("aria-label", on ? "Remove your heart" : "Heart this photo");
+}
+function setHeart(photo, on) {
+  if (on) hearted.add(photo.id);
+  else hearted.delete(photo.id);
+  store("hearts", [...hearted]);
+  if (current === photo) paintHeart();
+  if (filter === FAVORITES) applyFilter(FAVORITES);
+  else renderFilter();
+}
+heartButton.addEventListener("click", async () => {
+  const photo = current;
+  const on = !hearted.has(photo.id);
+  setHeart(photo, on); // at once; put back if the server says no
+  try {
+    const response = await fetch("/api/hearts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ photo_id: photo.id, visitor, on }),
+    });
+    if (response.ok) return;
+  } catch {}
+  setHeart(photo, !on);
 });
 
 const licenseForm = document.getElementById("license-form");

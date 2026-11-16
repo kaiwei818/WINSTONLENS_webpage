@@ -20,6 +20,7 @@ export async function onRequestGet(context) {
 
   const { results: photos } = await env.DB.prepare(
     `SELECT id, thumb_key, medium_key, display_key, original_name, width, height, caption, alt_text, camera_info, size_bytes, rating, instagram,
+            tags, (SELECT COUNT(*) FROM photo_hearts WHERE photo_id = photos.id) AS hearts,
             placeholder != '' AS placeholder,
             download_key IS NOT NULL AS downloadable
      FROM photos WHERE set_id = ? ORDER BY sort_order, id`
@@ -164,7 +165,8 @@ export async function onRequestDelete(context) {
   // Database first: once the rows are gone, nothing on the site points to the
   // files any more. Doing the files first could leave broken images on show if
   // the database step then failed.
-  const [, , , , , , deleted] = await env.DB.batch([
+  const [, , , , , , , deleted] = await env.DB.batch([
+    env.DB.prepare(`DELETE FROM photo_hearts WHERE photo_id IN (SELECT id FROM photos WHERE set_id = ?)`).bind(setId),
     env.DB.prepare(`DELETE FROM instagram_post_photos WHERE post_id IN (SELECT id FROM instagram_posts WHERE set_id = ?)`).bind(setId),
     env.DB.prepare(`DELETE FROM instagram_posts WHERE set_id = ?`).bind(setId),
     env.DB.prepare(`DELETE FROM photos WHERE set_id = ?`).bind(setId),

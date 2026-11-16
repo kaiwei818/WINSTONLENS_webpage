@@ -183,6 +183,7 @@ Public (read only):
 - `GET /robots.txt`, `GET /sitemap.xml`: for search engines
 - `GET /img/:key`: an image file (refuses other websites and private clean copies)
 - `POST /api/license/check`: is this license code valid for this set (rate limited)
+- `POST /api/hearts`: a visitor hearts a photo, or takes it back (anonymous, rate limited)
 - `GET /api/download/:id?code=...`: download a clean copy with a valid code (counts one download;
   the set page's "Download all" uses this for each photo, then zips them in the browser)
 
@@ -199,7 +200,7 @@ Admin (login required; writes must come from this site):
 - `GET /api/admin/receipts`: download receipts (`?format=csv` for a spreadsheet)
 - `GET`, `PATCH /api/admin/hero`: how the home page hero is chosen
 - `POST /api/admin/photos`: upload one photo (small, thumb, display, plus an optional private clean copy)
-- `PATCH`, `DELETE /api/admin/photos/:id`: caption, alt text, camera details, remove clean copy, delete
+- `PATCH`, `DELETE /api/admin/photos/:id`: caption, alt text, camera details, players (tags), rating, remove clean copy, delete
 - `GET`, `POST /api/admin/licenses`; `PATCH`, `DELETE /api/admin/licenses/:id`: license codes
 - `GET`, `POST /api/admin/categories`; `DELETE /api/admin/categories/:id`: categories
 - `GET`, `PATCH /api/admin/about`: About page bio, gear, and contact details (email, phone, Instagram, one link)

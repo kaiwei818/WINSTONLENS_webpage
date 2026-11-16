@@ -884,6 +884,12 @@ html[data-pointer] :focus-visible:not(input, textarea, select) { outline: none; 
   .photo-grid { --row-height: 160px; gap: var(--space-2xs); margin-top: var(--space-xl); }
 }
 
+/* ---------- Find my photos (set page, js/set.js) ---------- */
+/* The category chips' look, a quiet label above saying what is shown. */
+.photo-filter { display: flex; flex-direction: column; gap: var(--space-xs); margin-top: var(--space-xl); }
+.photo-filter-label { margin: 0; color: var(--color-muted); font-size: var(--text-sm); font-weight: 500; }
+.photo-filter + .photo-grid { margin-top: var(--space-lg); }
+
 /* ---------- Tappable photos ---------- */
 .thumb-button {
   position: relative;
@@ -1194,10 +1200,15 @@ html[data-pointer] :focus-visible:not(input, textarea, select) { outline: none; 
   right: 0;
   bottom: 0;
   left: 0;
-  padding: var(--space-sm) var(--space-md) calc(var(--space-sm) + env(safe-area-inset-bottom));
+  /* Room at both sides for the heart button in the corner, so the caption stays centred. */
+  padding: var(--space-sm) 64px calc(var(--space-sm) + env(safe-area-inset-bottom));
   text-align: center;
   background: linear-gradient(var(--color-scrim-none), var(--color-scrim));
 }
+/* The heart (js/set.js): bottom right on phones, under the thumb; outlined,
+   filled once hearted. */
+.lightbox-heart { right: var(--space-sm); bottom: calc(var(--space-2xs) + env(safe-area-inset-bottom)); }
+.lightbox-heart[aria-pressed="true"] svg { fill: currentColor; }
 .lightbox-info p { margin: 0; }
 .lightbox-camera {
   margin-top: var(--space-3xs) !important;
@@ -1287,6 +1298,8 @@ html[data-pointer] :focus-visible:not(input, textarea, select) { outline: none; 
   .lightbox-next { right: var(--space-lg); }
   .lightbox-info { right: 200px; padding: 0 var(--space-xl) var(--space-xl); text-align: left; background: none; }
   .lightbox-download { top: auto; bottom: calc(var(--space-lg) + var(--space-2xs)); right: var(--space-xl); }
+  /* Computers: top left, the one free corner (counter in the middle, × at the right). */
+  .lightbox-heart { top: var(--space-sm); left: var(--space-lg); right: auto; bottom: auto; }
 }
 
 /* A thin line along the top while the full-size photo downloads. It only
@@ -1903,6 +1916,8 @@ section.panel[aria-labelledby="hero-heading"] { max-width: 720px; }
 }
 .picks-line { margin: 0 0 var(--space-md); font-size: var(--text-sm); }
 .picks-line p { margin: 0; }
+.hearts-line { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-xs) var(--space-sm); margin: 0 0 var(--space-md); font-size: var(--text-sm); }
+.hearts-line button { min-height: 32px; font-size: var(--text-sm); }
 /* Nearing one post's 20 photos: a note, never a block. */
 .picks-note { margin: var(--space-xs) 0 0; padding: var(--space-xs) var(--space-sm); background: var(--color-info-bg); color: var(--color-info-ink); font-size: var(--text-sm); }
 .picks-note[data-level="full"],
@@ -2013,6 +2028,9 @@ section.panel[aria-labelledby="hero-heading"] { max-width: 720px; }
 .quick-look .instagram-toggle[aria-pressed="true"] { background: var(--color-violet-bg); border-color: var(--color-violet-bg); color: var(--color-violet-ink); }
 .ql-picks { margin: 0; font-size: var(--text-sm); font-weight: 500; font-variant-numeric: tabular-nums; }
 .quick-look .picks-note { margin: 0; }
+.ql-tags { display: flex; flex-direction: column; gap: var(--space-3xs); align-self: stretch; color: var(--color-night-muted); font-size: var(--text-sm); font-weight: 500; }
+.ql-tags input { background: var(--color-night-2); border-color: var(--color-night-3); color: var(--color-night-ink); }
+.quick-look .save-status { margin: 0; }
 .ql-keys { margin: 0; color: var(--color-night-muted); font-size: var(--text-xs); }
 @media (hover: none) { .ql-keys { display: none; } }
 .ql-nav { display: flex; gap: var(--space-xs); margin-top: auto; }
@@ -2065,6 +2083,18 @@ section.panel[aria-labelledby="hero-heading"] { max-width: 720px; }
 }
 .cover-badge { top: var(--space-xs); background: var(--color-highlight); color: var(--color-highlight-ink); }
 .download-badge { bottom: var(--space-xs); background: var(--color-good-bg); color: var(--color-good-ink); }
+/* Visitors' hearts: top right, beside the drag handle. */
+.hearts-badge {
+  position: absolute;
+  top: var(--space-xs);
+  right: calc(2 * var(--space-xs) + 36px);
+  padding: var(--space-3xs) var(--space-xs);
+  border-radius: var(--radius-pill);
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-size: var(--text-xs);
+  font-weight: 600;
+}
 .photo-card-field { display: flex; flex-direction: column; gap: var(--space-3xs); color: var(--color-muted); font-size: var(--text-xs); font-weight: 500; }
 .photo-card-field input { min-height: 36px; padding: 0 var(--space-xs); font-size: var(--text-sm); }
 .photo-card-tools { display: flex; gap: var(--space-xs); }

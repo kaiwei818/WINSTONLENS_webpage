@@ -64,6 +64,12 @@
     </div>
     <p class="set-location" id="set-location"></p>
     <p class="set-description" id="set-description"></p>
+    <!-- "Find my photos": a chip per player tagged in this set, and the visitor's
+         own hearts (js/set.js). Stays hidden when there is nothing to filter by. -->
+    <div class="photo-filter" id="photo-filter" hidden>
+      <p class="photo-filter-label" id="photo-filter-label" role="status">Find my photos</p>
+      <nav class="category-nav" id="photo-filter-chips" aria-labelledby="photo-filter-label"></nav>
+    </div>
     <!-- functions/sets/[slug].js fills in the title, description, and photos. -->
     <ul class="photo-grid" id="photo-grid"></ul>
     <p class="status" id="status"></p>
@@ -116,6 +122,10 @@
       <p class="lightbox-camera" id="lightbox-camera"></p>
     </div>
     <a class="lightbox-download" id="lightbox-download" hidden download>Download</a>
+    <!-- Heart a photo you like (js/set.js); the photographer sees how many hearts each photo has. -->
+    <button type="button" class="lightbox-button lightbox-heart" id="lightbox-heart" aria-pressed="false" aria-label="Heart this photo">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>
+    </button>
     <button type="button" class="lightbox-button lightbox-close" id="lightbox-close" aria-label="Close">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
     </button>
