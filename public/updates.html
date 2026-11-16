@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- The color of the phone's browser bar; js/theme.js keeps it in step with dark mode. -->
+  <meta name="theme-color" content="#ffffff">
+  <!-- Text in data-site="..." elements and the title come from lib/site.js (see functions/_middleware.js). -->
+  <title data-page="What's new"></title>
+  <meta name="description" content="New things you can do on the site: find photos by jersey number, like and share single photos.">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="">
+  <meta property="og:title" content="What's new">
+  <meta name="twitter:card" content="summary">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="/js/theme.js"></script>
+  <script src="/js/menu.js" defer></script>
+  <script src="/js/share.js" defer></script>
+  <script src="/js/protect.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header">
+    <a class="site-name" href="/" data-site="name"></a>
+    <div class="header-tools">
+      <!-- Work / About / Contact, filled in by functions/_middleware.js (lib/chrome.js). -->
+      <nav class="site-nav" id="site-nav" aria-label="Main"></nav>
+      <div class="header-buttons">
+        <!-- Light / dark, shown and labelled by js/theme.js. -->
+        <button type="button" class="round-button theme-toggle" data-theme-toggle hidden aria-label="Switch to dark mode">
+          <svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+          <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3M4.6 4.6l2.1 2.1M17.3 17.3l2.1 2.1M4.6 19.4l2.1-2.1M17.3 6.7l2.1-2.1"/></svg>
+        </button>
+        <button type="button" class="round-button menu-button" id="menu-button" aria-haspopup="dialog" aria-controls="site-menu" aria-expanded="false">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+          <span class="menu-button-label">Menu</span>
+        </button>
+      </div>
+    </div>
+  </header>
+  <!-- The slide-in menu, filled in by functions/_middleware.js (lib/chrome.js)
+       and opened by js/menu.js. -->
+  <dialog class="site-menu" id="site-menu" aria-label="Menu"></dialog>
+
+  <!-- What's new: features visitors can use, newest first. Add an entry at
+       the top whenever something new ships. -->
+  <main id="main" class="updates">
+    <h1>What's new</h1>
+    <p class="updates-lead">New things you can do on the site.</p>
+    <ol class="updates-list">
+      <li>
+        <p class="updates-date"><time datetime="2026-11-16">16 November 2026</time></p>
+        <h2>Like and share single photos</h2>
+        <p>Open any photo: under it, <strong>Like</strong> keeps it among your favourites, and <strong>Share</strong> sends a link to just that photo. On a phone it opens your share sheet; on a computer it copies the link.</p>
+      </li>
+      <li>
+        <p class="updates-date"><time datetime="2026-11-16">16 November 2026</time></p>
+        <h2>Your favourites, in one place</h2>
+        <p>Once you have liked photos in a set, <strong>My favorites</strong> appears above the photos and shows just those. Handy for picking photos for your own posts. They stay in your browser; no account needed.</p>
+      </li>
+      <li>
+        <p class="updates-date"><time datetime="2026-11-15">15 November 2026</time></p>
+        <h2>Find photos by jersey number</h2>
+        <p>On sports sets, type a jersey number in <strong>Find my photos</strong> above the photos, or pick one from the list. Only that player's photos show, and the link can be shared, so a whole team can find their own shots.</p>
+      </li>
+      <li>
+        <p class="updates-date"><time datetime="2026-11-15">15 November 2026</time></p>
+        <h2>A tidier menu</h2>
+        <p>In the menu, the list of sets and the categories fold open and closed, so it stays short.</p>
+      </li>
+    </ol>
+  </main>
+
+  <footer class="site-footer" id="contact">
+    © <span data-site="year"></span> <span data-site="owner"></span> · <span data-site="name"></span>
+  </footer>
+</body>
+</html>

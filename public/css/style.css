@@ -1123,6 +1123,17 @@ html[data-pointer] :focus-visible:not(input, textarea, select) { outline: none; 
 }
 .about-contact,
 .about-gear { list-style: none; margin: 0; padding: 0; }
+
+/* ---------- What's new (updates.html) ---------- */
+/* A dated list, newest first, each entry ruled off like the About rows. */
+.updates { padding-top: var(--space-2xl); }
+.updates h1 { margin: 0 0 var(--space-sm); font-size: var(--text-display); }
+.updates-lead { max-width: 60ch; margin: 0 0 var(--space-2xl); color: var(--color-ink-2); font-size: var(--text-lead); }
+.updates-list { max-width: 60ch; margin: 0; padding: 0; list-style: none; }
+.updates-list li { padding: var(--space-lg) 0; border-top: 1px solid var(--color-rule); }
+.updates-date { margin: 0 0 var(--space-2xs); color: var(--color-muted); font-size: var(--text-sm); font-weight: 500; }
+.updates-list h2 { margin: 0 0 var(--space-xs); font-size: var(--text-md); font-weight: 600; }
+.updates-list p:last-child { margin: 0; color: var(--color-ink-2); line-height: 1.6; }
 .about-contact li,
 .about-gear li {
   display: grid;
@@ -1238,6 +1249,7 @@ html[data-pointer] :focus-visible:not(input, textarea, select) { outline: none; 
   white-space: nowrap;
 }
 .footer-top:hover { color: var(--color-ink); text-decoration: underline; }
+.footer-end { display: flex; flex-wrap: wrap; gap: var(--space-lg); }
 
 /* ---------- Full-screen viewer ---------- */
 .no-scroll { overflow: hidden; }
@@ -1285,8 +1297,9 @@ html[data-pointer] :focus-visible:not(input, textarea, select) { outline: none; 
   display: flex;
   align-items: center;
   justify-content: center;
-  /* Room for the counter at the top, without covering the photo. */
-  padding: var(--space-xl) 0;
+  /* Room for the counter at the top and the Like / Share bar and caption at
+     the bottom, without covering the photo. */
+  padding: var(--space-xl) 0 140px;
 }
 /* "contain" = as big as possible while showing the whole photo. */
 .lightbox-stage img {
@@ -1297,7 +1310,7 @@ html[data-pointer] :focus-visible:not(input, textarea, select) { outline: none; 
   /* Its final size from the start (lightbox.js sets --ratio and --w from the
      photo), so it does not grow when the sharper file arrives. */
   aspect-ratio: var(--ratio);
-  width: min(100%, var(--w), calc((100dvh - 96px) * var(--ratio)));
+  width: min(100%, var(--w), calc((100dvh - 172px) * var(--ratio)));
   height: auto;
   /* Under the photo, its tiny blurry preview, until the picture is drawn. */
   background: var(--ph, none) center / cover no-repeat;
@@ -1315,19 +1328,42 @@ html[data-pointer] :focus-visible:not(input, textarea, select) { outline: none; 
   font-weight: 500;
   font-variant-numeric: tabular-nums;
 }
-.lightbox-info {
+/* Under the photo: the action bar (Like, Share, Download), then the caption.
+   The same place on phones and computers, centred, easy to find. */
+.lightbox-bottom {
   position: absolute;
   right: 0;
   bottom: 0;
   left: 0;
-  /* Room at both sides for the heart button in the corner, so the caption stays centred. */
-  padding: var(--space-sm) 64px calc(var(--space-sm) + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-md) var(--space-md) calc(var(--space-md) + env(safe-area-inset-bottom));
   text-align: center;
   background: linear-gradient(var(--color-scrim-none), var(--color-scrim));
 }
-/* The heart (js/set.js): bottom right on phones, under the thumb; outlined,
-   filled once hearted. */
-.lightbox-heart { right: var(--space-sm); bottom: calc(var(--space-2xs) + env(safe-area-inset-bottom)); }
+.lightbox-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--space-xs); }
+.lightbox-action {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2xs);
+  min-height: 44px;
+  padding: 0 var(--space-md);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--color-night-2);
+  color: var(--color-night-ink);
+  font: inherit;
+  font-weight: 500;
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+}
+.lightbox-action:hover { background: var(--color-night-3); }
+.lightbox-action:active { scale: var(--press); }
+.lightbox-action svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+/* Liked: the heart fills (and pops, js/set.js). */
 .lightbox-heart svg { transition: fill var(--dur-micro) var(--ease-out); }
 .lightbox-heart[aria-pressed="true"] svg { fill: currentColor; }
 .lightbox-info p { margin: 0; }
@@ -1367,32 +1403,18 @@ html[data-pointer] :focus-visible:not(input, textarea, select) { outline: none; 
 .lightbox-next { top: 50%; transform: translateY(-50%); }
 .lightbox-prev { left: var(--space-sm); }
 .lightbox-next { right: var(--space-sm); }
-.lightbox-download {
-  position: absolute;
-  top: var(--space-2xs);
-  right: var(--space-2xl);
-  display: inline-flex;
-  align-items: center;
-  min-height: var(--control);
-  padding: 0 var(--space-lg);
-  border-radius: var(--radius-pill);
-  background: var(--color-night-ink);
-  color: var(--color-night);
-  font-weight: 500;
-  white-space: nowrap;
-  text-decoration: none;
-}
+/* Download, once a license code is entered: the solid one in the bar. */
+.lightbox-download { background: var(--color-night-ink); color: var(--color-night); }
 .lightbox-download:hover { background: var(--color-night-ink-2); }
-.lightbox-download:active { scale: var(--press); }
 /* The viewer's buttons and words. While a finger drags the photo down to
    close it, they step aside, so only the photo moves (lightbox.js). */
 .lightbox-button,
-.lightbox-download,
+.lightbox-action,
 .lightbox-counter,
-.lightbox-info {
+.lightbox-bottom {
   transition: opacity var(--dur-micro) var(--ease-out), background-color var(--dur-micro) var(--ease-out), scale var(--dur-micro) var(--ease-out);
 }
-.lightbox[data-dragging] :is(.lightbox-button, .lightbox-download, .lightbox-counter, .lightbox-info) { opacity: 0; }
+.lightbox[data-dragging] :is(.lightbox-button, .lightbox-counter, .lightbox-bottom) { opacity: 0; }
 
 /* On phones, swiping replaces the arrows, so they stop covering the photo.
    They are only hidden from sight: screen readers still find them. */
@@ -1407,20 +1429,16 @@ html[data-pointer] :focus-visible:not(input, textarea, select) { outline: none; 
     white-space: nowrap;
   }
 }
-/* Computers and tablets: the photo gets a frame of dark space, the counter
-   sits in the middle at the top, and the caption, camera details, and
-   Download button share a row along the bottom. */
+/* Computers and tablets: the photo gets a frame of dark space and the counter
+   sits in the middle at the top. */
 @media (min-width: 700px) {
-  .lightbox-stage { padding: 72px 88px 104px; }
-  .lightbox-stage img { width: min(100%, var(--w), calc((100dvh - 176px) * var(--ratio))); }
+  .lightbox-stage { padding: 72px 88px 148px; }
+  .lightbox-stage img { width: min(100%, var(--w), calc((100dvh - 220px) * var(--ratio))); }
   .lightbox-counter { left: 50%; transform: translateX(-50%); padding: var(--space-lg) var(--space-md); }
   .lightbox-close { top: var(--space-sm); right: var(--space-lg); }
   .lightbox-prev { left: var(--space-lg); }
   .lightbox-next { right: var(--space-lg); }
-  .lightbox-info { right: 200px; padding: 0 var(--space-xl) var(--space-xl); text-align: left; background: none; }
-  .lightbox-download { top: auto; bottom: calc(var(--space-lg) + var(--space-2xs)); right: var(--space-xl); }
-  /* Computers: top left, the one free corner (counter in the middle, × at the right). */
-  .lightbox-heart { top: var(--space-sm); left: var(--space-lg); right: auto; bottom: auto; }
+  .lightbox-bottom { padding-bottom: var(--space-lg); background: none; }
 }
 
 /* A thin line along the top while the full-size photo downloads. It only
@@ -1444,7 +1462,7 @@ html[data-pointer] :focus-visible:not(input, textarea, select) { outline: none; 
 .lightbox-problem {
   position: absolute;
   left: 50%;
-  bottom: calc(72px + env(safe-area-inset-bottom));
+  bottom: calc(150px + env(safe-area-inset-bottom));
   transform: translateX(-50%);
   margin: 0;
   padding: var(--space-xs) var(--space-md);
@@ -1645,10 +1663,10 @@ html.photo-transition .site-header { view-transition-name: none; }
   ::view-transition-group(photo), ::view-transition-old(photo), ::view-transition-new(photo) { animation: none; }
   .site-menu, .site-menu::backdrop, .lightbox, .lightbox::backdrop, .lightbox-stage img,
   .pill, .round-button, .button-link, .thumb-button img, .set-card img, .hero-image, .menu-close, .menu-action, .share-menu,
-  .lightbox-button, .lightbox-download, .lightbox-counter, .lightbox-info, button, .icon-button,
+  .lightbox-button, .lightbox-action, .lightbox-counter, .lightbox-bottom, button, .icon-button,
   .menu-section::details-content, .menu-section > ul, .menu-chevron, .number-options, .favorites-toggle,
   .lightbox-heart svg { transition: none; }
-  :is(.pill, .round-button, .button-link, .menu-close, .menu-action, .lightbox-button, .lightbox-download, button):active,
+  :is(.pill, .round-button, .button-link, .menu-close, .menu-action, .lightbox-button, .lightbox-action, button):active,
   .set-card:hover img, .hero-frame:hover .hero-image, .thumb-button:hover img { scale: none; }
   html[data-js] img.fade.is-loaded,
   .lightbox[data-state="loading"]::after { animation: none; }

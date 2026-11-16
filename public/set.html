@@ -130,15 +130,23 @@
       <img id="lightbox-img" alt="" draggable="false">
     </div>
     <p class="lightbox-counter" id="lightbox-counter"></p>
-    <div class="lightbox-info" id="lightbox-info" hidden>
-      <p class="lightbox-caption" id="lightbox-caption"></p>
-      <p class="lightbox-camera" id="lightbox-camera"></p>
+    <!-- Under the photo: Like, Share (this one photo) and, with a license code,
+         Download; then the caption and camera details (js/set.js, js/lightbox.js). -->
+    <div class="lightbox-bottom">
+      <div class="lightbox-actions">
+        <button type="button" class="lightbox-action lightbox-heart" id="lightbox-heart" aria-pressed="false">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg><span>Like</span>
+        </button>
+        <button type="button" class="lightbox-action" id="lightbox-share">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V3M7.5 7.5L12 3l4.5 4.5"/><path d="M5 12v8h14v-8"/></svg><span>Share</span>
+        </button>
+        <a class="lightbox-action lightbox-download" id="lightbox-download" hidden download>Download</a>
+      </div>
+      <div class="lightbox-info" id="lightbox-info" hidden>
+        <p class="lightbox-caption" id="lightbox-caption"></p>
+        <p class="lightbox-camera" id="lightbox-camera"></p>
+      </div>
     </div>
-    <a class="lightbox-download" id="lightbox-download" hidden download>Download</a>
-    <!-- Heart a photo you like (js/set.js); the photographer sees how many hearts each photo has. -->
-    <button type="button" class="lightbox-button lightbox-heart" id="lightbox-heart" aria-pressed="false" aria-label="Heart this photo">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>
-    </button>
     <button type="button" class="lightbox-button lightbox-close" id="lightbox-close" aria-label="Close">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
     </button>
