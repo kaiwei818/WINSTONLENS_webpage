@@ -3,7 +3,7 @@
 
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { cleanTags, sortTags, tagLabel, tagList } from "../public/js/tags.js";
+import { cleanTags, sortTags, tagList } from "../public/js/tags.js";
 
 test("numbers can be separated by anything", () => {
   assert.deepEqual(tagList("12 7 23"), ["12", "7", "23"]);
@@ -25,5 +25,4 @@ test("at most 20 numbers of up to 3 digits", () => {
 
 test("suggestions are in number order", () => {
   assert.deepEqual(sortTags(["12", "7", "100", "0"]), ["0", "7", "12", "100"]);
-  assert.equal(tagLabel("12"), "#12");
 });

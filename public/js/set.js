@@ -93,7 +93,8 @@ function applyFilter(value, { fade = true } = {}) {
   // A number goes into the address (and the Share button), so the link opens
   // on just those photos. Favorites are this visitor's own: not shared.
   const query = filter && filter !== FAVORITES ? `?number=${filter}` : "";
-  history.replaceState(history.state, "", location.pathname + query);
+  // Not while a photo is open: its own address (?photo=3) must stay.
+  if (!history.state?.lightbox) history.replaceState(history.state, "", location.pathname + query);
   if (query) document.documentElement.dataset.shareUrl = location.origin + location.pathname + query;
   else delete document.documentElement.dataset.shareUrl;
   renderFilter();

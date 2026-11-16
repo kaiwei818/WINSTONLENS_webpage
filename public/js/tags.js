@@ -15,5 +15,3 @@ export const cleanTags = (text) => tagList(text).join(", ");
 
 // In number order, for the search suggestions.
 export const sortTags = (tags) => [...tags].sort((a, b) => a - b || a.localeCompare(b));
-
-export const tagLabel = (tag) => `#${tag}`;
