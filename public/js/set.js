@@ -6,6 +6,7 @@
 
 import { createLightbox } from "./lightbox.js";
 import { sortTags, tagList } from "./tags.js";
+import { t } from "./text.js";
 
 // The photo details (all sizes, captions, camera info), sent along in the page.
 const photos = JSON.parse(document.getElementById("set-data").textContent);
@@ -65,14 +66,13 @@ const search = document.getElementById("number-search");
 const options = document.getElementById("number-options");
 const clearButton = document.getElementById("number-clear");
 const favoritesButton = document.getElementById("favorites-toggle");
-const plural = (n, word) => `${n} ${word}${n === 1 ? "" : "s"}`;
 
 function renderFilter() {
   const favorites = photos.filter((p) => hearted.has(p.id)).length;
   document.getElementById("photo-filter").hidden = !numbers.length && !favorites;
   document.getElementById("number-search-box").hidden = !numbers.length;
   favoritesButton.hidden = !favorites;
-  favoritesButton.textContent = `\u2665 My favorites (${favorites})`;
+  favoritesButton.textContent = t("find.favorites", { n: favorites });
   favoritesButton.setAttribute("aria-pressed", String(filter === FAVORITES));
   clearButton.hidden = !search.value;
 }
@@ -87,7 +87,7 @@ function applyFilter(value, { fade = true } = {}) {
   if (changed && fade && !lessMotion.matches) grid.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 220, easing: ease });
   const count = photos.filter((_, i) => matches(i)).length;
   document.getElementById("photo-filter-status").textContent = !filter ? ""
-    : filter === FAVORITES ? `Your favorites: ${plural(count, "photo")}` : `${plural(count, "photo")} of #${filter}`;
+    : filter === FAVORITES ? t("find.favoritesResult", { n: count }) : t("find.result", { n: count, number: filter });
   if (filter !== FAVORITES && search.value !== filter) search.value = filter;
   if (filter === FAVORITES) search.value = "";
   // A number goes into the address (and the Share button), so the link opens
@@ -116,7 +116,7 @@ function showOptions() {
     label.textContent = `#${n}`;
     const count = document.createElement("span");
     count.className = "number-count";
-    count.textContent = plural(countOf(n), "photo");
+    count.textContent = t("photos", { n: countOf(n) });
     li.append(label, count);
     // pointerdown, not click: picks before the box loses focus and the list closes.
     li.addEventListener("pointerdown", (event) => {
@@ -129,7 +129,7 @@ function showOptions() {
   options.hidden = !open;
   search.setAttribute("aria-expanded", String(open));
   search.setAttribute("aria-activedescendant", open && active >= 0 ? `number-option-${found[active]}` : "");
-  if (typed && !found.length) document.getElementById("photo-filter-status").textContent = `No photos tagged #${typed} in this set yet.`;
+  if (typed && !found.length) document.getElementById("photo-filter-status").textContent = t("find.none", { number: typed });
 }
 function closeOptions() {
   options.hidden = true;
@@ -187,7 +187,7 @@ function paintHeart(photo = current) {
   current = photo;
   const on = hearted.has(photo.id);
   heartButton.setAttribute("aria-pressed", String(on));
-  heartButton.querySelector("span").textContent = on ? "Liked" : "Like";
+  heartButton.querySelector("span").textContent = on ? t("viewer.liked") : t("viewer.like");
 }
 function setHeart(photo, on) {
   if (on) hearted.add(photo.id);
@@ -233,15 +233,15 @@ const preferSheet = typeof navigator.share === "function" && matchMedia("(pointe
 shareButton.addEventListener("click", async () => {
   const number = photos.indexOf(current) + 1;
   const url = `${location.origin}${location.pathname}?photo=${number}`;
-  const title = `${document.getElementById("set-title").textContent}, photo ${number}`;
+  const title = t("set.photoTitle", { title: document.getElementById("set-title").textContent, n: number });
   if (preferSheet) return navigator.share({ url, title }).catch(() => {});
   const label = shareButton.querySelector("span");
   try {
     await navigator.clipboard.writeText(url);
-    label.textContent = "Link copied";
-    setTimeout(() => (label.textContent = "Share"), 1500);
+    label.textContent = t("share.copied");
+    setTimeout(() => (label.textContent = t("share")), 1500);
   } catch {
-    window.prompt("Copy this link:", url); // clipboard blocked: copy by hand
+    window.prompt(t("share.prompt"), url); // clipboard blocked: copy by hand
   }
 });
 
@@ -285,10 +285,10 @@ async function checkCode(code) {
       body: JSON.stringify({ code, slug }),
     });
     const data = await response.json().catch(() => ({}));
-    if (!response.ok) return { ok: false, error: data.error || "Could not check the code. Please try again." };
+    if (!response.ok) return { ok: false, error: data.error || t("license.checkFailed") };
     return { ok: true, downloads_left: data.downloads_left ?? null };
   } catch {
-    return { ok: false, error: "Could not check the code. Please try again." };
+    return { ok: false, error: t("license.checkFailed") };
   }
 }
 
@@ -301,8 +301,7 @@ function forgetCode(reason) {
   licenseForm.hidden = false;
   document.getElementById("license-panel").classList.remove("unlocked");
   document.getElementById("download-all-row").hidden = true;
-  document.getElementById("license-help").textContent =
-    "Enter the code you received to download full-quality copies without the watermark.";
+  document.getElementById("license-help").textContent = t("license.help");
   document.getElementById("license-error").textContent = reason;
   lightbox.refresh();
 }
@@ -310,9 +309,8 @@ function forgetCode(reason) {
 function showUnlocked(left) {
   downloadsLeft = left;
   const count = downloadable.length;
-  const limit = left === null || left === undefined ? "" : ` You have ${left} ${left === 1 ? "download" : "downloads"} left.`;
-  document.getElementById("license-help").textContent =
-    `Code accepted. Open a photo and use the Download button, or download them all at once (${count} ${count === 1 ? "photo" : "photos"} available).${limit}`;
+  const limit = left === null || left === undefined ? "" : t("license.left", { n: left });
+  document.getElementById("license-help").textContent = t("license.accepted", { n: count }) + limit;
   licenseForm.hidden = true;
   document.getElementById("license-panel").classList.add("unlocked");
 
@@ -321,10 +319,10 @@ function showUnlocked(left) {
   const button = document.getElementById("download-all");
   const status = document.getElementById("download-all-status");
   row.hidden = count < 2;
-  button.textContent = `Download all ${count} (.zip)`;
+  button.textContent = t("license.all", { n: count });
   const enough = left === null || left === undefined || left >= count;
   button.disabled = !enough;
-  status.textContent = enough ? "" : `Needs ${count} downloads; your code has ${left} left. Download photos one by one instead.`;
+  status.textContent = enough ? "" : t("license.needs", { n: count, left });
 }
 
 // ---------- Download all ----------
@@ -337,7 +335,7 @@ document.getElementById("download-all")?.addEventListener("click", async (event)
   const files = [];
   let problem = "";
   for (const [n, photo] of downloadable.entries()) {
-    status.textContent = `Downloading ${n + 1} of ${downloadable.length}...`;
+    status.textContent = t("license.downloading", { n: n + 1, total: downloadable.length });
     try {
       const response = await fetch(`/api/download/${photo.id}?code=${encodeURIComponent(licenseCode)}&all=1`);
       if (!response.ok) {
@@ -348,13 +346,13 @@ document.getElementById("download-all")?.addEventListener("click", async (event)
       const name = /filename="([^"]+)"/.exec(response.headers.get("Content-Disposition") || "")?.[1] || `${slug}-${photo.id}.jpg`;
       files.push({ name, blob: await response.blob() });
     } catch {
-      problem = "The connection was interrupted.";
+      problem = t("license.interrupted");
       break;
     }
   }
 
   if (files.length) {
-    status.textContent = "Making the .zip file...";
+    status.textContent = t("license.zipping");
     const { makeZip } = await import("./zip.js");
     const zip = await makeZip(files);
     const link = document.createElement("a");
@@ -364,8 +362,8 @@ document.getElementById("download-all")?.addEventListener("click", async (event)
     setTimeout(() => URL.revokeObjectURL(link.href), 60_000);
   }
   const message = problem
-    ? `Stopped after ${files.length} of ${downloadable.length}: ${problem}${files.length ? " The ones that worked are in the .zip." : ""}`
-    : `Done: ${files.length} photos saved as ${slug}.zip.`;
+    ? t("license.stopped", { n: files.length, total: downloadable.length, reason: problem }) + (files.length ? t("license.partial") : "")
+    : t("license.done", { n: files.length, file: `${slug}.zip` });
 
   // Update the number of downloads left (a used-up code fails this check).
   const data = await checkCode(licenseCode);

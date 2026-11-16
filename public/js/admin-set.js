@@ -174,12 +174,18 @@ async function saveCategories() {
 
 // sent: what a save just sent. Boxes you typed in since then are left alone,
 // so nothing you type is lost when a save finishes.
+// The Set details boxes and the fields they save (title_zh, description_zh:
+// the 繁體中文 versions visitors see in Chinese; empty shows the English).
+const DETAIL_FIELDS = [["details-title", "title"], ["details-title-zh", "title_zh"], ["details-slug", "slug"],
+  ["details-description", "description"], ["details-description-zh", "description_zh"], ["details-date", "shot_date"],
+  ["details-location", "location"]];
+
 function showDetails(sent = null) {
   $("set-title").textContent = set.title;
   document.title = baseTitle.replace(/^Set/, set.title);
   $("view-link").href = $("preview-link").href = `/sets/${encodeURIComponent(set.slug)}`;
   showVisibility();
-  for (const [id, field] of [["details-title", "title"], ["details-slug", "slug"], ["details-description", "description"], ["details-date", "shot_date"], ["details-location", "location"]]) {
+  for (const [id, field] of DETAIL_FIELDS) {
     if (!sent || $(id).value === sent[field]) $(id).value = set[field];
   }
 }
@@ -191,7 +197,7 @@ $("details-form").addEventListener("submit", (event) => {
 
 // Like captions, the details also save by themselves when you leave a box
 // after changing it, so nothing typed gets lost if you forget the button.
-for (const id of ["details-title", "details-slug", "details-description", "details-date", "details-location"]) {
+for (const [id] of DETAIL_FIELDS) {
   $(id).addEventListener("change", () => {
     if ($(id).checkValidity()) saveDetails(); // skip an empty title or address
   });
@@ -207,13 +213,7 @@ function saveDetails() {
 
 async function saveDetailsNow() {
   const status = $("details-status");
-  const sent = {
-    title: $("details-title").value,
-    slug: $("details-slug").value,
-    description: $("details-description").value,
-    shot_date: $("details-date").value,
-    location: $("details-location").value,
-  };
+  const sent = Object.fromEntries(DETAIL_FIELDS.map(([id, field]) => [field, $(id).value]));
   const response = await fetch(`/api/admin/sets/${setId}`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },

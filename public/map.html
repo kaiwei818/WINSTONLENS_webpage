@@ -25,7 +25,7 @@
   <link rel="stylesheet" href="/css/style.css">
   <script src="/js/theme.js"></script>
   <script src="/js/menu.js" defer></script>
-  <script src="/js/share.js" defer></script>
+  <script src="/js/share.js" type="module"></script>
   <script src="/js/protect.js" defer></script>
 </head>
 <body>
@@ -54,11 +54,11 @@
 
   <!-- functions/map.js fills in the sets that have a place on the map. -->
   <main id="main" class="map-page">
-    <h1>Map</h1>
-    <p class="map-lead">Where the sets were taken. Wildlife sets are left off, so nests and perches stay private.</p>
-    <div class="map" id="map" role="region" aria-label="Map of the sets"></div>
-    <p class="muted" id="map-empty">No sets are on the map yet.</p>
-    <h2 class="map-list-heading" id="map-list-heading">Sets on the map</h2>
+    <h1 data-i18n="map.title">Map</h1>
+    <p class="map-lead" data-i18n="map.lead">Where the sets were taken. Wildlife sets are left off, so nests and perches stay private.</p>
+    <div class="map" id="map" role="region" aria-label="Map of the sets" data-i18n-attr="aria-label=map.region"></div>
+    <p class="muted" id="map-empty" data-i18n="map.empty">No sets are on the map yet.</p>
+    <h2 class="map-list-heading" id="map-list-heading" data-i18n="map.list">Sets on the map</h2>
     <ul class="map-list" id="map-list" aria-labelledby="map-list-heading"></ul>
     <script type="application/json" id="map-data">[]</script>
   </main>
@@ -67,6 +67,6 @@
     © <span data-site="year"></span> <span data-site="owner"></span> · <span data-site="name"></span>
   </footer>
   <script src="/vendor/leaflet-1.9.4/leaflet.js" defer></script>
-  <script src="/js/map.js" defer></script>
+  <script src="/js/map.js" type="module"></script>
 </body>
 </html>

@@ -22,7 +22,7 @@
   <link rel="stylesheet" href="/css/style.css">
   <script src="/js/theme.js"></script>
   <script src="/js/menu.js" defer></script>
-  <script src="/js/share.js" defer></script>
+  <script src="/js/share.js" type="module"></script>
   <script src="/js/protect.js" defer></script>
 </head>
 <body>
@@ -54,11 +54,11 @@
   <main id="main" class="about">
     <div class="about-portrait" id="about-portrait"></div>
     <div class="about-text">
-      <h1>About <span data-site="owner"></span></h1>
+      <h1 data-i18n="about.heading">About <span data-site="owner"></span></h1>
       <div class="about-bio" id="about-bio"></div>
-      <h2 id="gear-heading">Gear</h2>
+      <h2 id="gear-heading" data-i18n="about.gear">Gear</h2>
       <ul class="about-gear" id="about-gear" aria-labelledby="gear-heading"></ul>
-      <h2 id="contact-heading">Contact</h2>
+      <h2 id="contact-heading" data-i18n="about.contact">Contact</h2>
       <ul class="about-contact" id="about-contact" aria-labelledby="contact-heading"></ul>
     </div>
   </main>

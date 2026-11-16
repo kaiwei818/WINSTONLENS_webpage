@@ -23,18 +23,20 @@ const PORT = 8790;
 const BASE = `http://localhost:${PORT}`;
 const SECRET = "browser-test-only-secret-0123456789abcdef";
 const CHROME = process.env.CHROME_PATH || "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
-const SUITES = ["viewer-motion", "number-search", "map", "admin-folds"];
+const SUITES = ["viewer-motion", "number-search", "map", "chinese", "admin-folds"];
 
 // The sample sets get what the checks expect: #12 on four Coastline photos,
 // #7 on two, #23 on two; Coastline exactly on the map, City Nights as a rough
-// area, Forest hidden.
+// area, Forest hidden; Chinese names for Coastline and the categories.
 const FIXTURES = `
 UPDATE photos SET tags = CASE (id % 3) WHEN 0 THEN '12, 7' WHEN 1 THEN '12' ELSE '23' END WHERE set_id = (SELECT id FROM sets WHERE slug = 'coastline');
 UPDATE photos SET tags = '' WHERE set_id != (SELECT id FROM sets WHERE slug = 'coastline');
 UPDATE sets SET map_lat = 51.1784, map_lng = -115.5708, map_precision = 'exact' WHERE slug = 'coastline';
 UPDATE sets SET map_lat = 25.0273, map_lng = 121.5764, map_precision = 'region' WHERE slug = 'city-nights';
 UPDATE sets SET map_lat = 25.1287, map_lng = 121.7419, map_precision = 'hidden' WHERE slug = 'forest';
-DELETE FROM photo_hearts;`;
+DELETE FROM photo_hearts;
+UPDATE sets SET title_zh = '海岸線', description_zh = '海邊的藍色時刻。' WHERE slug = 'coastline';
+UPDATE categories SET name_zh = CASE name WHEN 'Landscape' THEN '風景' WHEN 'Travel' THEN '旅行' ELSE name_zh END;`;
 
 const wrangler = (args) => execFileSync("npx", ["wrangler", ...args], { stdio: "pipe" }).toString();
 wrangler(["d1", "migrations", "apply", "portfolio-db", "--local"]);

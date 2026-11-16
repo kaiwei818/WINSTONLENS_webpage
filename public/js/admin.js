@@ -209,7 +209,25 @@ async function loadCategories() {
       if (!result.ok) return alert("Could not delete the category. Please try again.");
       loadCategories();
     });
-    item.append(count, remove);
+    // Its name in 繁體中文, for visitors reading in Chinese; saved when you leave the box.
+    const zh = document.createElement("input");
+    zh.type = "text";
+    zh.className = "category-zh";
+    zh.lang = "zh-Hant-TW";
+    zh.maxLength = 40;
+    zh.placeholder = "中文名稱";
+    zh.value = category.name_zh || "";
+    zh.setAttribute("aria-label", `${category.name} in Chinese`);
+    zh.addEventListener("change", async () => {
+      const result = await fetch(`/api/admin/categories/${category.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name_zh: zh.value }),
+      });
+      if (!result.ok) return alert("Could not save the Chinese name. Please try again.");
+      zh.value = (await result.json()).name_zh;
+    });
+    item.append(count, zh, remove);
     return item;
   }));
 }

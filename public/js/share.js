@@ -6,6 +6,9 @@
 // or share on LINE, Facebook, X, WhatsApp, or by email.
 //
 // The buttons start hidden and only appear when this script runs.
+// (A module, loaded after the page is read, like "defer".)
+
+import { t } from "./text.js";
 
 (function () {
   const ICONS = {
@@ -67,15 +70,15 @@
     menu = document.createElement("div");
     menu.className = "share-menu";
     menu.setAttribute("role", "dialog");
-    menu.setAttribute("aria-label", "Share this page");
+    menu.setAttribute("aria-label", t("menu.share"));
 
-    const copy = item("copy", "Copy link", async () => {
+    const copy = item("copy", t("share.copy"), async () => {
       try {
         await navigator.clipboard.writeText(url);
-        copy.lastChild.textContent = "Link copied";
+        copy.lastChild.textContent = t("share.copied");
       } catch {
         // Clipboard blocked: show the address so it can be copied by hand.
-        window.prompt("Copy this link:", url);
+        window.prompt(t("share.prompt"), url);
       }
       setTimeout(closeMenu, 900);
     });
@@ -85,10 +88,10 @@
       item("facebook", "Facebook", `https://www.facebook.com/sharer/sharer.php?u=${u}`),
       item("x", "X", `https://twitter.com/intent/tweet?url=${u}&text=${encodeURIComponent(title)}`),
       item("whatsapp", "WhatsApp", `https://wa.me/?text=${encodeURIComponent(`${title} ${url}`)}`),
-      item("email", "Email", `mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(`${text}\n\n${url}`.trim())}`),
+      item("email", t("share.email"), `mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(`${text}\n\n${url}`.trim())}`),
     );
     if (typeof navigator.share === "function") {
-      menu.append(item("more", "More options", () => {
+      menu.append(item("more", t("share.more"), () => {
         closeMenu();
         navigator.share({ url, title, text }).catch(() => {});
       }));

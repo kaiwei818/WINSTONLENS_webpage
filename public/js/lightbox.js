@@ -23,6 +23,7 @@
 
 import { connection, noteFullLoad } from "./connection.js";
 import { img as imageUrl, viewerSrcset } from "./images.js";
+import { t } from "./text.js";
 
 const SWIPE_DISTANCE = 50; // pixels a finger must travel to count as a swipe
 // A quick flick counts too, even when it is short: pixels per millisecond.
@@ -135,7 +136,7 @@ export function createLightbox(photos, { downloadUrl = () => "", thumbFor = () =
     // Screen readers say this when the photo changes (not on opening, when
     // they already announce the viewer itself).
     status.textContent = dialog.open
-      ? `Photo ${position} of ${list.length}${photo.alt_text ? `: ${photo.alt_text}` : ""}`
+      ? `${t("viewer.status", { n: position, total: list.length })}${photo.alt_text ? `: ${photo.alt_text}` : ""}`
       : "";
     onShow(photo);
     if (wantOpen) rememberAddress();

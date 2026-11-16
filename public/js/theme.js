@@ -31,15 +31,30 @@
     return root.dataset.theme || (darkQuery.matches ? "dark" : "light");
   }
 
+  // The words, in the page's language (English or 繁體中文; lib/i18n.js puts
+  // them in the page as #site-text, read once the page is there).
+  let words = null;
+  function text(key, english) {
+    if (!words) {
+      try {
+        words = JSON.parse(document.getElementById("site-text")?.textContent || "{}");
+      } catch {
+        words = {};
+      }
+    }
+    return words[key] || english;
+  }
+
   function updateButton(button) {
     const next = current() === "dark" ? "light" : "dark";
     const label = button.querySelector(".theme-label");
     if (label) {
       // The menu's button has visible text, which screen readers read too.
-      label.textContent = `${next === "dark" ? "Dark" : "Light"} mode`;
+      label.textContent = next === "dark" ? text("theme.dark", "Dark mode") : text("theme.light", "Light mode");
     } else {
-      button.setAttribute("aria-label", `Switch to ${next} mode`);
-      button.title = `Switch to ${next} mode`;
+      const action = next === "dark" ? text("theme.toDark", "Switch to dark mode") : text("theme.toLight", "Switch to light mode");
+      button.setAttribute("aria-label", action);
+      button.title = action;
     }
     button.dataset.showing = current();
   }

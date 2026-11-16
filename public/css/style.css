@@ -367,6 +367,17 @@ html[data-pointer] :focus-visible:not(input, textarea, select) { outline: none; 
 .site-nav a:hover { text-decoration: underline; }
 .site-nav a[aria-current="page"] { text-decoration: underline; text-decoration-thickness: 2px; }
 .header-buttons { display: flex; align-items: center; gap: var(--space-2xs); }
+/* 中文 / English (functions/_middleware.js puts it first among the header
+   buttons). Phones and tablets find it in the menu instead. */
+.lang-switch {
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-pill);
+  font-weight: 500;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background-color var(--dur-micro) var(--ease-out);
+}
+.lang-switch:hover { background: var(--color-paper-2); }
 
 /* Phones and tablets: Menu at the left, the name in the middle, light / dark
    at the right (the links are in the menu). */
@@ -382,6 +393,7 @@ html[data-pointer] :focus-visible:not(input, textarea, select) { outline: none; 
   .site-nav { display: none; }
   .header-buttons { display: contents; }
   .header-buttons .theme-toggle { grid-column: 3; grid-row: 1; justify-self: center; }
+  .lang-switch { display: none; }
 }
 
 /* ---------- The menu button ---------- */
@@ -566,6 +578,7 @@ html[data-pointer] :focus-visible:not(input, textarea, select) { outline: none; 
   transition: background-color var(--dur-micro) var(--ease-out), scale var(--dur-micro) var(--ease-out);
 }
 .menu-action:hover { background: var(--color-paper-3); }
+a.menu-action { text-decoration: none; } /* 中文 / English is a link, the others buttons */
 .menu-action:active { scale: var(--press); }
 
 /* ---------- Home: the first screen ---------- */
@@ -1710,7 +1723,7 @@ html.photo-transition .site-header { view-transition-name: none; }
   ::view-transition-old(root), ::view-transition-new(root),
   ::view-transition-group(photo), ::view-transition-old(photo), ::view-transition-new(photo) { animation: none; }
   .site-menu, .site-menu::backdrop, .lightbox, .lightbox::backdrop, .lightbox-stage img,
-  .pill, .round-button, .button-link, .thumb-button img, .set-card img, .hero-image, .menu-close, .menu-action, .share-menu,
+  .pill, .round-button, .button-link, .thumb-button img, .set-card img, .hero-image, .menu-close, .menu-action, .share-menu, .lang-switch,
   .lightbox-button, .lightbox-action, .lightbox-counter, .lightbox-bottom, button, .icon-button,
   .menu-section::details-content, .menu-section > ul, .menu-chevron, .number-options, .favorites-toggle,
   .fold::details-content, .card-more::details-content, .fold-body, .fold-chevron,
@@ -2138,6 +2151,8 @@ section.panel[aria-labelledby="hero-heading"] { max-width: 720px; }
 }
 .picks-line { margin: 0 0 var(--space-md); font-size: var(--text-sm); }
 .picks-line p { margin: 0; }
+/* Dashboard categories: the Chinese name box beside each one. */
+.category-zh { width: 9rem; min-height: 32px; margin-inline: var(--space-xs); padding: 0 var(--space-xs); font-size: var(--text-sm); }
 .hearts-line { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-xs) var(--space-sm); margin: 0 0 var(--space-md); font-size: var(--text-sm); }
 .hearts-line button { min-height: 32px; font-size: var(--text-sm); }
 /* Nearing one post's 20 photos: a note, never a block. */

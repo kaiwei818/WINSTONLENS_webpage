@@ -173,6 +173,16 @@ scripts/                 hash-password and seed-local
 tests/                   Automated checks: npm test, and npm run test:browser (tests/browser/)
 ```
 
+## English and 繁體中文
+
+Every public page comes in English and Traditional Chinese (Taiwan wording).
+Visitors switch with 中文 / English in the header or the menu; the choice is
+remembered, and a browser set to Chinese gets 中文 by itself. A link with
+`?lang=zh` opens the Chinese version (its link preview too). The site's own
+words are in `lib/i18n.js`; your Chinese set titles and descriptions, category
+names and About bio are optional boxes on the admin pages (empty shows the
+English). Admin pages stay in English.
+
 ## API
 
 Public (read only):
@@ -202,7 +212,7 @@ Admin (login required; writes must come from this site):
 - `POST /api/admin/photos`: upload one photo (small, thumb, display, plus an optional private clean copy)
 - `PATCH`, `DELETE /api/admin/photos/:id`: caption, alt text, camera details, jersey numbers (tags), rating, remove clean copy, delete
 - `GET`, `POST /api/admin/licenses`; `PATCH`, `DELETE /api/admin/licenses/:id`: license codes
-- `GET`, `POST /api/admin/categories`; `DELETE /api/admin/categories/:id`: categories
+- `GET`, `POST /api/admin/categories`; `PATCH` (Chinese name), `DELETE /api/admin/categories/:id`: categories
 - `GET`, `PATCH /api/admin/about`: About page bio, gear, and contact details (email, phone, Instagram, one link)
 - `POST`, `DELETE /api/admin/about/portrait`: About page portrait
 

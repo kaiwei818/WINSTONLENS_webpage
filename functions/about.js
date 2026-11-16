@@ -7,23 +7,28 @@ import { withPageMeta } from "../lib/meta.js";
 import { contactItems, externalAttrs } from "../lib/contact.js";
 import { escapeHtml } from "../lib/render.js";
 import { ABOUT_KEYS, getSettings } from "../lib/settings.js";
+import { langOf, localized, translator } from "../lib/i18n.js";
 
 export async function onRequestGet({ request, env }) {
   const about = await getSettings(env, ABOUT_KEYS);
   const url = new URL(request.url);
+  // English or 繁體中文 (lib/i18n.js); the Chinese bio when one was written.
+  const lang = langOf(request);
+  const t = translator(lang);
+  const bio = localized(about.about_bio, about.about_bio_zh, lang);
   const page = await env.ASSETS.fetch(new URL("/about.html", url));
 
   // Everything you typed is "escaped" before it goes into the page, so a "<" in
   // your bio shows as a "<" and can never become HTML or a script.
-  const bioHtml = about.about_bio
-    ? about.about_bio.split(/\n\s*\n/).map((paragraph) =>
+  const bioHtml = bio
+    ? bio.split(/\n\s*\n/).map((paragraph) =>
         `<p>${escapeHtml(paragraph.trim()).replace(/\n/g, "<br>")}</p>`).join("")
-    : `<p class="muted">More about me is coming soon.</p>`;
+    : `<p class="muted">${escapeHtml(t("about.soon"))}</p>`;
 
-  const contact = contactItems(about).map((item) => link(item.href, item.label, item.shown));
+  const contact = contactItems(about, lang).map((item) => link(item.href, item.label, item.shown));
   const gear = gearItems(about.about_gear);
 
-  const portrait = about.about_portrait_key ? portraitHtml(about) : "";
+  const portrait = about.about_portrait_key ? portraitHtml(about, t("about.portrait")) : "";
 
   const filled = new HTMLRewriter()
     .on("#about-bio", { element(el) { el.setInnerContent(bioHtml, { html: true }); } })
@@ -44,9 +49,9 @@ export async function onRequestGet({ request, env }) {
     })
     .transform(page);
 
-  const firstParagraph = about.about_bio.split(/\n\s*\n/)[0].replace(/\s+/g, " ").trim();
+  const firstParagraph = bio.split(/\n\s*\n/)[0].replace(/\s+/g, " ").trim();
   return withPageMeta(filled, {
-    title: "About",
+    title: t("about.title"),
     description: firstParagraph.length > 160 ? `${firstParagraph.slice(0, 157)}...` : firstParagraph,
     url: url.origin + "/about",
     image: about.about_portrait_key ? `${url.origin}/img/${about.about_portrait_key}` : "",
@@ -70,7 +75,7 @@ function gearItems(text) {
   });
 }
 
-function portraitHtml(about) {
+function portraitHtml(about, alt) {
   const width = Number(about.about_portrait_width) || 0;
   const height = Number(about.about_portrait_height) || 0;
   const widthAt = (edge) => (width >= height ? edge : Math.round((edge * width) / height));
@@ -79,5 +84,5 @@ function portraitHtml(about) {
     : "";
   return `<img src="/img/${escapeHtml(about.about_portrait_key)}"` +
     (srcset ? ` srcset="${escapeHtml(srcset)}" sizes="(max-width: 700px) calc(100vw - 32px), 420px"` : "") +
-    ` width="${width}" height="${height}" alt="Portrait of the photographer">`;
+    ` width="${width}" height="${height}" alt="${escapeHtml(alt)}">`;
 }
