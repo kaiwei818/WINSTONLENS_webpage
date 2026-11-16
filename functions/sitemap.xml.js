@@ -21,6 +21,7 @@ export async function onRequestGet({ request, env }) {
     entry(`${origin}/`),
     entry(`${origin}/about`),
     entry(`${origin}/updates`),
+    entry(`${origin}/map`),
     ...sets.map((s) => entry(`${origin}/sets/${encodeURIComponent(s.slug)}`)),
     "</urlset>",
     "",

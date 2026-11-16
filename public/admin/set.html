@@ -76,6 +76,18 @@
           For a seasonal highlight, tick the months it should appear in; none ticked means all year.</p>
         <div class="month-boxes" id="month-boxes"></div>
       </fieldset>
+      <fieldset class="category-picker map-picker">
+        <legend>Map</legend>
+        <label for="map-place">Where it was taken: the numbers, or a Google Maps link</label>
+        <input id="map-place" type="text" autocomplete="off" placeholder="e.g. 51.1784, -115.5708">
+        <p class="muted small">In Google Maps, right-click the spot and click the numbers at the top to copy them.
+          Empty: not on the map.</p>
+        <div class="map-precision" role="radiogroup" aria-label="What visitors see">
+          <label class="checkbox"><input type="radio" name="map-precision" value="exact"> The exact spot (landscapes, travel)</label>
+          <label class="checkbox"><input type="radio" name="map-precision" value="region"> Only a rough area, about 10 km</label>
+          <label class="checkbox"><input type="radio" name="map-precision" value="hidden"> Not on the map (wildlife: keeps nests and perches private)</label>
+        </div>
+      </fieldset>
       <div class="actions">
         <button type="submit">Save details</button>
         <span class="save-status" id="details-status" role="status"></span>

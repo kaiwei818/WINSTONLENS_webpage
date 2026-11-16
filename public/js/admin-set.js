@@ -17,6 +17,7 @@ import { GROUPS, groupCounts, groupLimitNote, groupShortText } from "./picks-lim
 import { postRecordList } from "./instagram-posts.js";
 import { SET_LIMIT_BYTES } from "./clean-copy.js";
 import { readCaptureKey } from "./exif.js";
+import { parsePlace } from "./geo.js";
 import { makePlaceholder } from "./placeholder.js";
 import { currentIds, makeSortable, moveItem } from "./sortable.js";
 
@@ -56,6 +57,7 @@ async function loadSet() {
   renderExisting();
   loadCategories();
   showHeroChoices();
+  showMapPlace();
 }
 
 // ---------- Categories ----------
@@ -111,6 +113,50 @@ async function saveHeroChoices() {
   flash($("details-status"), "Saved");
 }
 $("hero-featured").addEventListener("change", saveHeroChoices);
+
+// ---------- Map: where the set was taken, and how exactly visitors see it ----------
+
+function showMapPlace() {
+  $("map-place").value = set.map_lat === null || set.map_lat === undefined ? "" : `${set.map_lat}, ${set.map_lng}`;
+  const precision = set.map_precision || "hidden";
+  for (const radio of document.querySelectorAll('input[name="map-precision"]')) radio.checked = radio.value === precision;
+}
+
+async function saveMapPlace(changes) {
+  const response = await fetch(`/api/admin/sets/${setId}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(changes),
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    $("details-status").textContent = data.error || "Not saved, try again";
+    $("details-status").dataset.state = "error";
+    return;
+  }
+  Object.assign(set, data);
+  showMapPlace();
+  flash($("details-status"), "Saved");
+}
+
+$("map-place").addEventListener("change", () => {
+  const text = $("map-place").value.trim();
+  if (!text) return saveMapPlace({ map_lat: null, map_lng: null });
+  const place = parsePlace(text);
+  if (!place) {
+    $("details-status").textContent = "No numbers found. Paste them like 51.1784, -115.5708.";
+    $("details-status").dataset.state = "error";
+    return;
+  }
+  // Saving a place never puts the set on the map by itself: a wildlife spot
+  // must not go public by accident. Choosing exact or rough area does that.
+  saveMapPlace({ map_lat: place.lat, map_lng: place.lng }).then(() => {
+    if (set.map_precision === "hidden") $("details-status").textContent = "Place saved. Choose the exact spot or a rough area to show it on the map.";
+  });
+});
+for (const radio of document.querySelectorAll('input[name="map-precision"]')) {
+  radio.addEventListener("change", () => saveMapPlace({ map_precision: radio.value }));
+}
 
 async function saveCategories() {
   const ids = [...$("category-boxes").querySelectorAll("input:checked")].map((box) => Number(box.value));
