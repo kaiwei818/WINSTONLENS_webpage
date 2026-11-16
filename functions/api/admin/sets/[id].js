@@ -7,7 +7,7 @@ import { listPosts } from "../../../../lib/instagram.js";
 import { uniqueSlug } from "../../../../lib/slug.js";
 import { settleScheduled } from "../../../../lib/visibility.js";
 
-const RETURNED = "id, slug, title, description, shot_date, location, featured, feature_months, cover_photo_id, published, publish_at";
+const RETURNED = "id, slug, title, description, shot_date, location, featured, feature_months, cover_photo_id, published, publish_at, map_lat, map_lng, map_precision";
 
 export async function onRequestGet(context) {
   const { env, params } = context;
@@ -63,6 +63,24 @@ export async function onRequestPatch(context) {
   }
   if ("location" in body) {
     changes.location = String(body.location ?? "").trim().slice(0, 100);
+  }
+  // The set's place on the map page: map_lat and map_lng (numbers, or null to
+  // remove it), and map_precision ("exact", "region" or "hidden"; see migrations/0015).
+  if ("map_lat" in body || "map_lng" in body) {
+    const lat = body.map_lat === null ? null : Number(body.map_lat);
+    const lng = body.map_lng === null ? null : Number(body.map_lng);
+    const none = lat === null && lng === null;
+    if (!none && !(Number.isFinite(lat) && Number.isFinite(lng) && Math.abs(lat) <= 90 && Math.abs(lng) <= 180)) {
+      return Response.json({ error: "That place does not look right." }, { status: 400 });
+    }
+    changes.map_lat = lat;
+    changes.map_lng = lng;
+  }
+  if ("map_precision" in body) {
+    if (!["exact", "region", "hidden"].includes(body.map_precision)) {
+      return Response.json({ error: "Choose exact, region or hidden." }, { status: 400 });
+    }
+    changes.map_precision = body.map_precision;
   }
   if ("featured" in body) {
     changes.featured = body.featured ? 1 : 0;

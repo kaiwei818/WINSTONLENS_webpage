@@ -1124,6 +1124,52 @@ html[data-pointer] :focus-visible:not(input, textarea, select) { outline: none; 
 .about-contact,
 .about-gear { list-style: none; margin: 0; padding: 0; }
 
+/* ---------- Map (map.html, js/map.js) ---------- */
+/* The map fills the measure; each set is its cover in a round frame. Sets
+   shown only as a rough area get a soft ink circle instead. */
+.map-page { padding-top: var(--space-2xl); }
+.map-page h1 { margin: 0 0 var(--space-sm); font-size: var(--text-display); }
+.map-lead { max-width: 60ch; margin: 0 0 var(--space-xl); color: var(--color-ink-2); font-size: var(--text-lead); }
+.map { height: min(70svh, 640px); background: var(--color-paper-2); }
+.map-list-heading { margin: var(--space-2xl) 0 var(--space-sm); font-size: var(--text-md); font-weight: 600; }
+.map-list { margin: 0; padding: 0; list-style: none; }
+.map-list li { padding: var(--space-xs) 0; border-top: 1px solid var(--color-rule); }
+.map-pin {
+  border: 2px solid var(--color-paper);
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--color-paper-2);
+  box-shadow: 0 2px 8px var(--color-scrim);
+  transition: scale var(--dur-micro) var(--ease-out);
+}
+.map-pin img { display: block; width: 100%; height: 100%; object-fit: cover; }
+@media (hover: hover) { .map-pin:hover { scale: 1.08; } }
+.map-pin-area { border-style: dashed; }
+.map-area { fill: var(--color-ink); fill-opacity: 0.15; stroke: var(--color-ink); stroke-width: 1.5; }
+.map-card { display: grid; gap: var(--space-2xs); }
+.map-card img { width: 100%; aspect-ratio: 3 / 2; object-fit: cover; }
+.leaflet-popup-content .map-card p { margin: 0; } /* over Leaflet's own paragraph spacing */
+.map-card-title { padding-top: var(--space-2xs); font-weight: 600; font-size: var(--text-md); }
+.map-card-facts { padding-bottom: var(--space-xs); color: var(--color-muted); font-size: var(--text-sm); }
+.map-card .pill { justify-self: start; min-height: 40px; color: var(--color-accent-ink); }
+/* Leaflet's own popup in the site's colours. */
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip { background: var(--color-paper); color: var(--color-ink); border-radius: 0; }
+.leaflet-popup-content { margin: var(--space-sm); font: inherit; }
+.leaflet-container { font: inherit; }
+.leaflet-bar a { background: var(--color-paper); color: var(--color-ink); border-color: var(--color-rule); }
+.leaflet-bar a:hover { background: var(--color-paper-2); }
+.leaflet-container a.leaflet-popup-close-button { color: var(--color-muted); }
+/* Dark mode: the map pictures are drawn light, so they are dimmed and turned
+   round to match (the covers on the pins are left alone). */
+:root[data-theme="dark"] .leaflet-tile-pane { filter: invert(1) hue-rotate(180deg) brightness(0.9) contrast(0.9); }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .leaflet-tile-pane { filter: invert(1) hue-rotate(180deg) brightness(0.9) contrast(0.9); }
+}
+
+/* Admin: the Map choices under Set details. */
+.map-precision { display: grid; gap: var(--space-2xs); margin-top: var(--space-xs); }
+
 /* ---------- What's new (updates.html) ---------- */
 /* A dated list, newest first, each entry ruled off like the About rows. */
 .updates { padding-top: var(--space-2xl); }
@@ -1665,7 +1711,8 @@ html.photo-transition .site-header { view-transition-name: none; }
   .pill, .round-button, .button-link, .thumb-button img, .set-card img, .hero-image, .menu-close, .menu-action, .share-menu,
   .lightbox-button, .lightbox-action, .lightbox-counter, .lightbox-bottom, button, .icon-button,
   .menu-section::details-content, .menu-section > ul, .menu-chevron, .number-options, .favorites-toggle,
-  .lightbox-heart svg { transition: none; }
+  .lightbox-heart svg, .map-pin { transition: none; }
+  .map-pin:hover { scale: none; }
   :is(.pill, .round-button, .button-link, .menu-close, .menu-action, .lightbox-button, .lightbox-action, button):active,
   .set-card:hover img, .hero-frame:hover .hero-image, .thumb-button:hover img { scale: none; }
   html[data-js] img.fade.is-loaded,
