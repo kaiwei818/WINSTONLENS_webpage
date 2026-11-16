@@ -6,10 +6,9 @@
 //   small    800 px on the long edge   (grids on phones)
 //   thumb   1200 px on the long edge   (grids on computers, home page cards)
 //   display 3000 px on the long edge   (the full-screen viewer, on every screen)
-//   download 3000 px JPEG, NO watermark, only if you ticked "clean copy"; kept
-//            private and given out only with a license code. With "high
-//            resolution" also ticked: the photo's own size, up to 6000 px, at
-//            a higher quality (limits in clean-copy.js)
+//   download JPEG, NO watermark, only if you ticked "clean copy"; kept
+//            private and given out only with a license code. The photo's own
+//            size, up to 4500 px, at a high quality (limits in clean-copy.js)
 //   placeholder  an 8 px color grid for the blurry preview, as text (js/placeholder.js)
 // Every public size gets the watermark, in the style you picked:
 //   full   repeated diagonally across the whole photo (strong on the viewer
@@ -53,10 +52,10 @@ const SIZES = {
 };
 
 self.onmessage = async (event) => {
-  const { id, file, watermark, watermarkStyle = "full", keepClean, hiRes } = event.data;
+  const { id, file, watermark, watermarkStyle = "full", keepClean } = event.data;
   try {
     const [images, cameraInfo] = await Promise.all([
-      processPhoto(file, watermark, watermarkStyle, keepClean, hiRes),
+      processPhoto(file, watermark, watermarkStyle, keepClean),
       readCameraInfo(file),
     ]);
     self.postMessage({ id, ...images, cameraInfo });
@@ -67,10 +66,10 @@ self.onmessage = async (event) => {
   }
 };
 
-// keepClean: also make a private, clean 3000 px JPEG ("download"), for
-// visitors with a license code. It is saved BEFORE any watermark is drawn.
-// hiRes: make that copy from the original at up to 6000 px instead (below).
-async function processPhoto(file, watermark, watermarkStyle, keepClean, hiRes) {
+// keepClean: also make a private, clean JPEG ("download") from the original
+// at up to 4500 px, for visitors with a license code. It is saved BEFORE any
+// watermark is drawn.
+async function processPhoto(file, watermark, watermarkStyle, keepClean) {
   // "from-image" applies the camera's rotation flag, so portrait shots stand upright.
   const original = await createImageBitmap(file, { imageOrientation: "from-image" });
   const canvases = {};
@@ -80,13 +79,13 @@ async function processPhoto(file, watermark, watermarkStyle, keepClean, hiRes) {
     canvases.display = shrink(original, SIZES.display.edge);
 
     const blobs = {};
-    // The high-resolution clean copy has to come from the original, so it is
-    // made now, before the original is let go. Only when the original is
-    // really bigger than the normal 3000 px copy. If the browser cannot do it
-    // (phones and Safari run out of image memory on very large photos), the
-    // normal clean copy is made further down instead.
+    // The clean copy has to come from the original, so it is made now, before
+    // the original is let go. Only when the original is really bigger than the
+    // 3000 px display copy. If the browser cannot do it (phones and Safari run
+    // out of image memory on very large photos), a 3000 px clean copy is made
+    // further down instead.
     let cleanSize = null;
-    if (keepClean && hiRes && Math.max(original.width, original.height) > SIZES.display.edge) {
+    if (keepClean && Math.max(original.width, original.height) > SIZES.display.edge) {
       try {
         ({ blob: blobs.download, ...cleanSize } = await encodeHiRes(original));
       } catch {
@@ -126,7 +125,7 @@ async function processPhoto(file, watermark, watermarkStyle, keepClean, hiRes) {
       blobs.display = blobs.display.blob;
     }
     // cleanSize: the clean copy's size in pixels. cleanHiRes: it is the
-    // high-resolution kind (counts toward the set's storage limit).
+    // large kind, over 3000 px (counts toward the set's storage limit).
     const cleanHiRes = Boolean(cleanSize) && Math.max(cleanSize.width, cleanSize.height) > SIZES.display.edge;
     return { ...blobs, width, height, placeholder, cleanSize, cleanHiRes };
   } finally {
@@ -158,8 +157,8 @@ async function encodeWithin(canvas, size) {
   }
 }
 
-// The high-resolution clean copy: the original at its own size (6000 px at
-// most), saved at the first quality whose file fits within HIRES.maxBytes;
+// The large clean copy: the original at its own size (4500 px at most),
+// saved at the first quality whose file fits within HIRES.maxBytes;
 // if none fits, a little smaller. Returns { blob, width, height }.
 async function encodeHiRes(original) {
   const attempts = [HIRES, HIRES.fallback];

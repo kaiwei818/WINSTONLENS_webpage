@@ -8,8 +8,8 @@
 //   "medium" size, which uploads no longer make)
 //   download (optional): the clean copy for licensed downloads, stored under
 //   "private/", which /img/ refuses to serve
-//   download_hires ("1"): that clean copy is the high-resolution kind (up to
-//   6000 px). A set with those may store 300 MB at most (public/js/clean-copy.js)
+//   download_hires ("1"): that clean copy is bigger than 3000 px (up to
+//   4500 px). A set with those may store 300 MB at most (public/js/clean-copy.js)
 // Saves the files to R2 and adds a row to the photos table.
 //
 // The browser did the resizing, so the 25 MB original never arrives here.
@@ -71,8 +71,8 @@ export async function onRequestPost(context) {
 
   const totalBytes = Object.values(files).reduce((sum, file) => sum + file.bytes.byteLength, 0);
 
-  // High-resolution clean copies are several times bigger, so a set that
-  // takes them has a storage limit. Checked before anything is stored.
+  // Large clean copies are several times bigger, so a set that takes them
+  // has a storage limit. Checked before anything is stored.
   if (files.download && form.get("download_hires") === "1") {
     const { used } = await env.DB.prepare(
       `SELECT COALESCE(SUM(size_bytes), 0) AS used FROM photos WHERE set_id = ?`
@@ -80,8 +80,8 @@ export async function onRequestPost(context) {
     if (used + totalBytes > SET_LIMIT_BYTES) {
       const mb = (bytes) => `${Math.round(bytes / 1024 / 1024)} MB`;
       return error(
-        `This set is full for high-resolution copies: it stores ${mb(used)} of ${mb(SET_LIMIT_BYTES)}, and this photo needs ${mb(totalBytes)}. ` +
-        `Upload it without the high-resolution box, or free some space in this set first.`, 413);
+        `This set is full for clean copies: it stores ${mb(used)} of ${mb(SET_LIMIT_BYTES)}, and this photo needs ${mb(totalBytes)}. ` +
+        `Upload it without the clean copy box, or free some space in this set first.`, 413);
     }
   }
 

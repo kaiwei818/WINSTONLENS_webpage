@@ -29,7 +29,6 @@ const $ = (id) => document.getElementById(id);
 const baseTitle = document.title; // "Set · Admin | winstonlens"
 const wmOn = $("wm-on");
 const keepClean = $("keep-clean");
-const cleanHiRes = $("clean-hires");
 const wmText = $("wm-text");
 const wmStyleInputs = [...document.querySelectorAll('input[name="wm-style"]')];
 
@@ -901,7 +900,7 @@ async function processItem(item) {
   const result = await new Promise((resolve) => {
     worker.onmessage = (event) => resolve(event.data);
     worker.onerror = () => resolve({ error: "Processing failed." });
-    worker.postMessage({ id: item.id, file: item.file, watermark: currentWatermark(), watermarkStyle: watermarkStyle(), keepClean: keepClean.checked, hiRes: keepClean.checked && cleanHiRes.checked });
+    worker.postMessage({ id: item.id, file: item.file, watermark: currentWatermark(), watermarkStyle: watermarkStyle(), keepClean: keepClean.checked });
   });
 
   if (result.error) {
@@ -977,7 +976,7 @@ async function uploadItem(item) {
   form.append("original_name", item.file.name);
   form.append("original_hash", facts?.hash || "");
   form.append("taken_at", facts?.takenAt || "");
-  // A high-resolution clean copy: the server checks the set's storage limit.
+  // A clean copy over 3000 px: the server checks the set's storage limit.
   if (item.result.cleanHiRes) form.append("download_hires", "1");
   for (const size of ["small", "thumb", "display", "download"]) {
     const blob = item.result[size];
@@ -1205,9 +1204,9 @@ function renderItem(item) {
     const online = small.size + thumb.size + display.size;
     sizes.textContent = `${formatBytes(item.file.size)} → ${formatBytes(online)} online (3 sizes)`;
     if (item.result.download) {
-      const { cleanSize, cleanHiRes: big } = item.result;
+      const { cleanSize } = item.result;
       sizes.textContent += ` + ${formatBytes(item.result.download.size)} private clean copy` +
-        (cleanSize ? ` (${big ? "high resolution, " : ""}${cleanSize.width} × ${cleanSize.height})` : "");
+        (cleanSize ? ` (${cleanSize.width} × ${cleanSize.height})` : "");
     }
     if (cameraInfo) sizes.textContent += ` · ${cameraInfo}`;
   }
@@ -1233,12 +1232,12 @@ function renderSummary() {
     const online = shrunk.reduce((sum, i) => sum + i.result.small.size + i.result.thumb.size + i.result.display.size, 0);
     const clean = shrunk.reduce((sum, i) => sum + (i.result.download?.size || 0), 0);
     text += ` Storage: ${formatBytes(online)}` + (clean ? ` + ${formatBytes(clean)} clean copies.` : ".");
-    // High-resolution copies only fit while the set stays under its limit.
+    // Large clean copies only fit while the set stays under its limit.
     const waiting = items.filter((i) => i.result && i.status === "ready");
     const coming = waiting.reduce((sum, i) =>
       sum + i.result.small.size + i.result.thumb.size + i.result.display.size + (i.result.download?.size || 0), 0);
     if (waiting.some((i) => i.result.cleanHiRes) && setBytes + coming > SET_LIMIT_BYTES) {
-      text += ` These do not all fit: the set would store ${formatBytes(setBytes + coming)}, and with high-resolution copies the limit is ${formatBytes(SET_LIMIT_BYTES)}. Remove some, or start again without the high-resolution box.`;
+      text += ` These do not all fit: the set would store ${formatBytes(setBytes + coming)}, and with clean copies the limit is ${formatBytes(SET_LIMIT_BYTES)}. Remove some, or start again without the clean copy box.`;
     }
   }
   const duplicates = items.filter((i) => i.duplicates?.length && i.status !== "done" && i.status !== "uploading").length;
@@ -1258,7 +1257,6 @@ function renderSummary() {
   // The watermark is baked in while shrinking, so it cannot change mid-batch.
   const locked = isBusy() || ready > 0;
   wmOn.disabled = wmText.disabled = keepClean.disabled = locked;
-  cleanHiRes.disabled = locked || !keepClean.checked;
   for (const input of wmStyleInputs) input.disabled = locked;
 }
 
@@ -1270,15 +1268,9 @@ window.addEventListener("beforeunload", (event) => {
   if (isBusy() || items.some((i) => i.status === "ready")) event.preventDefault();
 });
 
-// ---------- High-resolution clean copies ----------
-// Only for downloadable photos, so the box needs "clean copy" ticked first.
-keepClean.addEventListener("change", () => {
-  cleanHiRes.disabled = !keepClean.checked;
-  if (!keepClean.checked) cleanHiRes.checked = false;
-});
-
+// ---------- Clean copies ----------
 // What this set stores now, counted up as uploads finish, and the room left
-// under the limit for sets with high-resolution copies (clean-copy.js).
+// under the limit for sets with clean copies (clean-copy.js).
 let setBytes = 0;
 function showSetRoom() {
   const left = Math.max(0, SET_LIMIT_BYTES - setBytes);
