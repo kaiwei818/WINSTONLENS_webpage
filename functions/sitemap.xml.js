@@ -20,6 +20,7 @@ export async function onRequestGet({ request, env }) {
     '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
     entry(`${origin}/`),
     entry(`${origin}/about`),
+    entry(`${origin}/updates`),
     ...sets.map((s) => entry(`${origin}/sets/${encodeURIComponent(s.slug)}`)),
     "</urlset>",
     "",

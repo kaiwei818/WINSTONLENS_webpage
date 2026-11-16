@@ -186,7 +186,7 @@ function paintHeart(photo = current) {
   current = photo;
   const on = hearted.has(photo.id);
   heartButton.setAttribute("aria-pressed", String(on));
-  heartButton.setAttribute("aria-label", on ? "Remove your heart" : "Heart this photo");
+  heartButton.querySelector("span").textContent = on ? "Liked" : "Like";
 }
 function setHeart(photo, on) {
   if (on) hearted.add(photo.id);
@@ -222,6 +222,26 @@ heartButton.addEventListener("click", async (event) => {
     if (response.ok) return;
   } catch {}
   setHeart(photo, !on);
+});
+
+// ---------- Share one photo ----------
+// The photo's own address (?photo=3), whose link preview shows that photo.
+// Phones open their share sheet; computers copy the link.
+const shareButton = document.getElementById("lightbox-share");
+const preferSheet = typeof navigator.share === "function" && matchMedia("(pointer: coarse)").matches;
+shareButton.addEventListener("click", async () => {
+  const number = photos.indexOf(current) + 1;
+  const url = `${location.origin}${location.pathname}?photo=${number}`;
+  const title = `${document.getElementById("set-title").textContent}, photo ${number}`;
+  if (preferSheet) return navigator.share({ url, title }).catch(() => {});
+  const label = shareButton.querySelector("span");
+  try {
+    await navigator.clipboard.writeText(url);
+    label.textContent = "Link copied";
+    setTimeout(() => (label.textContent = "Share"), 1500);
+  } catch {
+    window.prompt("Copy this link:", url); // clipboard blocked: copy by hand
+  }
 });
 
 const licenseForm = document.getElementById("license-form");
