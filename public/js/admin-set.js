@@ -17,7 +17,7 @@ import { GROUPS, groupCounts, groupLimitNote, groupShortText } from "./picks-lim
 import { postRecordList } from "./instagram-posts.js";
 import { SET_LIMIT_BYTES } from "./clean-copy.js";
 import { readCaptureKey } from "./exif.js";
-import { parsePlace } from "./geo.js";
+import { formatPlace, parsePlace } from "./geo.js";
 import { makePlaceholder } from "./placeholder.js";
 import { currentIds, makeSortable, moveItem } from "./sortable.js";
 
@@ -117,7 +117,7 @@ $("hero-featured").addEventListener("change", saveHeroChoices);
 // ---------- Map: where the set was taken, and how exactly visitors see it ----------
 
 function showMapPlace() {
-  $("map-place").value = set.map_lat === null || set.map_lat === undefined ? "" : `${set.map_lat}, ${set.map_lng}`;
+  $("map-place").value = set.map_lat === null || set.map_lat === undefined ? "" : formatPlace(set.map_lat, set.map_lng);
   const precision = set.map_precision || "hidden";
   for (const radio of document.querySelectorAll('input[name="map-precision"]')) radio.checked = radio.value === precision;
 }
@@ -144,7 +144,7 @@ $("map-place").addEventListener("change", () => {
   if (!text) return saveMapPlace({ map_lat: null, map_lng: null });
   const place = parsePlace(text);
   if (!place) {
-    $("details-status").textContent = "No numbers found. Paste them like 51.1784, -115.5708.";
+    $("details-status").textContent = "No place found. Paste it like 51.41728° N, 116.23912° W.";
     $("details-status").dataset.state = "error";
     return;
   }
@@ -481,7 +481,18 @@ function createPhotoCard(photo, index) {
     toolButton("×", `Delete photo ${number}`, () => deletePhoto(photo), "danger"),
   );
 
-  item.append(figure, ratingField(photo, number), numbers, caption, camera, alt, instagramToggle(photo, number, figure), tools);
+  // Caption, camera details and alt text fold away under "More", so each card
+  // stays short; it says when the alt text is still missing.
+  const more = document.createElement("details");
+  more.className = "card-more";
+  const moreSummary = document.createElement("summary");
+  moreSummary.textContent = photo.alt_text ? "Caption, camera, alt text" : "Caption, camera, alt text (alt text missing)";
+  alt.querySelector("input").addEventListener("change", (event) => {
+    moreSummary.textContent = event.target.value.trim() ? "Caption, camera, alt text" : "Caption, camera, alt text (alt text missing)";
+  });
+  more.append(moreSummary, caption, camera, alt);
+
+  item.append(figure, ratingField(photo, number), numbers, instagramToggle(photo, number, figure), more, tools);
   return item;
 }
 

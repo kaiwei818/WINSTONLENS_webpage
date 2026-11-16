@@ -41,7 +41,7 @@
     </section>
 
     <!-- Like set details, every box saves by itself when you click outside it. -->
-    <form class="panel" id="about-form" aria-labelledby="bio-heading">
+    <form class="panel" id="about-form" aria-labelledby="bio-heading" data-nofold>
       <h2 id="bio-heading">Bio</h2>
       <label for="bio">A few paragraphs about you and your photography. Leave an empty line between paragraphs.</label>
       <textarea id="bio" rows="8" maxlength="5000"></textarea>
@@ -70,5 +70,6 @@
   </main>
 
   <script src="/js/admin-about.js" type="module"></script>
+  <script src="/js/admin-chrome.js" type="module"></script>
 </body>
 </html>

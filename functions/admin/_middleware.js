@@ -2,6 +2,7 @@
 // are sent to the login page instead.
 
 import { isLoggedIn } from "../../lib/auth.js";
+import { adminNavHtml } from "../../lib/chrome.js";
 
 const LOGIN_PAGES = ["/admin/login", "/admin/login.html"];
 
@@ -23,5 +24,10 @@ export async function onRequest({ request, env, next }) {
   const original = await next();
   const response = new Response(original.body, original); // a copy we can change
   response.headers.set("Cache-Control", "no-store");
-  return response;
+  if (!(response.headers.get("Content-Type") || "").includes("text/html")) return response;
+  // The same links at the top of every admin page, before the page's own
+  // buttons (light/dark, "View set").
+  return new HTMLRewriter()
+    .on(".admin-header nav", { element(el) { el.prepend(adminNavHtml(url.pathname), { html: true }); } })
+    .transform(response);
 }

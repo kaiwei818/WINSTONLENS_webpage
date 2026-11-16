@@ -47,7 +47,7 @@
     </section>
 
     <!-- Set details: title, web address, description -->
-    <form class="panel" id="details-form" aria-labelledby="details-heading">
+    <form class="panel" id="details-form" aria-labelledby="details-heading" data-fold="closed">
       <h2 id="details-heading">Set details</h2>
       <label for="details-title">Title</label>
       <input id="details-title" type="text" maxlength="200" required>
@@ -78,9 +78,9 @@
       </fieldset>
       <fieldset class="category-picker map-picker">
         <legend>Map</legend>
-        <label for="map-place">Where it was taken: the numbers, or a Google Maps link</label>
-        <input id="map-place" type="text" autocomplete="off" placeholder="e.g. 51.1784, -115.5708">
-        <p class="muted small">In Google Maps, right-click the spot and click the numbers at the top to copy them.
+        <label for="map-place">Where it was taken</label>
+        <input id="map-place" type="text" autocomplete="off" placeholder="e.g. 51.41728° N, 116.23912° W">
+        <p class="muted small">Like 51.41728° N, 116.23912° W. Also works: 51.41728, -116.23912, or a Google Maps link.
           Empty: not on the map.</p>
         <div class="map-precision" role="radiogroup" aria-label="What visitors see">
           <label class="checkbox"><input type="radio" name="map-precision" value="exact"> The exact spot (landscapes, travel)</label>
@@ -95,7 +95,7 @@
     </form>
 
     <!-- Step 1: watermark settings (locked while photos are in the list) -->
-    <section class="panel" aria-labelledby="wm-heading">
+    <section class="panel" aria-labelledby="wm-heading" data-fold="closed">
       <h2 id="wm-heading">Watermark and downloads</h2>
       <label class="checkbox">
         <input type="checkbox" id="wm-on" checked> Add a watermark to every public size
@@ -148,7 +148,7 @@
       <ul class="queue" id="queue"></ul>
     </section>
 
-    <section aria-labelledby="existing-heading">
+    <section aria-labelledby="existing-heading" data-fold>
       <h2 id="existing-heading">Photos in this set</h2>
       <p class="muted" id="existing-empty" hidden>No photos yet.</p>
       <p class="muted" id="existing-help">
@@ -183,7 +183,7 @@
       <div id="ig-posts"></div>
     </section>
 
-    <section class="danger-zone" aria-labelledby="danger-heading">
+    <section class="danger-zone" aria-labelledby="danger-heading" data-fold="closed">
       <h2 id="danger-heading">Delete this set</h2>
       <p class="muted">Removes the set and all of its photos from the site and from storage. This cannot be undone.</p>
       <button type="button" id="delete-set" class="button-danger">Delete this set</button>
@@ -219,5 +219,6 @@
   </dialog>
 
   <script src="/js/admin-set.js" type="module"></script>
+  <script src="/js/admin-chrome.js" type="module"></script>
 </body>
 </html>

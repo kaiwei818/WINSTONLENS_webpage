@@ -509,22 +509,24 @@ html[data-pointer] :focus-visible:not(input, textarea, select) { outline: none; 
   stroke-linejoin: round;
   transition: rotate var(--dur-short) var(--ease-out);
 }
-.menu-section[open] .menu-chevron { rotate: 90deg; }
+.menu-section[open] .menu-chevron,
+.fold[open] > .fold-head .fold-chevron { rotate: 90deg; }
 .menu-section > ul { padding-bottom: var(--space-sm); }
-/* The fold: the section grows to its height and the list fades in; closing is
-   quicker. Height is the one thing that can show a section opening, and the
-   list is short. Browsers without ::details-content or interpolate-size simply
-   open at once. */
-.menu-panel { interpolate-size: allow-keywords; }
-.menu-section::details-content {
+/* The fold, for the menu's sections and the admin panels (.fold, .card-more):
+   the section grows to its height and its content fades in; closing is
+   quicker. Height is the one thing that can show a section opening. Browsers
+   without ::details-content or interpolate-size simply open at once. */
+.menu-panel,
+.admin-header ~ main { interpolate-size: allow-keywords; }
+:is(.menu-section, .fold, .card-more)::details-content {
   block-size: 0;
   overflow: clip;
   transition: block-size var(--dur-exit) var(--ease-out), content-visibility var(--dur-exit) allow-discrete;
 }
-.menu-section[open]::details-content { block-size: auto; transition-duration: var(--dur-short); }
-.menu-section > ul { transition: opacity var(--dur-short) var(--ease-out), translate var(--dur-short) var(--ease-out); }
-.menu-section:not([open]) > ul { opacity: 0; translate: 0 -4px; }
-@starting-style { .menu-section[open] > ul { opacity: 0; translate: 0 -4px; } }
+:is(.menu-section, .fold, .card-more)[open]::details-content { block-size: auto; transition-duration: var(--dur-short); }
+:is(.menu-section > ul, .fold-body) { transition: opacity var(--dur-short) var(--ease-out), translate var(--dur-short) var(--ease-out); }
+:is(.menu-section:not([open]) > ul, .fold:not([open]) > .fold-body) { opacity: 0; translate: 0 -4px; }
+@starting-style { :is(.menu-section[open] > ul, .fold[open] > .fold-body) { opacity: 0; translate: 0 -4px; } }
 .menu-list a {
   display: block;
   padding: var(--space-xs) 0;
@@ -1711,6 +1713,7 @@ html.photo-transition .site-header { view-transition-name: none; }
   .pill, .round-button, .button-link, .thumb-button img, .set-card img, .hero-image, .menu-close, .menu-action, .share-menu,
   .lightbox-button, .lightbox-action, .lightbox-counter, .lightbox-bottom, button, .icon-button,
   .menu-section::details-content, .menu-section > ul, .menu-chevron, .number-options, .favorites-toggle,
+  .fold::details-content, .card-more::details-content, .fold-body, .fold-chevron,
   .lightbox-heart svg, .map-pin { transition: none; }
   .map-pin:hover { scale: none; }
   :is(.pill, .round-button, .button-link, .menu-close, .menu-action, .lightbox-button, .lightbox-action, button):active,
@@ -1888,14 +1891,45 @@ progress { width: 100%; height: 6px; accent-color: var(--color-accent); }
 
 /* ---------- Admin: layout pieces ---------- */
 /* A panel: a ruled box on the paper. Never one inside another. */
+/* Folding panels (js/admin-chrome.js): the heading row opens and closes the
+   panel; the chevron turns. */
+.fold-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  list-style: none;
+  cursor: pointer;
+}
+.fold-head::-webkit-details-marker { display: none; }
+.admin-header ~ main .fold-head h2 { margin: 0; }
+.fold-head:hover h2 { text-decoration: underline; text-underline-offset: 4px; }
+.fold-chevron {
+  width: 20px;
+  height: 20px;
+  margin-left: auto;
+  flex-shrink: 0;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  color: var(--color-muted);
+  transition: rotate var(--dur-short) var(--ease-out);
+}
+.fold-body { padding-top: var(--space-md); }
+/* A photo card's caption, camera and alt text, folded under "More". */
+.card-more > summary { color: var(--color-muted); font-size: var(--text-sm); font-weight: 500; cursor: pointer; }
+.card-more > summary:hover { color: var(--color-ink); }
+.card-more[open] > summary { margin-bottom: var(--space-xs); }
+.card-more .photo-card-field { margin-top: var(--space-xs); }
 .panel {
   margin: 0 0 var(--space-lg);
   padding: var(--space-lg);
   background: var(--color-paper);
   border: 1px solid var(--color-rule);
 }
-.panel > label:not(.drop-zone):not(.checkbox) { display: block; margin-bottom: var(--space-2xs); font-size: var(--text-sm); font-weight: 500; }
-.panel > label.checkbox,
+:is(.panel, .panel > .fold > .fold-body) > label:not(.drop-zone):not(.checkbox) { display: block; margin-bottom: var(--space-2xs); font-size: var(--text-sm); font-weight: 500; }
+:is(.panel, .panel > .fold > .fold-body) > label.checkbox,
 .checkbox { display: flex; align-items: center; gap: var(--space-xs); margin-bottom: var(--space-sm); }
 .panel input[type="text"],
 .panel input[type="email"],
