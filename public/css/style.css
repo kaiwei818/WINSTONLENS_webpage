@@ -78,8 +78,10 @@
   --color-loading: oklch(97.5% 0.003 85 / 0.7);
 
   /* Type */
-  --font-display: "Bebas Neue", "Helvetica Neue", Helvetica, Arial, "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
-  --font-body: Inter, "Helvetica Neue", Helvetica, Arial, "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+  /* Chinese: 思源黑體 (Noto Sans TC), stored on this site and loaded on Chinese
+     pages only (css/noto-sans-tc.css); elsewhere the device's own font. */
+  --font-display: "Bebas Neue", "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", "Helvetica Neue", Arial, sans-serif;
+  --font-body: Inter, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", "Helvetica Neue", Arial, sans-serif;
   --text-xs: 0.8125rem; --text-sm: 0.875rem; --text-md: 1rem; --text-lg: 1.25rem; --text-xl: 1.5625rem; --text-2xl: 1.953rem; --text-3xl: 2.441rem;
   --text-title: clamp(1.625rem, 0.9vw + 1.2rem, 2.125rem);       /* a set's name on its card */
   --text-section: clamp(2.75rem, 3.4vw + 1.4rem, 4.75rem);       /* section heads */
@@ -226,6 +228,14 @@ main > h1 {
   line-height: 1;
   overflow-wrap: break-word;
   min-width: 0;
+}
+/* Chinese titles in bold 思源黑體. Bebas Neue has one weight only: Latin
+   letters in a Chinese title ("11/14") stay as drawn, never a faked bold. */
+:lang(zh) :is(.display, .hero-title, .section-head h1, .section-head h2, .set-heading h1, .about h1, .not-found h1,
+  .related-sets h2, .footer-heading, .set-card h2, .set-card h3, .menu-main a, main > h1) {
+  font-weight: 700;
+  font-synthesis: none;
+  line-height: 1.15; /* Chinese characters need a little more room than Bebas capitals */
 }
 
 /* A clear outline for keyboard users, so they always see where they are. It
