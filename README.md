@@ -139,7 +139,8 @@ Secrets never go in the code or on GitHub. `.dev.vars` is listed in `.gitignore`
 | `npm run db:migrate:remote` | Apply database changes to the live site |
 | `npm run seed:local` | Replace local data with three sample sets |
 | `npm run deploy` | Publish to Cloudflare Pages |
-| `npm test` | Check the admin login lock, the rate limits, the home page image sizes, and the slow-connection rule (tests/) |
+| `npm test` | Quick checks: the admin login lock, rate limits, hearts, jersey numbers, map places, home page image sizes, the slow-connection rule (tests/) |
+| `npm run test:browser` | Real-Chrome checks of the viewer, number search, map and admin pages, on a local copy with the sample sets (needs `npm install -D puppeteer-core@24` once) |
 
 ## How it fits together
 
@@ -159,8 +160,9 @@ functions/               Server code; the file path is the web address
   _middleware.js           Runs for every request: security headers, site name
   index.js                 Home page, with the set cards built on the server
   robots.txt.js, sitemap.xml.js   For search engines
-  api/sets/                Public data (read only)
   api/license/, api/download/   License code check and clean-copy downloads
+  api/hearts.js            Visitors' hearts on photos
+  map.js                   The map page
   api/admin/               Admin data; _middleware.js checks the login for all of it
   img/[[key]].js           Serves images from R2, with hotlink protection
   sets/[slug].js           Set pages, with the photo grid built on the server
@@ -168,16 +170,14 @@ lib/                     Shared server code: site name (site.js), database queri
                          settings, login, slugs, ordering, security headers, page tags
 migrations/              Database tables, one numbered file per change
 scripts/                 hash-password and seed-local
-tests/                   Automated checks, run with npm test
+tests/                   Automated checks: npm test, and npm run test:browser (tests/browser/)
 ```
 
 ## API
 
 Public (read only):
 
-- `GET /api/sets`: all published sets with cover and photo count
 - `GET /?category=:slug`: the home page filtered to one category
-- `GET /api/sets/:slug`: one set with its photos (drafts only when logged in)
 - `GET /sets/:slug`: a set's page; the old address of a renamed set redirects to the new one
 - `GET /about`: the About page
 - `GET /robots.txt`, `GET /sitemap.xml`: for search engines

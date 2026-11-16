@@ -4,8 +4,8 @@
 //   preview, as a data: address; see js/placeholder.js),
 //   original_name, original_hash, taken_at (facts about the original file, for
 //   duplicate warnings; see migrations/0007),
-//   small, thumb, display (the image files; "medium" is only sent by
-//   upload pages from before the storage limit, and still accepted)
+//   small, thumb, display (the image files; older photos also have a
+//   "medium" size, which uploads no longer make)
 //   download (optional): the clean copy for licensed downloads, stored under
 //   "private/", which /img/ refuses to serve
 //   download_hires ("1"): that clean copy is the high-resolution kind (up to
@@ -25,12 +25,10 @@ import { SET_LIMIT_BYTES } from "../../../../public/js/clean-copy.js";
 // first bytes (lib/image-format.js).
 const MAX_BYTES = 15 * 1024 * 1024;
 
-// thumb and display are required. small and medium (phone sizes) are optional,
-// so an upload page left open from before the update still works.
+// thumb and display are required; small (the phone size) is optional.
 const SIZES = [
   { name: "small", required: false },
   { name: "thumb", required: true },
-  { name: "medium", required: false },
   { name: "display", required: true },
   { name: "download", required: false },
 ];
@@ -107,7 +105,7 @@ export async function onRequestPost(context) {
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
                (SELECT COALESCE(MAX(sort_order), -1) + 1 FROM photos WHERE set_id = ?))
        RETURNING id, thumb_key, display_key, width, height, alt_text, camera_info, size_bytes`
-    ).bind(setId, keys.small ?? null, keys.thumb, keys.medium ?? null, keys.display, keys.download ?? null,
+    ).bind(setId, keys.small ?? null, keys.thumb, null, keys.display, keys.download ?? null,
            width, height, altText, cameraInfo, totalBytes, originalName, originalHash, takenAt, placeholder, setId).first();
     const name = originalName ? ` (${originalName})` : "";
     const clean = keys.download ? ", with a clean copy" : "";
