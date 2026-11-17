@@ -122,7 +122,8 @@ deploy; every page picks them up.
 | `ADMIN_PASSWORD_HASH` | same | Yes | Your admin password, hashed. Made by `npm run hash-password`. |
 | `SESSION_SECRET` | same | Yes | Random text that signs login cookies. Changing it logs everyone out. |
 | `RESEND_API_KEY` | `wrangler pages secret put` | No | Only for download receipt emails (lesson 14): an API key from resend.com. |
-| `RECEIPT_EMAIL` | same | No | Where download receipt emails go (your Resend account's address). |
+| `RECEIPT_EMAIL` | same | No | Where download receipt emails go (your Resend account's address, unless your domain is verified in Resend). One email per batch of downloads. |
+| `RECEIPT_FROM` | same | No | The sender, like `Photo downloads <downloads@winstonlens.com>`, once your domain is verified in Resend. |
 | `ALLOWED_HOSTS` | `[vars]` in `wrangler.toml` | No | Extra domain names allowed to show your images, comma separated. Only needed when the site has more than one domain. |
 | `DB` | `wrangler.toml` | Yes | The D1 database (`database_id` from step 2). |
 | `BUCKET` | `wrangler.toml` | Yes | The R2 bucket for images. |

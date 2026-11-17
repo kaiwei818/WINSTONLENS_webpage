@@ -113,13 +113,19 @@ If you also want an email:
    npx wrangler pages secret put RECEIPT_EMAIL
    ```
    `RECEIPT_EMAIL` must be the email address of your Resend account (on the
-   free plan without your own domain, Resend only sends to that address).
+   free plan without your own domain, Resend only sends to that address). To
+   send anywhere else, verify your domain in Resend and also store
+   `RECEIPT_FROM`, like `Photo downloads <downloads@winstonlens.com>`.
 4. Deploy again.
 
-So a Download all of 60 photos does not send 60 emails, you get **at most one
-email per code per hour**. It says who started downloading what, and links to
-the receipts page for the full list. If the email ever fails, the download
-still works, and the receipt is still saved.
+Downloads are **grouped**: one email per batch, not one per photo. Each
+download waits 25 seconds; if no other download with the same code follows,
+one email goes out listing every photo since the last email: the code, set,
+place, and time of each. A Download all of 60 photos is one email. (On a very
+slow connection, where one photo takes longer than 25 seconds, it may arrive
+as a few emails; every photo is still listed exactly once.) If the email ever
+fails, the download still works, the receipt is still saved, and those photos
+go in the next email for that code.
 
 ## Deploy
 
