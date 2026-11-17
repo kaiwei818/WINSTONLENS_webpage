@@ -6,6 +6,7 @@
 // made downloading all of them in one go too easy. Google still finds the
 // photos on the set pages themselves.
 
+import { zhUrl } from "../lib/i18n.js";
 import { isPublicSql } from "../lib/visibility.js";
 
 export async function onRequestGet({ request, env }) {
@@ -14,7 +15,8 @@ export async function onRequestGet({ request, env }) {
     `SELECT s.id, s.slug FROM sets s WHERE ${isPublicSql()} ORDER BY sort_order, id`
   ).all();
 
-  const entry = (loc) => `  <url><loc>${escapeXml(loc)}</loc></url>`;
+  // Every page twice: English, and its Chinese address (?lang=zh).
+  const entry = (loc) => `  <url><loc>${escapeXml(loc)}</loc></url>\n  <url><loc>${escapeXml(zhUrl(loc))}</loc></url>`;
   const xml = [
     '<?xml version="1.0" encoding="UTF-8"?>',
     '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',

@@ -3,3 +3,6 @@ node_modules/
 .seed/
 .dev.vars
 .DS_Store
+# Local design and motion audit reports
+.hallmark/
+motion-audits/

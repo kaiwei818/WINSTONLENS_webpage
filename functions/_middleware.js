@@ -24,7 +24,7 @@
 import { ASSET_VERSION } from "../lib/asset-version.js";
 import { footerHtml, menuHtml, navHtml } from "../lib/chrome.js";
 import { CONTACT_KEYS } from "../lib/contact.js";
-import { HTML_LANG, LANGS, clientText, langOf, translator } from "../lib/i18n.js";
+import { HTML_LANG, LANGS, clientText, langOf, translator, zhUrl } from "../lib/i18n.js";
 import { escapeHtml, jsonForPage } from "../lib/render.js";
 import { categoriesInUse } from "../lib/queries.js";
 import { addSecurityHeaders } from "../lib/security.js";
@@ -120,6 +120,19 @@ export async function onRequest({ request, env, next }) {
         element(el) {
           el.prepend(`<a class="lang-switch" href="${escapeHtml(chrome.langHref)}" lang="${lang === "zh" ? "en" : "zh-Hant-TW"}" ` +
             `aria-label="${t("lang.switchLabel")}">${t("lang.switch")}</a>`, { html: true });
+        },
+      })
+      // Each language gets its own address in Google: the plain one is English,
+      // ?lang=zh Chinese, and each page names the other (hreflang).
+      .on('link[rel="canonical"]', {
+        element(el) {
+          const href = el.getAttribute("href");
+          if (!href) return;
+          const zh = zhUrl(href);
+          if (url.searchParams.get("lang") === "zh") el.setAttribute("href", zh);
+          el.after(`<link rel="alternate" hreflang="en" href="${escapeHtml(href)}">` +
+            `<link rel="alternate" hreflang="zh-Hant-TW" href="${escapeHtml(zh)}">` +
+            `<link rel="alternate" hreflang="x-default" href="${escapeHtml(href)}">`, { html: true });
         },
       })
       .on(".skip-link", { element(el) { el.setInnerContent(t("skip")); } })

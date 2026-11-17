@@ -1,0 +1,43 @@
+# Runs the tests on every pull request, and on every merge to main also puts
+# the site live (the same as "npm run deploy" on your computer).
+#
+# Needs two secrets (GitHub repo, Settings, Secrets and variables, Actions):
+#   CLOUDFLARE_API_TOKEN   a Cloudflare API token with "Cloudflare Pages: Edit"
+#                          and "D1: Edit" permissions
+#   CLOUDFLARE_ACCOUNT_ID  your Cloudflare account id (on the dashboard home page)
+
+name: Test and deploy
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# Two quick merges in a row: the second deploy waits for the first.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+
+jobs:
+  test-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+
+      # Only on main: new database changes first (it skips ones already
+      # applied), then the site itself.
+      - if: github.event_name == 'push'
+        run: npm run db:migrate:remote
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      - if: github.event_name == 'push'
+        run: npm run deploy -- --branch=main
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
