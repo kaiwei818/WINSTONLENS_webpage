@@ -12,6 +12,7 @@ import { withPageMeta } from "../lib/meta.js";
 import { notFoundPage } from "../lib/not-found.js";
 import { homeData } from "../lib/structured.js";
 import { categoriesInUse, publishedSets } from "../lib/queries.js";
+import { getSettings } from "../lib/settings.js";
 import { escapeHtml, heroHtml, setCardHtml } from "../lib/render.js";
 import { SITE } from "../lib/site.js";
 import { joinList, langOf, localized, translator } from "../lib/i18n.js";
@@ -24,7 +25,9 @@ export async function onRequestGet({ request, env }) {
   // ?category=landscape shows only that category. Plain links, so the filter
   // works without JavaScript and Google can follow each category page.
   const category = (url.searchParams.get("category") || "").slice(0, 60);
-  const [sets, categories] = await Promise.all([publishedSets(env, category), categoriesInUse(env)]);
+  const [sets, categories, { about_instagram }] = await Promise.all([
+    publishedSets(env, category), categoriesInUse(env), getSettings(env, ["about_instagram"]),
+  ]);
   const current = categories.find((c) => c.slug === category);
   // A category that does not exist (a typo, or one you deleted), or that has
   // no public sets: "not found", rather than an empty page that looks real.
@@ -80,7 +83,7 @@ export async function onRequestGet({ request, env }) {
     image: (hero?.set || sets[0])?.cover_thumb_key ? `${url.origin}/img/${(hero?.set || sets[0]).cover_thumb_key}` : "",
     imageSize: thumbSize(hero?.set || sets[0]),
     imageAlt: localized((hero?.set || sets[0])?.title, (hero?.set || sets[0])?.title_zh, lang) || "",
-    structuredData: current ? null : homeData(url.origin),
+    structuredData: current ? null : homeData(url.origin, about_instagram),
   });
 }
 

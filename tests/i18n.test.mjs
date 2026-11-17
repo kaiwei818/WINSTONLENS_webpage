@@ -3,7 +3,7 @@
 
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { CLIENT_KEYS, TEXT, joinList, langOf, monthYear, translator } from "../lib/i18n.js";
+import { CLIENT_KEYS, TEXT, joinList, langOf, monthYear, translator, zhUrl } from "../lib/i18n.js";
 
 // Words used in Mainland China where Taiwan says something else.
 const MAINLAND = ["視頻", "鏈接", "信息", "默認", "設置", "搜索", "屏幕", "軟件", "網絡", "用戶", "質量", "點擊", "登錄", "文件", "圖片", "保存", "打印", "博客", "視圖", "菜單"];
@@ -40,4 +40,10 @@ test("the visitor's language: their choice first, then their browser", () => {
   assert.equal(langOf(request({ "Accept-Language": "zh-TW,zh;q=0.9,en;q=0.8" })), "zh");
   assert.equal(langOf(request({ "Accept-Language": "en-CA,en;q=0.9,zh;q=0.5" })), "en");
   assert.equal(langOf(request({})), "en");
+});
+
+test("the Chinese address of a page", () => {
+  assert.equal(zhUrl("https://winstonlens.com/"), "https://winstonlens.com/?lang=zh");
+  assert.equal(zhUrl("https://winstonlens.com/?category=wildlife"), "https://winstonlens.com/?category=wildlife&lang=zh");
+  assert.equal(zhUrl("https://winstonlens.com/about?lang=en"), "https://winstonlens.com/about?lang=zh");
 });
