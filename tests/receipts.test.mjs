@@ -3,9 +3,10 @@
 
 import assert from "node:assert/strict";
 import { mock, test } from "node:test";
-import { QUIET_SECONDS, recordReceipt } from "../lib/receipts.js";
+import { QUIET_SECONDS, deviceOf, recordReceipt } from "../lib/receipts.js";
 import { testDb } from "./helpers/d1.mjs";
 
+const IPHONE = "Mozilla/5.0 (iPhone; CPU iPhone OS 18_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.1 Mobile/15E148 Safari/604.1";
 const license = { id: 7, code: "WL-AAAA-BBBB", label: "Jane" };
 const photo = (id) => ({ id, set_id: 1, title: "Taiwan barbet", original_name: `IMG_${id}.jpg` });
 
@@ -14,7 +15,11 @@ function setup({ accepted = true } = {}) {
   const background = [];
   const context = {
     env,
-    request: { url: "https://winstonlens.com/api/download/1", cf: { city: "Taipei", region: "Taipei City", country: "TW" } },
+    request: {
+      url: "https://winstonlens.com/api/download/1",
+      cf: { city: "Taipei", region: "Taipei City", country: "TW", postalCode: "100", asOrganization: "Chunghwa Telecom", timezone: "Asia/Taipei" },
+      headers: new Headers({ "User-Agent": IPHONE }),
+    },
     waitUntil: (promise) => background.push(promise),
   };
   const sent = [];
@@ -44,7 +49,10 @@ test("a Download all of three photos sends one email listing all three", async (
   assert.equal(sent[0].to, "me@example.com");
   assert.equal(sent[0].subject, "Download: Taiwan barbet (WL-AAAA-BBBB (Jane)), 3 photos");
   assert.match(sent[0].text, /3 clean photos/);
-  assert.match(sent[0].text, /Where: {2}Taipei, Taipei City, TW/);
+  assert.match(sent[0].text, /Where: {4}Taipei, Taipei City, 100, TW\n/);
+  assert.match(sent[0].text, /Network: {2}Chunghwa Telecom\n/);
+  assert.match(sent[0].text, /Device: {3}iPhone, Safari\n/);
+  assert.match(sent[0].text, /When: {5}.* UTC \(\d\d:\d\d in Asia\/Taipei\)/);
   for (const id of [1, 2, 3]) assert.match(sent[0].text, new RegExp(`#${id} IMG_${id}\\.jpg, .* UTC, Download all`));
 
   // A later download is a new group: only that photo.
@@ -73,4 +81,18 @@ test("without the email secrets, receipts are saved and nothing is sent", async 
   await recordReceipt(context, { license, photo: photo(1), viaAll: false });
   assert.equal(sent.length, 0);
   assert.equal(env.DB.sqlite.prepare("SELECT emailed FROM download_receipts").get().emailed, 1);
+});
+
+test("the device and browser, from the User-Agent", () => {
+  const cases = {
+    [IPHONE]: "iPhone, Safari",
+    "Mozilla/5.0 (iPhone; CPU iPhone OS 18_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/131.0 Mobile/15E148 Safari/604.1": "iPhone, Chrome",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36": "Mac, Chrome",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0": "Windows, Edge",
+    "Mozilla/5.0 (Linux; Android 14; SM-S918B) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/26.0 Chrome/122.0.0.0 Mobile Safari/537.36": "Android phone, Samsung Internet",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 14.1; rv:132.0) Gecko/20100101 Firefox/132.0": "Mac, Firefox",
+    "curl/8.4.0": "curl/8.4.0",
+    "": "unknown",
+  };
+  for (const [ua, want] of Object.entries(cases)) assert.equal(deviceOf(ua), want, ua);
 });

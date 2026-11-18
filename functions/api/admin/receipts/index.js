@@ -3,7 +3,8 @@
 // Download receipts (see lib/receipts.js). code_id is optional: one code only.
 
 const PAGE = 100;
-const COLUMNS = ["at", "code", "code_label", "set_title", "photo_id", "photo_name", "city", "region", "country", "via_all"];
+const COLUMNS = ["at", "code", "code_label", "set_title", "photo_id", "photo_name", "city", "region", "postal_code", "country",
+  "network", "device", "time_zone", "via_all"];
 
 export async function onRequestGet({ request, env }) {
   const url = new URL(request.url);

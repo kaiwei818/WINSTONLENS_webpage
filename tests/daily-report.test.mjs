@@ -26,10 +26,10 @@ function seeded() {
       ('${ago(5)}', 'login_failed', 'Wrong password', NULL), ('${ago(5)}', 'login_failed', 'Wrong password', NULL),
       ('${ago(5)}', 'login_failed', 'Wrong password', NULL),
       ('${ago(30)}', 'publish', 'Published "Old news"', 2);
-    INSERT INTO download_receipts (at, code_id, code, code_label, set_id, set_title, photo_id, city, country) VALUES
-      ('${ago(1)}', 7, 'WL-AAAA-BBBB', 'Jane', 1, 'Vikings vs Thunder', 10, 'Calgary', 'CA'),
-      ('${ago(1)}', 7, 'WL-AAAA-BBBB', 'Jane', 1, 'Vikings vs Thunder', 11, 'Calgary', 'CA'),
-      ('${ago(40)}', 7, 'WL-AAAA-BBBB', 'Jane', 1, 'Vikings vs Thunder', 11, 'Calgary', 'CA');
+    INSERT INTO download_receipts (at, code_id, code, code_label, set_id, set_title, photo_id, city, country, network, device) VALUES
+      ('${ago(1)}', 7, 'WL-AAAA-BBBB', 'Jane', 1, 'Vikings vs Thunder', 10, 'Calgary', 'CA', 'TELUS', 'iPhone, Safari'),
+      ('${ago(1)}', 7, 'WL-AAAA-BBBB', 'Jane', 1, 'Vikings vs Thunder', 11, 'Calgary', 'CA', 'TELUS', 'Mac, Chrome'),
+      ('${ago(40)}', 7, 'WL-AAAA-BBBB', 'Jane', 1, 'Vikings vs Thunder', 11, 'Calgary', 'CA', '', '');
     INSERT INTO photo_hearts (photo_id, visitor, created_at) VALUES (10, 'a', '${ago(6)}'), (11, 'b', '${ago(6)}'), (20, 'c', '${ago(50)}');
   `);
   return db;
@@ -38,7 +38,7 @@ function seeded() {
 test("the last 24 hours, summed up by set", async () => {
   const { subject, text } = await dailyReport({ DB: seeded() }, "https://winstonlens.com", NOW);
   assert.equal(subject, "winstonlens daily: 2 downloads, 2 new likes, ⚠ 3 failed logins");
-  assert.match(text, /Downloads:\n {2}Vikings vs Thunder: 2 photos with WL-AAAA-BBBB \(Jane\), from Calgary, CA\n/);
+  assert.match(text, /Downloads:\n {2}Vikings vs Thunder: 2 photos with WL-AAAA-BBBB \(Jane\), from Calgary, CA · TELUS · iPhone, Safari; Mac, Chrome\n/);
   assert.match(text, /New likes:\n {2}Vikings vs Thunder: 2\n/);
   assert.match(text, /Uploads:\n {2}Vikings vs Thunder: 2 photos\n/);
   assert.match(text, /License codes:\n {2}Created code WL-AAAA-BBBB \(Jane\)\n/);
