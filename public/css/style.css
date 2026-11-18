@@ -952,6 +952,15 @@ a.menu-action { text-decoration: none; } /* 中文 / English is a link, the othe
 .photo-filter-status { flex-basis: 100%; margin: 0; color: var(--color-muted); font-size: var(--text-sm); }
 .photo-filter-status:empty { display: none; }
 .photo-filter + .photo-grid { margin-top: var(--space-lg); }
+/* The Sports page: one number search over every sports set (js/sports-search.js). */
+.section-head + .photo-filter { margin-top: 0; margin-bottom: var(--space-lg); }
+.number-results { display: grid; gap: var(--space-xl); }
+.number-group-title { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-2xs) var(--space-xs); margin: 0 0 var(--space-sm); font-size: var(--text-md); }
+.number-group-title a { color: inherit; }
+.number-group-count { color: var(--color-muted); font-size: var(--text-sm); font-weight: 400; }
+.number-photos { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: var(--space-xs); margin: 0; padding: 0; list-style: none; }
+.number-photos img { display: block; width: 100%; height: auto; aspect-ratio: 1; object-fit: cover; background: var(--color-paper-2); }
+@media (max-width: 600px) { .number-photos { grid-template-columns: repeat(3, 1fr); } }
 .number-field {
   position: relative;
   display: flex;
@@ -2305,6 +2314,8 @@ section.panel[aria-labelledby="hero-heading"] { max-width: 720px; }
 .quick-look .picks-note { margin: 0; }
 .ql-tags { display: flex; flex-direction: column; gap: var(--space-3xs); align-self: stretch; color: var(--color-night-muted); font-size: var(--text-sm); font-weight: 500; }
 .ql-tags input { background: var(--color-night-2); border-color: var(--color-night-3); color: var(--color-night-ink); }
+/* Jersey numbers are only for Sports sets (admin-set.js, showNumbers). */
+[data-no-numbers] .numbers-field, [data-no-numbers] .ql-tags, [data-no-numbers] #ql-tags-status { display: none; }
 .quick-look .save-status { margin: 0; }
 .ql-keys { margin: 0; color: var(--color-night-muted); font-size: var(--text-xs); }
 @media (hover: none) { .ql-keys { display: none; } }

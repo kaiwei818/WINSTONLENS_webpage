@@ -23,11 +23,12 @@ const PORT = 8790;
 const BASE = `http://localhost:${PORT}`;
 const SECRET = "browser-test-only-secret-0123456789abcdef";
 const CHROME = process.env.CHROME_PATH || "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
-const SUITES = ["viewer-motion", "number-search", "map", "chinese", "admin-folds"];
+const SUITES = ["viewer-motion", "number-search", "sports-search", "map", "chinese", "admin-folds"];
 
 // The sample sets get what the checks expect: #12 on four Coastline photos,
 // #7 on two, #23 on two; Coastline exactly on the map, City Nights as a rough
-// area, Forest hidden; Chinese names for Coastline and the categories.
+// area, Forest hidden; Chinese names for Coastline and the categories;
+// Coastline and City Nights in Sports (one City Nights photo is #12).
 const FIXTURES = `
 UPDATE photos SET tags = CASE (id % 3) WHEN 0 THEN '12, 7' WHEN 1 THEN '12' ELSE '23' END WHERE set_id = (SELECT id FROM sets WHERE slug = 'coastline');
 UPDATE photos SET tags = '' WHERE set_id != (SELECT id FROM sets WHERE slug = 'coastline');
@@ -36,7 +37,11 @@ UPDATE sets SET map_lat = 25.0273, map_lng = 121.5764, map_precision = 'region' 
 UPDATE sets SET map_lat = 25.1287, map_lng = 121.7419, map_precision = 'hidden' WHERE slug = 'forest';
 DELETE FROM photo_hearts;
 UPDATE sets SET title_zh = '海岸線', description_zh = '海邊的藍色時刻。' WHERE slug = 'coastline';
-UPDATE categories SET name_zh = CASE name WHEN 'Landscape' THEN '風景' WHEN 'Travel' THEN '旅行' ELSE name_zh END;`;
+UPDATE categories SET name_zh = CASE name WHEN 'Landscape' THEN '風景' WHEN 'Travel' THEN '旅行' ELSE name_zh END;
+INSERT OR IGNORE INTO categories (name, name_zh, slug, sort_order) VALUES ('Sports', '運動', 'sports', 9);
+DELETE FROM set_categories WHERE category_id = (SELECT id FROM categories WHERE slug = 'sports');
+INSERT INTO set_categories (set_id, category_id) SELECT s.id, c.id FROM sets s, categories c WHERE s.slug IN ('coastline', 'city-nights') AND c.slug = 'sports';
+UPDATE photos SET tags = '12' WHERE id = (SELECT MIN(id) FROM photos WHERE set_id = (SELECT id FROM sets WHERE slug = 'city-nights'));`;
 
 const wrangler = (args) => execFileSync("npx", ["wrangler", ...args], { stdio: "pipe" }).toString();
 wrangler(["d1", "migrations", "apply", "portfolio-db", "--local"]);
