@@ -12,6 +12,16 @@ export default async function ({ context, base, check }) {
   await wait(800);
   check("a cover pin per set, the rough one dashed with an area", (await page.$$(".map-pin")).length === 2 &&
     (await page.$$(".map-pin-area")).length === 1 && (await page.$$(".map-area")).length === 1);
+  // Hovering grows the pin in place; it used to jump away (the scale multiplied
+  // Leaflet's position transform).
+  const center = async () => page.$eval(".map-pin:not(.map-pin-area)", (el) => {
+    const r = el.getBoundingClientRect();
+    return { x: r.x + r.width / 2, y: r.y + r.height / 2 };
+  });
+  const before = await center();
+  await page.mouse.move(before.x, before.y); await wait(400);
+  const after = await center();
+  check("hovering a pin keeps it in place", Math.hypot(after.x - before.x, after.y - before.y) < 1, JSON.stringify({ before, after }));
   await page.click(".map-pin:not(.map-pin-area)"); await wait(500);
   check("tapping a pin opens its card with View set", (await page.$eval(".leaflet-popup .pill", (a) => a.getAttribute("href"))) === "/sets/coastline");
   check("the same sets are listed under the map", (await page.$$("#map-list li")).length === 2);

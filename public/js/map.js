@@ -58,9 +58,13 @@ import { t } from "./text.js";
     L.marker(where, {
       title: pin.area ? `${pin.title} (${t("map.rough")})` : pin.title,
       alt: pin.title,
+      // The frame sits inside Leaflet's box: Leaflet positions that box with a
+      // transform, and the hover scale on the box itself would scale its
+      // position too (the pin jumped away under the mouse).
       icon: L.divIcon({
-        className: pin.area ? "map-pin map-pin-area" : "map-pin",
-        html: pin.cover ? `<img src="/img/${encodeURI(pin.cover)}" alt="">` : "",
+        className: "map-pin-box",
+        html: `<span class="${pin.area ? "map-pin map-pin-area" : "map-pin"}">` +
+          (pin.cover ? `<img src="/img/${encodeURI(pin.cover)}" alt="">` : "") + "</span>",
         iconSize: [48, 48],
         iconAnchor: [24, 24],
         popupAnchor: [0, -26],
