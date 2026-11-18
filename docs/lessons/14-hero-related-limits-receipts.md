@@ -103,20 +103,39 @@ activity log, now with the place.
 
 ### Optional: an email for downloads
 
-If you also want an email:
+If you also want an email, it comes from `receipts@winstonlens.com` through
+Cloudflare Email, free, because your domain already uses Cloudflare Email
+Routing:
 
-1. Make a free account at https://resend.com (3,000 emails a month free).
-2. Create an API key there.
+1. In Cloudflare, **Email → Email Routing → Destination addresses**: check
+   that the address you want the emails at is listed as **Verified**.
+   (Sending to a verified destination is free on every plan.)
+2. **My Profile → API Tokens → Create Token → Custom token**: give it the
+   account permission for **Email Sending** (Edit or Send), for your account
+   only. Copy the token.
 3. Store two secrets on Cloudflare:
    ```
-   npx wrangler pages secret put RESEND_API_KEY
+   npx wrangler pages secret put EMAIL_API_TOKEN
    npx wrangler pages secret put RECEIPT_EMAIL
    ```
-   `RECEIPT_EMAIL` must be the email address of your Resend account (on the
-   free plan without your own domain, Resend only sends to that address). To
-   send anywhere else, verify your domain in Resend and also store
-   `RECEIPT_FROM`, like `Photo downloads <downloads@winstonlens.com>`.
+   (the token, then the verified address). Your account id is already in
+   `wrangler.toml` (`CLOUDFLARE_ACCOUNT_ID`).
 4. Deploy again.
+
+### Optional: a daily update
+
+Every morning (15:00 UTC, 8 am in Alberta in winter) you also get one email
+about the last 24 hours: downloads by set and code, refused downloads, new
+likes by set, license codes, uploads, publishing, and logins (failed logins
+show in the subject). A GitHub Action asks the site to send it, with a shared
+secret. Set it on both sides with one line (it never shows the value):
+
+```
+S=$(openssl rand -hex 32); printf %s "$S" | npx wrangler pages secret put REPORT_SECRET --project-name winstonlens; printf %s "$S" | gh secret set REPORT_SECRET
+```
+
+Change the time in `.github/workflows/daily-report.yml`; **Run workflow** on
+the GitHub Actions tab sends one right away.
 
 Downloads are **grouped**: one email per batch, not one per photo. Each
 download waits 25 seconds; if no other download with the same code follows,

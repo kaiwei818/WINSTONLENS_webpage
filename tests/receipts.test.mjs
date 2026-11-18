@@ -9,8 +9,8 @@ import { testDb } from "./helpers/d1.mjs";
 const license = { id: 7, code: "WL-AAAA-BBBB", label: "Jane" };
 const photo = (id) => ({ id, set_id: 1, title: "Taiwan barbet", original_name: `IMG_${id}.jpg` });
 
-function setup({ resendOk = true } = {}) {
-  const env = { DB: testDb(), RESEND_API_KEY: "key", RECEIPT_EMAIL: "me@example.com" };
+function setup({ accepted = true } = {}) {
+  const env = { DB: testDb(), EMAIL_API_TOKEN: "token", RECEIPT_EMAIL: "me@example.com", CLOUDFLARE_ACCOUNT_ID: "acct" };
   const background = [];
   const context = {
     env,
@@ -18,9 +18,9 @@ function setup({ resendOk = true } = {}) {
     waitUntil: (promise) => background.push(promise),
   };
   const sent = [];
-  mock.method(globalThis, "fetch", async (_url, init) => {
-    sent.push(JSON.parse(init.body));
-    return new Response("", { status: resendOk ? 200 : 500 });
+  mock.method(globalThis, "fetch", async (url, init) => {
+    sent.push({ url, auth: init.headers.Authorization, ...JSON.parse(init.body) });
+    return new Response("", { status: accepted ? 200 : 403 });
   });
   const quiet = async () => {
     mock.timers.tick(QUIET_SECONDS * 1000);
@@ -38,6 +38,10 @@ test("a Download all of three photos sends one email listing all three", async (
   await quiet();
 
   assert.equal(sent.length, 1);
+  assert.equal(sent[0].url, "https://api.cloudflare.com/client/v4/accounts/acct/email/sending/send");
+  assert.equal(sent[0].auth, "Bearer token");
+  assert.deepEqual(sent[0].from, { address: "receipts@winstonlens.com", name: "winstonlens downloads" });
+  assert.equal(sent[0].to, "me@example.com");
   assert.equal(sent[0].subject, "Download: Taiwan barbet (WL-AAAA-BBBB (Jane)), 3 photos");
   assert.match(sent[0].text, /3 clean photos/);
   assert.match(sent[0].text, /Where: {2}Taipei, Taipei City, TW/);
@@ -54,7 +58,7 @@ test("a Download all of three photos sends one email listing all three", async (
 test("a failed email goes into the next one instead", async (t) => {
   mock.timers.enable({ apis: ["setTimeout"] });
   t.after(() => { mock.timers.reset(); mock.restoreAll(); });
-  const { env, context, quiet } = setup({ resendOk: false });
+  const { env, context, quiet } = setup({ accepted: false });
 
   await recordReceipt(context, { license, photo: photo(1), viaAll: false });
   await quiet();
@@ -65,7 +69,7 @@ test("a failed email goes into the next one instead", async (t) => {
 test("without the email secrets, receipts are saved and nothing is sent", async (t) => {
   t.after(() => mock.restoreAll());
   const { env, context, sent } = setup();
-  delete env.RESEND_API_KEY;
+  delete env.EMAIL_API_TOKEN;
   await recordReceipt(context, { license, photo: photo(1), viaAll: false });
   assert.equal(sent.length, 0);
   assert.equal(env.DB.sqlite.prepare("SELECT emailed FROM download_receipts").get().emailed, 1);
