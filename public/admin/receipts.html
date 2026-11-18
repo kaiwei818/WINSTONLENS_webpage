@@ -26,7 +26,8 @@
     <h1>Download receipts</h1>
     <p class="muted">
       One line for every clean photo downloaded with a license code: when, which code, which set and photo,
-      and roughly where from (city and region from the visitor's internet connection; the address itself is never kept).
+      roughly where from (city, region and postal area from the visitor's internet connection), their network and
+      device. The IP address itself is never kept.
       Times are in your own time zone.
     </p>
     <div class="actions">
@@ -35,7 +36,7 @@
       <a class="button-link button-secondary" id="csv-link" href="/api/admin/receipts?format=csv">Export as spreadsheet (.csv)</a>
     </div>
     <table class="activity-table">
-      <thead><tr><th scope="col">When</th><th scope="col">Code</th><th scope="col">Set and photo</th><th scope="col">Where</th></tr></thead>
+      <thead><tr><th scope="col">When</th><th scope="col">Code</th><th scope="col">Set and photo</th><th scope="col">Where</th><th scope="col">Network and device</th></tr></thead>
       <tbody id="lines"></tbody>
     </table>
     <p class="status" id="status">Loading...</p>

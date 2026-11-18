@@ -55,7 +55,8 @@ function row(r) {
     cell(when),
     cell(r.code_label ? `${r.code} (${r.code_label})` : r.code),
     cell(`"${r.set_title}", photo ${photo}`),
-    cell([r.city, r.region, r.country].filter(Boolean).join(", ") || "unknown", "muted"),
+    cell([r.city, r.region, r.postal_code, r.country].filter(Boolean).join(", ") || "unknown", "muted"),
+    cell([r.network, r.device].filter(Boolean).join(" · ") || "unknown", "muted"),
   );
   return tr;
 }

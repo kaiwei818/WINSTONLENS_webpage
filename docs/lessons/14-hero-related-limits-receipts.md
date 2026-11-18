@@ -91,8 +91,12 @@ See download receipts** (`/admin/receipts`). Each line has:
 - when (in your time zone)
 - the code and its label ("WL-7K3F-Q9XM (Jane)")
 - the set and photo (with the original file name), and whether it was part of Download all
-- roughly where from: city, region, and country, which Cloudflare works out
-  from the visitor's internet connection. The IP address itself is never stored.
+- roughly where from: city, region, postal area and country, which Cloudflare
+  works out from the visitor's internet connection. The IP address itself is
+  never stored.
+- their network ("TELUS Communications"; a data center or cloud company often
+  means a script or a shared code) and device ("iPhone, Safari"), plus their
+  time zone, so the email can show the time on their clock
 
 You can show one code at a time, and **Export as spreadsheet (.csv)** opens in
 Excel, Numbers, or Google Sheets.
