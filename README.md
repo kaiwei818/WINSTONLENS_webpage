@@ -124,6 +124,7 @@ deploy; every page picks them up.
 | `EMAIL_API_TOKEN` | `wrangler pages secret put` | No | Only for download receipt emails (lesson 14): a Cloudflare API token that can send email (Email Sending). |
 | `RECEIPT_EMAIL` | same | No | Where download receipt emails go: a verified destination in Cloudflare Email Routing (free). One email per batch of downloads, from receipts@winstonlens.com. |
 | `CLOUDFLARE_ACCOUNT_ID` | `wrangler.toml` `[vars]` | No | Your Cloudflare account id, for those emails. Not secret. |
+| `REPORT_SECRET` | `wrangler pages secret put` **and** a GitHub Actions secret, same value | No | Lets the daily update workflow (`.github/workflows/daily-report.yml`, 15:00 UTC) ask the site to send the daily email. |
 | `ALLOWED_HOSTS` | `[vars]` in `wrangler.toml` | No | Extra domain names allowed to show your images, comma separated. Only needed when the site has more than one domain. |
 | `DB` | `wrangler.toml` | Yes | The D1 database (`database_id` from step 2). |
 | `BUCKET` | `wrangler.toml` | Yes | The R2 bucket for images. |

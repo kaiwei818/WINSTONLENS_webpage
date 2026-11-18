@@ -122,6 +122,21 @@ Routing:
    `wrangler.toml` (`CLOUDFLARE_ACCOUNT_ID`).
 4. Deploy again.
 
+### Optional: a daily update
+
+Every morning (15:00 UTC, 8 am in Alberta in winter) you also get one email
+about the last 24 hours: downloads by set and code, refused downloads, new
+likes by set, license codes, uploads, publishing, and logins (failed logins
+show in the subject). A GitHub Action asks the site to send it, with a shared
+secret. Set it on both sides with one line (it never shows the value):
+
+```
+S=$(openssl rand -hex 32); printf %s "$S" | npx wrangler pages secret put REPORT_SECRET --project-name winstonlens; printf %s "$S" | gh secret set REPORT_SECRET
+```
+
+Change the time in `.github/workflows/daily-report.yml`; **Run workflow** on
+the GitHub Actions tab sends one right away.
+
 Downloads are **grouped**: one email per batch, not one per photo. Each
 download waits 25 seconds; if no other download with the same code follows,
 one email goes out listing every photo since the last email: the code, set,

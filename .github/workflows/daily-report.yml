@@ -1,0 +1,23 @@
+# Sends the daily update email every morning (functions/api/daily-report.js).
+# 15:00 UTC is 8 am in Alberta in winter (9 am in summer). To change the time,
+# edit the cron line (minute hour, in UTC). "Run workflow" on the Actions tab
+# sends one now.
+#
+# Needs the secret REPORT_SECRET, with the same value on GitHub (Settings,
+# Secrets and variables, Actions) and on Cloudflare (wrangler pages secret put).
+# GitHub pauses scheduled runs in a repository with no activity for 60 days.
+
+name: Daily update email
+
+on:
+  schedule:
+    - cron: "0 15 * * *"
+  workflow_dispatch:
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    steps:
+      - run: >
+          curl --fail-with-body --silent --show-error -X POST https://winstonlens.com/api/daily-report
+          -H "Authorization: Bearer ${{ secrets.REPORT_SECRET }}"
