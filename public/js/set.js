@@ -5,6 +5,7 @@
 // hearts, and handles license codes.
 
 import { createLightbox } from "./lightbox.js";
+import { numberSearch } from "./number-search.js";
 import { sortTags, tagList } from "./tags.js";
 import { t } from "./text.js";
 
@@ -63,7 +64,6 @@ const lightbox = createLightbox(photos, {
 });
 
 const search = document.getElementById("number-search");
-const options = document.getElementById("number-options");
 const clearButton = document.getElementById("number-clear");
 const favoritesButton = document.getElementById("favorites-toggle");
 
@@ -100,84 +100,22 @@ function applyFilter(value, { fade = true } = {}) {
   renderFilter();
 }
 
-// ---------- The suggestions (a combobox: type, or pick with the arrow keys) ----------
-let active = -1;
-function showOptions() {
-  const typed = search.value;
-  const found = numbers.filter((n) => n.startsWith(typed));
-  active = found.indexOf(typed);
-  options.replaceChildren(...found.map((n, i) => {
-    const li = document.createElement("li");
-    li.id = `number-option-${n}`;
-    li.setAttribute("role", "option");
-    li.setAttribute("aria-selected", String(i === active));
-    li.dataset.number = n;
-    const label = document.createElement("span");
-    label.textContent = `#${n}`;
-    const count = document.createElement("span");
-    count.className = "number-count";
-    count.textContent = t("photos", { n: countOf(n) });
-    li.append(label, count);
-    // pointerdown, not click: picks before the box loses focus and the list closes.
-    li.addEventListener("pointerdown", (event) => {
-      event.preventDefault();
-      choose(n);
-    });
-    return li;
-  }));
-  const open = document.activeElement === search && found.length > 0;
-  options.hidden = !open;
-  search.setAttribute("aria-expanded", String(open));
-  search.setAttribute("aria-activedescendant", open && active >= 0 ? `number-option-${found[active]}` : "");
-  if (typed && !found.length) document.getElementById("photo-filter-status").textContent = t("find.none", { number: typed });
-}
-function closeOptions() {
-  options.hidden = true;
-  search.setAttribute("aria-expanded", "false");
-  search.removeAttribute("aria-activedescendant");
-}
-function choose(n) {
-  applyFilter(n);
-  closeOptions();
-  search.blur(); // on phones: put the keyboard away, so the photos show
-}
-search.addEventListener("focus", showOptions);
-search.addEventListener("blur", closeOptions);
-search.addEventListener("input", () => {
-  search.value = search.value.replace(/\D/g, "");
-  // The grid follows as soon as the typed number is one in this set.
-  if (!search.value) applyFilter("");
-  else if (numbers.includes(search.value)) applyFilter(search.value);
-  else document.getElementById("photo-filter-status").textContent = "";
-  clearButton.hidden = !search.value;
-  showOptions();
-});
-search.addEventListener("keydown", (event) => {
-  const items = [...options.children];
-  if (event.key === "ArrowDown" || event.key === "ArrowUp") {
-    event.preventDefault();
-    if (options.hidden) return showOptions();
-    if (!items.length) return;
-    active = (active + (event.key === "ArrowDown" ? 1 : -1) + items.length) % items.length;
-    items.forEach((li, i) => li.setAttribute("aria-selected", String(i === active)));
-    search.setAttribute("aria-activedescendant", items[active].id);
-    items[active].scrollIntoView({ block: "nearest" });
-  } else if (event.key === "Enter") {
-    event.preventDefault();
-    const pick = items[active]?.dataset.number || (numbers.includes(search.value) ? search.value : "");
-    if (pick) choose(pick);
-  } else if (event.key === "Escape" && !options.hidden) {
-    event.preventDefault();
-    closeOptions();
-  }
-});
-clearButton.addEventListener("click", () => {
-  applyFilter("");
-  search.focus();
+// The number box and its suggestions (js/number-search.js).
+const status = document.getElementById("photo-filter-status");
+numberSearch({
+  numbers,
+  countOf,
+  onPick: applyFilter,
+  say: (text) => (status.textContent = text),
+  none: "find.none",
 });
 favoritesButton.addEventListener("click", () => applyFilter(filter === FAVORITES ? "" : FAVORITES));
 
-const wanted = (new URLSearchParams(location.search).get("number") || "").replace(/\D/g, "");
+const params = new URLSearchParams(location.search);
+// Read before the filter rewrites the address: the Sports page links to
+// ?number=12&photo=3, which opens photo 3 with only #12's photos.
+const shared = Number(params.get("photo")) - 1;
+const wanted = (params.get("number") || "").replace(/\D/g, "");
 if (numbers.includes(wanted)) applyFilter(wanted, { fade: false });
 else renderFilter();
 
@@ -389,10 +327,9 @@ for (const button of thumbs) {
 // viewer and stays on the set, instead of leaving the site.
 // After a reload with a photo open, the history entry is already the viewer's
 // own: reopen it without adding another.
-const shared = Number(new URLSearchParams(location.search).get("photo")) - 1;
 if (photos[shared]) {
   const reloaded = Boolean(history.state?.lightbox);
-  if (!reloaded) history.replaceState(null, "", location.pathname);
+  if (!reloaded) history.replaceState(null, "", location.pathname + (filter && filter !== FAVORITES ? `?number=${filter}` : ""));
   lightbox.open(shared, thumbs[shared], { instant: true, push: !reloaded });
 }
 

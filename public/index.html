@@ -62,6 +62,26 @@
       <!-- Category filter buttons, filled in by functions/index.js (hidden when there are none). -->
       <nav class="category-nav" id="category-nav" aria-label="Categories" data-i18n-attr="aria-label=home.categories"></nav>
     </div>
+    <!-- Sports page only: find a jersey number in every sports set at once
+         (js/sports-search.js; functions/index.js removes it elsewhere). -->
+    <div class="photo-filter" id="sports-search" hidden>
+      <div class="number-search">
+        <label class="photo-filter-label" for="number-search" data-i18n="find.allLabel">Find my photos in every sports set</label>
+        <div class="number-field">
+          <span class="number-hash" aria-hidden="true">#</span>
+          <input id="number-search" type="text" inputmode="numeric" maxlength="3" autocomplete="off" placeholder="Number" data-i18n-attr="placeholder=find.placeholder"
+                 role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="number-options">
+          <button type="button" class="number-clear" id="number-clear" aria-label="Clear, show all sets" data-i18n-attr="aria-label=find.clearAll" hidden>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"/></svg>
+          </button>
+          <ul class="number-options" id="number-options" role="listbox" aria-label="Numbers in the sports sets" data-i18n-attr="aria-label=find.allOptions" hidden></ul>
+        </div>
+      </div>
+      <p class="photo-filter-status" id="photo-filter-status" role="status"></p>
+    </div>
+    <div class="number-results" id="number-results" hidden></div>
+    <script type="application/json" id="sports-data"></script>
+    <script src="/js/sports-search.js" type="module" data-sports></script>
     <!-- functions/index.js fills this list with one card per published set. -->
     <ul class="set-grid" id="set-grid"></ul>
     <p class="status" id="status"></p>

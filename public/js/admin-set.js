@@ -20,6 +20,7 @@ import { readCaptureKey } from "./exif.js";
 import { formatPlace, parsePlace } from "./geo.js";
 import { makePlaceholder } from "./placeholder.js";
 import { currentIds, makeSortable, moveItem } from "./sortable.js";
+import { SPORTS } from "./tags.js";
 
 let parallel = 2;
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
@@ -78,6 +79,16 @@ async function loadCategories() {
     label.append(box, ` ${category.name}`);
     return label;
   }));
+  sportsId = categories.find((c) => c.slug === SPORTS)?.id;
+  showNumbers();
+}
+
+// Jersey numbers are only for Sports sets: the boxes for them (on each photo
+// card and in Quick look) show only while the set is in Sports. Without a
+// Sports category, they always show.
+let sportsId;
+function showNumbers() {
+  document.body.toggleAttribute("data-no-numbers", sportsId !== undefined && !set.category_ids.includes(sportsId));
 }
 
 // ---------- Hero: featured, and seasonal months ----------
@@ -166,6 +177,7 @@ async function saveCategories() {
   });
   if (!response.ok) return alert("Could not save the categories. Please try again.");
   set.category_ids = ids;
+  showNumbers();
   flash($("details-status"), "Saved");
 }
 
@@ -460,6 +472,7 @@ function createPhotoCard(photo, index) {
   }
 
   const numbers = textField(photo, "tags", "Jersey numbers (visitors can search them)", "e.g. 12 7");
+  numbers.classList.add("numbers-field"); // only for Sports sets (showNumbers)
   const caption = textField(photo, "caption", "Caption (shown in the viewer)");
   const camera = textField(photo, "camera_info", "Camera details (shown in the viewer; clear to hide)");
   const alt = textField(photo, "alt_text", "Description for blind visitors (alt text)",

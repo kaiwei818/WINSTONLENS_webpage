@@ -11,9 +11,10 @@ import { pickHero } from "../lib/hero.js";
 import { withPageMeta } from "../lib/meta.js";
 import { notFoundPage } from "../lib/not-found.js";
 import { homeData } from "../lib/structured.js";
-import { categoriesInUse, publishedSets } from "../lib/queries.js";
+import { categoriesInUse, publishedSets, taggedPhotos } from "../lib/queries.js";
 import { getSettings } from "../lib/settings.js";
-import { escapeHtml, heroHtml, setCardHtml } from "../lib/render.js";
+import { escapeHtml, heroHtml, jsonForPage, setCardHtml } from "../lib/render.js";
+import { SPORTS } from "../public/js/tags.js";
 import { SITE } from "../lib/site.js";
 import { joinList, langOf, localized, translator } from "../lib/i18n.js";
 
@@ -25,8 +26,9 @@ export async function onRequestGet({ request, env }) {
   // ?category=landscape shows only that category. Plain links, so the filter
   // works without JavaScript and Google can follow each category page.
   const category = (url.searchParams.get("category") || "").slice(0, 60);
-  const [sets, categories, { about_instagram }] = await Promise.all([
+  const [sets, categories, { about_instagram }, tagged] = await Promise.all([
     publishedSets(env, category), categoriesInUse(env), getSettings(env, ["about_instagram"]),
+    category === SPORTS ? taggedPhotos(env, SPORTS) : [],
   ]);
   const current = categories.find((c) => c.slug === category);
   // A category that does not exist (a typo, or one you deleted), or that has
@@ -61,6 +63,15 @@ export async function onRequestGet({ request, env }) {
         else el.remove();
       },
     })
+    // The Sports page: one number search over all its sets (js/sports-search.js).
+    // Every other page drops it.
+    .on("#sports-data", {
+      element(el) {
+        if (tagged.length) el.setInnerContent(jsonForPage(sportsData(tagged, lang)), { html: true });
+        else el.remove();
+      },
+    })
+    .on("#sports-search, #number-results, script[data-sports]", { element(el) { if (!tagged.length) el.remove(); } })
     .on("#status", {
       element(el) {
         if (sets.length) el.remove();
@@ -85,6 +96,16 @@ export async function onRequestGet({ request, env }) {
     imageAlt: localized((hero?.set || sets[0])?.title, (hero?.set || sets[0])?.title_zh, lang) || "",
     structuredData: current ? null : homeData(url.origin, about_instagram),
   });
+}
+
+// The tagged photos, grouped by set: [{ slug, title, photos: [{ n, image, ... }] }].
+function sportsData(rows, lang) {
+  const sets = new Map();
+  for (const row of rows) {
+    if (!sets.has(row.slug)) sets.set(row.slug, { slug: row.slug, title: localized(row.title, row.title_zh, lang), photos: [] });
+    sets.get(row.slug).photos.push({ n: row.n, image: row.image_key, width: row.width, height: row.height, alt: row.alt_text, tags: row.tags });
+  }
+  return [...sets.values()];
 }
 
 // The cover's thumbnail is 1200 px on its long edge (or the photo's own size).
