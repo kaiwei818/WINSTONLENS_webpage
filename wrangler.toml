@@ -23,7 +23,9 @@ migrations_dir = "migrations"
 binding = "BUCKET"
 bucket_name = "portfolio-images"
 
-# Optional settings that are not secret. Uncomment to use.
+# Settings that are not secret.
+[vars]
+# Your Cloudflare account, for download receipt emails (lib/receipts.js).
+CLOUDFLARE_ACCOUNT_ID = "49e64f383bac369356549b465f94b7e5"
 # ALLOWED_HOSTS: extra domain names allowed to show your images (see functions/img/[[key]].js).
-# [vars]
 # ALLOWED_HOSTS = "example.com,www.example.com"
