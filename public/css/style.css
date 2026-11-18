@@ -1173,6 +1173,30 @@ a.menu-action { text-decoration: none; } /* 中文 / English is a link, the othe
 .map-pin img { display: block; width: 100%; height: 100%; object-fit: cover; }
 @media (hover: hover) { .map-pin:hover { scale: 1.08; } }
 .map-pin-area { border-style: dashed; }
+/* Several sets in one place: a count on the pin, and a scrollable list. */
+.map-pin-count {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 11px;
+  background: var(--color-ink);
+  color: var(--color-paper);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 22px;
+  text-align: center;
+  pointer-events: none;
+}
+.map-choices { max-height: 264px; margin: 0; padding: 0; overflow-y: auto; overscroll-behavior: contain; list-style: none; }
+.map-choices li + li { border-top: 1px solid var(--color-rule); }
+.map-choice { display: grid; grid-template-columns: 56px 1fr; column-gap: var(--space-xs); align-items: center; padding: var(--space-2xs) 0; color: inherit; text-decoration: none; }
+.map-choice img { grid-row: span 2; width: 56px; height: 56px; object-fit: cover; }
+.map-choice-title { font-weight: 600; }
+.map-choice-facts { color: var(--color-muted); font-size: var(--text-sm); }
+@media (hover: hover) { .map-choice:hover .map-choice-title { text-decoration: underline; } }
 .map-area { fill: var(--color-ink); fill-opacity: 0.15; stroke: var(--color-ink); stroke-width: 1.5; }
 .map-card { display: grid; gap: var(--space-2xs); }
 .map-card img { width: 100%; aspect-ratio: 3 / 2; object-fit: cover; }
