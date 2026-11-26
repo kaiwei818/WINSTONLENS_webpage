@@ -104,12 +104,15 @@ export async function onRequestGet({ request, env, params }) {
     thumb_key: set.cover_thumb_key, width: set.cover_width, height: set.cover_height, alt_text: "",
   };
 
+  // /sets/osprey/ and /sets/osprey are the same page: the main address has no
+  // slash at the end (like /about), so Google does not see two pages.
+  const path = url.pathname.replace(/\/+$/, "");
   return withPageMeta(filled, {
     title,
     shareTitle: shared ? t("set.photoTitle", { title, n: photoNumber }) : "",
     description: shared ? shared.caption || shared.alt_text || description : description || t("site.description"),
-    url: url.origin + url.pathname,
-    shareUrl: shared ? `${url.origin}${url.pathname}?photo=${photoNumber}` : "",
+    url: url.origin + path,
+    shareUrl: shared ? `${url.origin}${path}?photo=${photoNumber}` : "",
     // The 1200 px thumbnail, not the 3000 px version: link previews are small,
     // and some apps give up on large images.
     image: cover.thumb_key ? `${url.origin}/img/${cover.thumb_key}` : "",

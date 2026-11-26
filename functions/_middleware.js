@@ -119,6 +119,7 @@ export async function onRequest({ request, env, next }) {
       .on(".header-buttons", {
         element(el) {
           el.prepend(`<a class="lang-switch" href="${escapeHtml(chrome.langHref)}" lang="${lang === "zh" ? "en" : "zh-Hant-TW"}" ` +
+            `data-lang-choice="${lang === "zh" ? "en" : "zh"}" ` +
             `aria-label="${t("lang.switchLabel")}">${t("lang.switch")}</a>`, { html: true });
         },
       })
@@ -185,9 +186,14 @@ export async function onRequest({ request, env, next }) {
 async function loadChrome(env, url, lang) {
   const category = url.searchParams.get("category") || "";
   const nav = navHtml({ path: url.pathname, category, lang });
-  // This page's address with the other language chosen (anything after "?" kept).
+  // This page's address in the other language (anything else after "?" kept).
+  // English is the plain address, the one Google indexes (hreflang="en"), so
+  // the English link has no ?lang=en; ?lang=en would be a second address for
+  // the same page. js/menu.js saves the choice (cookie "lang") on the click,
+  // otherwise a visitor who chose 中文 before would get Chinese again there.
   const other = new URL(url);
-  other.searchParams.set("lang", lang === "zh" ? "en" : "zh");
+  if (lang === "zh") other.searchParams.delete("lang");
+  else other.searchParams.set("lang", "zh");
   const langHref = other.pathname + other.search;
   try {
     const [{ results: sets }, categories, about] = await Promise.all([

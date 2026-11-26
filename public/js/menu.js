@@ -63,4 +63,16 @@
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", setup);
   else setup();
+
+  // The English / 中文 links (header and menu, data-lang-choice). The English
+  // one goes to the plain address, which shows the language saved in the
+  // "lang" cookie, so save the new choice first (the same cookie the server
+  // sets for ?lang=zh, see functions/_middleware.js). Speculation rules skip
+  // these links, so no page is loaded early with the old choice.
+  document.addEventListener("click", (event) => {
+    const link = event.target.closest?.("a[data-lang-choice]");
+    if (!link) return;
+    const secure = location.protocol === "https:" ? "; Secure" : "";
+    document.cookie = `lang=${link.dataset.langChoice}; Path=/; Max-Age=31536000; SameSite=Lax${secure}`;
+  });
 })();

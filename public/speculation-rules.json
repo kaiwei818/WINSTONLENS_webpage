@@ -7,7 +7,7 @@
           { "not": { "href_matches": "/admin*" } },
           { "not": { "href_matches": "/api/*" } },
           { "not": { "href_matches": "/img/*" } },
-          { "not": { "selector_matches": "[download], [target=_blank]" } }
+          { "not": { "selector_matches": "[download], [target=_blank], [data-lang-choice]" } }
         ]
       },
       "eagerness": "moderate"
